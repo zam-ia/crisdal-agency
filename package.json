@@ -1,41 +1,35 @@
-import { defineConfig, globalIgnores } from "eslint/config";
-import eslint from "@eslint/js";
-import next from "@next/eslint-plugin-next";
-import jsxA11y from "eslint-plugin-jsx-a11y";
-import react from "eslint-plugin-react";
-import reactHooks from "eslint-plugin-react-hooks";
-import globals from "globals";
-import tseslint from "typescript-eslint";
-
-const eslintConfig = defineConfig([
-  globalIgnores([
-    ".next/**",
-    "dist/**",
-    "out/**",
-    "build/**",
-    "next-env.d.ts",
-  ]),
-  eslint.configs.recommended,
-  ...tseslint.configs.recommended,
-  react.configs.flat.recommended,
-  react.configs.flat["jsx-runtime"],
-  reactHooks.configs.flat["recommended-latest"],
-  jsxA11y.flatConfigs.recommended,
-  next.configs["core-web-vitals"],
-  {
-    languageOptions: {
-      globals: {
-        ...globals.browser,
-        ...globals.node,
-        ...globals.serviceworker,
-      },
-    },
-    settings: {
-      react: {
-        version: "detect",
-      },
-    },
+{
+  "name": "cartalista-24h-crisdal",
+  "version": "1.0.0",
+  "private": true,
+  "engines": {
+    "node": ">=20.9.0"
   },
-]);
-
-export default eslintConfig;
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "next": "16.3.0",
+    "react": "19.2.6",
+    "react-dom": "19.2.6"
+  },
+  "devDependencies": {
+    "@eslint/js": "9.39.4",
+    "@next/eslint-plugin-next": "16.3.0",
+    "@tailwindcss/postcss": "4.2.1",
+    "@types/node": "22.19.19",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "eslint": "9.39.4",
+    "eslint-plugin-jsx-a11y": "6.10.2",
+    "eslint-plugin-react": "7.37.5",
+    "eslint-plugin-react-hooks": "7.1.1",
+    "globals": "16.4.0",
+    "tailwindcss": "4.2.1",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.59.3"
+  }
+}
