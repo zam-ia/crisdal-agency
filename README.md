@@ -1,79 +1,65 @@
-# CartaLista 24h — Crisdal Agency
+# Impulso Local · Crisdal Agency
 
-Landing comercial lista para GitHub y Vercel.
+Landing de campaña en Next.js 16, React 19 y TypeScript. Una sola oferta: S/380, pago único por el servicio. La inversión en Meta Ads se paga aparte. Todos los CTA abren el WhatsApp +51 992 566 725.
 
-## Datos confirmados
+## Desarrollo
 
-- WhatsApp: `+55 19 8708-8359`
-- Enlace de contacto: `https://wa.me/551987088359`
-- Oferta: carta digital con QR desde S/59
-- Mercado inicial: restaurantes y pollerías de Huancayo
-
-## Probar en una computadora
-
-Instala Node.js 20.9 o superior y ejecuta:
-
-```bash
-npm install
+```sh
+npm ci
 npm run dev
+npm run lint
+npm run build
+npm run start
 ```
 
-Luego abre `http://localhost:3000`.
+## Contenido y decisiones
 
-## Subir a GitHub desde la web
+- Negro, dorado y tipografía condensada para mantener continuidad con el anuncio suministrado.
+- Hero con precio y CTA; botón fijo en móvil; entregables con beneficios; condiciones visibles; cinco preguntas frecuentes.
+- Sin menú de navegación, formularios redundantes, escasez inventada, testimonios ficticios ni promesas de ventas garantizadas.
+- La duración de campaña y del acompañamiento no fue proporcionada. Se confirma con el cliente antes del pago; no se promete una duración inventada.
+- Fotografía de la asesora adaptada del anuncio mediante edición asistida por IA. El anuncio original se conserva como muestra identificada del trabajo de la propia agencia, no como testimonio.
+- Imágenes WebP, tamaños responsivos, fuente local con licencia OFL y movimiento reducido para usuarios que lo prefieren.
+- /gracias orienta a enviar el mensaje; no afirma que una consulta haya sido recibida. Abre WhatsApp en otra pestaña y conserva esta pantalla de ayuda en la pestaña de origen.
 
-1. En GitHub pulsa **New repository**.
-2. Nómbralo `cartalista-24h` y elige **Private** o **Public**.
-3. Crea el repositorio sin README, licencia ni `.gitignore` adicionales.
-4. Descomprime el ZIP de entrega en tu computadora.
-5. En el repositorio vacío pulsa **uploading an existing file**.
-6. Arrastra el contenido interno de la carpeta `CartaLista-24h-Vercel`.
-7. Escribe `Primera versión CartaLista 24h` y pulsa **Commit changes**.
+## Meta Pixel
 
-Si GitHub no permite arrastrar carpetas correctamente, usa GitHub Desktop o los comandos indicados más abajo.
+ID público: `3971063776548749`, configurado en `app/lib/config.ts`.
 
-## Publicar en Vercel desde GitHub
+- `PageView`: carga inicial y cambios de ruta.
+- `Lead`: primer clic en cualquier CTA de WhatsApp de la sesión. Es una intención de contacto, no prueba de mensaje enviado, venta o ingreso.
+- `content_name=Impulso Local`, `content_category=whatsapp_click`, posición del botón y UTMs.
+- No se asigna S/380 como valor de venta a los clics.
+- Visitar o recargar /gracias no dispara Lead. Volver a pulsar WhatsApp no lo duplica cuando el navegador permite sessionStorage.
+- Las UTMs se conservan en sessionStorage durante la sesión. No se guardan teléfonos ni contenido de conversaciones.
+- La integración tiene el fallback noscript suministrado por Meta. Se documenta la medición en el pie de página.
 
-1. Entra a `https://vercel.com/new` e inicia sesión.
-2. Conecta tu cuenta de GitHub cuando Vercel lo solicite.
-3. Busca el repositorio `cartalista-24h` y pulsa **Import**.
-4. Vercel debe detectar **Next.js** automáticamente.
-5. Deja vacías las variables de entorno: esta versión no necesita ninguna.
-6. Pulsa **Deploy**.
-7. Al terminar, abre el dominio que Vercel entrega y prueba todos los botones de WhatsApp desde un celular.
+Ejemplo de enlace para anuncios:
 
-Cada cambio posterior enviado a la rama principal de GitHub generará una nueva versión en Vercel.
+`https://crisdal-agency.vercel.app/?utm_source=meta&utm_medium=paid_social&utm_campaign=impulso_local&utm_content=plan380_v1`
 
-## Subir a GitHub con GitHub Desktop
+## Conversions API (preparada, pendiente de credenciales)
 
-1. Descomprime el ZIP.
-2. Abre GitHub Desktop y elige **Add an Existing Repository from your Hard Drive**.
-3. Selecciona la carpeta `CartaLista-24h-Vercel`.
-4. Si indica que aún no es un repositorio, acepta **create a repository**.
-5. Pulsa **Publish repository**.
+El píxel funciona sin CAPI. Para habilitar el envío adicional desde el servidor, agregar en Vercel:
 
-## Subir a GitHub con terminal
+- `META_CAPI_ACCESS_TOKEN`: token de Conversions API. Es privado; nunca usar NEXT_PUBLIC_ ni incluirlo en Git.
+- `META_GRAPH_API_VERSION`: versión de Graph API vigente y compatible con la cuenta (formato vXX.0).
+- `META_TEST_EVENT_CODE`: opcional, para la herramienta Prueba de eventos; retirarlo para campañas reales.
 
-```bash
-git init
-git add .
-git commit -m "Primera versión CartaLista 24h"
-git branch -M main
-git remote add origin https://github.com/TU-USUARIO/cartalista-24h.git
-git push -u origin main
-```
+El servidor envía el mismo `event_name=Lead` y `event_id` que el píxel, para deduplicación de Meta. Rechaza orígenes desconocidos, tipos y tamaños de datos inválidos; acota los campos y limita el tiempo de espera. Los errores de medición no bloquean el enlace a WhatsApp. Sin credenciales responde `202 not_configured`, nunca finge envío.
 
-## Archivos principales
+Verificar la recepción real y la deduplicación en el Administrador de eventos de Meta al activar CAPI. La prueba local usa interceptación de Meta para no contaminar las campañas con clics de QA. Un anuncio bloqueado o un bloqueador de rastreo puede impedir la medición del navegador.
 
-- `app/page.tsx`: contenido y botones de WhatsApp.
-- `app/globals.css`: diseño responsive.
-- `app/layout.tsx`: SEO e imagen social.
-- `public/brand/`: recursos de marca y fotografía.
-- `public/og.png`: imagen al compartir el enlace.
+## Referencias de competencia consultadas
 
-## Mejoras recomendadas
+Revisión de oferta y contenido, no auditoría de tasas de conversión. Consultadas el 3 de septiembre de 2026:
 
-1. Conectar un dominio propio.
-2. Instalar Meta Pixel y medir los eventos `ViewContent` y `Contact`.
-3. Reemplazar “Sazón Wanka”, marcado como demo ficticia, por el primer cliente real.
-4. Incorporar testimonios únicamente cuando sean verificables.
+- [Rocoto Digital](https://www.rocotodigital.com/): plan Emprende S/499 al mes, 4 piezas gráficas, 2 videos y 2 campañas. Reafirma la utilidad de mostrar entregables y periodicidad juntos.
+- [Web Express](https://www.webexpress.pe/): precios visibles y selección que llega a WhatsApp con contexto; explicita la inversión publicitaria aparte. Se adopta la claridad del precio y contacto directo.
+- [Nur Creative Latam](https://www.nurcreativelatam.com/): distingue honorarios de publicidad y presupuesto en Meta. Se aplica esa separación junto al precio, en móvil y en FAQ.
+
+Los servicios no son equivalentes; no se muestran comparaciones de ahorro engañosas. La nueva estructura es una hipótesis de mejora de conversión que debe validarse con tráfico real: clics a WhatsApp, conversaciones recibidas, leads calificados y ventas.
+
+## Publicación y comprobación
+
+Proyecto Vercel existente `crisdal-agency`, vinculado a `zam-ia/crisdal-agency`. La rama `main` publica la landing de producción. Antes de publicar: compilación, lint, revisión móvil/escritorio, destino WhatsApp, UTMs y ausencia de duplicados de Lead. La velocidad bajo una red móvil real debe comprobarse en producción; no se promete una cifra de carga sin medición.
