@@ -27,12 +27,23 @@ npm run start
 ID público: `3971063776548749`, configurado en `app/lib/config.ts`.
 
 - `PageView`: carga inicial y cambios de ruta.
+- `ViewContent`: visita a la oferta en `/`, con nombre y categoría del servicio; también al volver a ella mediante navegación interna. No se dispara en `/gracias` ni en páginas inexistentes, ni se duplica durante la hidratación.
 - `Lead`: primer clic en cualquier CTA de WhatsApp de la sesión. Es una intención de contacto, no prueba de mensaje enviado, venta o ingreso.
 - `content_name=Impulso Local`, `content_category=whatsapp_click`, posición del botón y UTMs.
 - No se asigna S/380 como valor de venta a los clics.
 - Visitar o recargar /gracias no dispara Lead. Volver a pulsar WhatsApp no lo duplica cuando el navegador permite sessionStorage.
 - Las UTMs se conservan en sessionStorage durante la sesión. No se guardan teléfonos ni contenido de conversaciones.
 - La integración tiene el fallback noscript suministrado por Meta. Se documenta la medición en el pie de página.
+
+### Revisión de la guía de eventos estándar de Meta
+
+Fuente: [Especificaciones de los eventos estándar del píxel de Meta](https://eventsmanager.facebook.com/business/help/402791146561655?id=1205376682832142).
+
+Meta define `ViewContent` para visitas a páginas relevantes, `Contact` para contacto con el negocio y `Lead` para envío de información de un posible cliente. La landing observa el clic de salida a WhatsApp; no puede confirmar por sí misma que se envió el mensaje.
+
+Se añadió `ViewContent`. Se conserva temporalmente `Lead` como nombre del clic, según la configuración solicitada originalmente, hasta confirmar si hay campañas activas que dependen de él. La migración recomendada es usar `Contact` como intención de contacto y reservar `Lead` para un envío confirmado (formulario o integración de WhatsApp/CRM); antes de migrar, ajustar el evento de optimización de las campañas que usen el nombre anterior. No sumar esos eventos como si fueran personas diferentes.
+
+No se instalan `Purchase`, `InitiateCheckout`, `AddToCart`, `CompleteRegistration` ni otros eventos para acciones que la landing no ofrece. No se reporta el precio del plan como ingreso por una visita o un clic.
 
 Ejemplo de enlace para anuncios:
 

@@ -1,4 +1,8 @@
 export const PIXEL_ID = "3971063776548749";
+export const OFFER_EVENT_DATA = {
+  content_name: "Impulso Local",
+  content_category: "Marketing para negocios locales",
+};
 export const SITE_URL = "https://crisdal-agency.vercel.app";
 export const WHATSAPP_NUMBER = "51992566725";
 export const WHATSAPP_MESSAGE =

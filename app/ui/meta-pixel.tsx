@@ -3,7 +3,7 @@
 import Script from "next/script";
 import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
-import { PIXEL_ID } from "../lib/config";
+import { OFFER_EVENT_DATA, PIXEL_ID } from "../lib/config";
 
 // The public pixel ID is intentionally not a secret. CAPI credentials stay server-side.
 export function MetaPixel() {
@@ -12,6 +12,7 @@ export function MetaPixel() {
   useEffect(() => {
     if (previousPath.current !== pathname) {
       window.fbq?.("track", "PageView");
+      if (pathname === "/") window.fbq?.("track", "ViewContent", OFFER_EVENT_DATA);
       previousPath.current = pathname;
     }
   }, [pathname]);
@@ -24,6 +25,9 @@ export function MetaPixel() {
     s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
     fbq('init','${PIXEL_ID}');
     fbq('track','PageView');
+    if(window.location.pathname === '/') {
+      fbq('track','ViewContent',${JSON.stringify(OFFER_EVENT_DATA)});
+    }
   `}</Script>
   );
 }
