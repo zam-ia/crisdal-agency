@@ -11,7 +11,6 @@ import { SiteTracking } from "./ui/site-tracking";
 import { Icon } from "./ui/symbol";
 import { TrackedFaq } from "./ui/tracked-faq";
 import { VslPlayer } from "./ui/vsl-player";
-import { VslJumpLink } from "./ui/vsl-jump-link";
 import { WhatsAppLink } from "./ui/whatsapp-link";
 
 export const dynamic = "force-dynamic";
@@ -56,9 +55,7 @@ export default async function Home() {
         <div className="shell header-inner">
           <a className="brand" href="#inicio" aria-label="Crisdal Agency, ir al inicio">
             <Image src={content.brand.logoUrl} width={44} height={52} alt="" className="brand-logo" priority />
-            <span>CRISDAL<small>AGENCY</small></span>
           </a>
-          <span className="header-note"><span className="status-dot" />{content.brand.headerLabel}</span>
           <nav className="landing-nav" aria-label="Navegación principal">
             <a href="#como-funciona">Cómo funciona</a>
             <a href="#resultados">Resultados</a>
@@ -94,7 +91,6 @@ export default async function Home() {
                 >
                   <Icon name="whatsapp" /> {content.hero.cta} <Icon name="arrow" />
                 </WhatsAppLink>
-                <VslJumpLink />
               </div>
               <p>{content.hero.microcopy}</p>
             </div>

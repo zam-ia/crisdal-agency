@@ -99,7 +99,7 @@ h2 {
 }
 .brand { display: inline-flex; align-items: center; gap: 10px; flex: 0 0 auto; }
 .brand-logo {
-  width: 36px;
+  width: 42px;
   height: auto;
   object-fit: contain;
   filter: grayscale(1) invert(1) sepia(1) saturate(3) brightness(2);
@@ -175,6 +175,18 @@ h2 {
 }
 .hero-proof .icon { width: 18px; height: 18px; }
 .hero-media { grid-area: media; }
+.hero-media:after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 22% -5% -8%;
+  border-radius: 50%;
+  background: conic-gradient(from 120deg, transparent, #49dcff26, transparent 46%, #76f2df1f, transparent 76%);
+  filter: blur(38px);
+  animation: vsl-ambient 12s linear infinite;
+  pointer-events: none;
+}
+@keyframes vsl-ambient { to { transform: rotate(360deg) scale(1.04); } }
 .vsl-heading { margin-bottom: 20px; }
 .vsl-heading .eyebrow { margin-bottom: 10px; }
 .vsl-heading h2 { max-width: 600px; font-size: clamp(28px, 3.5vw, 46px); line-height: 1; }
@@ -224,6 +236,22 @@ button.vsl-facade { cursor: pointer; text-align: left; }
 .vsl-overlay small { color: #d1d0c9; font-size: 11px; }
 .vsl-frame iframe,
 .vsl-frame video { width: 100%; height: 100%; border: 0; object-fit: contain; }
+.vsl-autoplay:after {
+  content: "REPRODUCCIÓN AUTOMÁTICA · ACTIVA EL SONIDO EN EL REPRODUCTOR";
+  position: absolute;
+  z-index: 2;
+  right: 14px;
+  bottom: 12px;
+  padding: 7px 10px;
+  border: 1px solid #b9f4ff2b;
+  border-radius: 999px;
+  background: #071018c9;
+  color: #d6f9ff;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  pointer-events: none;
+}
 .vsl-empty { cursor: default; }
 .hero-action { grid-area: action; align-self: start; }
 .hero-buttons { display: flex; flex-wrap: wrap; gap: 12px; }
@@ -395,16 +423,17 @@ button.vsl-facade { cursor: pointer; text-align: left; }
   z-index: 80;
   right: 24px;
   bottom: 24px;
-  width: min(480px, calc(100% - 48px));
-  padding: 20px;
+  width: min(360px, calc(100% - 48px));
+  padding: 14px;
   border: 1px solid #ffffff2c;
+  border-radius: 18px;
   background: #1a1b17f5;
   box-shadow: 0 20px 60px #0008;
   backdrop-filter: blur(18px);
 }
-.consent-banner p { color: #d2d2ca; font-size: 12px; line-height: 1.65; }
-.consent-banner > div { display: flex; justify-content: flex-end; gap: 9px; margin-top: 15px; }
-.consent-banner button { min-height: 42px; padding: 0 14px; border-radius: 999px; font-size: 10px; font-weight: 850; cursor: pointer; }
+.consent-banner p { color: #d2d2ca; font-size: 10.5px; line-height: 1.5; }
+.consent-banner > div { display: flex; justify-content: flex-end; gap: 7px; margin-top: 11px; }
+.consent-banner button { min-height: 36px; padding: 0 12px; border-radius: 999px; font-size: 9px; font-weight: 850; cursor: pointer; }
 .consent-secondary { border: 1px solid #ffffff38; background: transparent; }
 .consent-primary { border: 1px solid var(--gold); background: var(--gold); color: var(--ink); }
 
@@ -618,7 +647,7 @@ button.vsl-facade { cursor: pointer; text-align: left; }
   .mobile-dock span { color: var(--muted); font-size: 9px; }
   .mobile-dock .button { min-height: 46px; padding: 10px 15px; font-size: 11px; }
   .mobile-dock-close { position: absolute; top: -13px; right: 7px; width: 27px; height: 27px; border: 1px solid #ffffff26; border-radius: 50%; background: #252620; color: #fff; cursor: pointer; }
-  .consent-banner { right: 12px; bottom: 12px; width: calc(100% - 24px); padding: 17px; }
+  .consent-banner { right: 10px; bottom: 10px; width: min(340px, calc(100% - 20px)); padding: 13px; }
   .consent-banner > div { display: grid; grid-template-columns: 1fr 1fr; }
   .consent-banner button { padding-inline: 10px; }
   .thanks { justify-items: stretch; }

@@ -1,7 +1,7 @@
 "use client";
 
 /* eslint-disable @next/next/no-img-element -- CMS images can come from the connected Blob store. */
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef } from "react";
 import { trackMarketingEvent } from "./site-events";
 
 function youtubeId(url: string) {
@@ -22,15 +22,9 @@ export function VslPlayer({
   posterAlt: string;
   captionsUrl: string;
 }) {
-  const [active, setActive] = useState(false);
   const sentPlay = useRef(false);
   const sentProgress = useRef(new Set<number>());
   const id = useMemo(() => youtubeId(url), [url]);
-
-  function start() {
-    setActive(true);
-    trackMarketingEvent("vsl_play", { source: id ? "youtube" : "uploaded" });
-  }
 
   function trackProgress(currentTime: number, duration: number) {
     if (!duration) return;
@@ -49,6 +43,12 @@ export function VslPlayer({
     trackMarketingEvent("vsl_play", { source: "uploaded" });
   }
 
+  function trackYoutubePlay() {
+    if (sentPlay.current) return;
+    sentPlay.current = true;
+    trackMarketingEvent("vsl_play", { source: "youtube" });
+  }
+
   if (!url) {
     return (
       <div className="vsl-facade vsl-empty" aria-label="Video pendiente de publicación">
@@ -63,24 +63,16 @@ export function VslPlayer({
   }
 
   if (id) {
-    return active ? (
-      <div className="vsl-frame">
+    return (
+      <div className="vsl-frame vsl-autoplay">
         <iframe
-          src={`https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0`}
+          src={`https://www.youtube-nocookie.com/embed/${id}?autoplay=1&mute=1&playsinline=1&rel=0`}
           title="Video de presentación de Crisdal Agency"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
           allowFullScreen
+          onLoad={trackYoutubePlay}
         />
       </div>
-    ) : (
-      <button type="button" className="vsl-facade" onClick={start} aria-label="Reproducir video de presentación">
-        {posterUrl ? <img src={posterUrl} alt={posterAlt} /> : null}
-        <span className="vsl-overlay">
-          <span className="play-button" aria-hidden="true">▶</span>
-          <strong>Ver cómo funciona</strong>
-          <small>Mini VSL · reproducir video</small>
-        </span>
-      </button>
     );
   }
 
@@ -88,7 +80,10 @@ export function VslPlayer({
     <div className="vsl-frame">
       <video
         controls
-        preload="metadata"
+        autoPlay
+        muted
+        playsInline
+        preload="auto"
         poster={posterUrl || undefined}
         onPlay={trackUploadedPlay}
         onTimeUpdate={(event) =>
