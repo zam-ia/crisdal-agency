@@ -1,6 +1,22 @@
-# Impulso Local · Crisdal Agency
+# Landing VSL · Crisdal Agency
 
-Landing de campaña en Next.js 16, React 19 y TypeScript. Una sola oferta: S/380, pago único por el servicio. La inversión en Meta Ads se paga aparte. Todos los CTA abren el WhatsApp +51 992 566 725.
+Landing de respuesta directa en Next.js 16, React 19 y TypeScript. Presenta el Sistema de Captación Directa de Crisdal Agency y los planes Activación, Tracción y Crecimiento. La conversión principal es una conversación por WhatsApp.
+
+## Panel administrativo
+
+La ruta `/admin` permite modificar textos, planes, FAQ, SEO, imágenes y la VSL sin editar código. El acceso usa una cookie firmada; el contenido versionado se guarda en Supabase Database y los archivos se cargan directamente a Supabase Storage mediante URLs firmadas.
+
+Variables requeridas en Vercel:
+
+- `ADMIN_PASSWORD`: contraseña privada del panel.
+- `ADMIN_SESSION_SECRET`: secreto aleatorio de al menos 32 caracteres.
+- `SUPABASE_URL`: URL del proyecto CRISDAL.
+- `SUPABASE_PUBLISHABLE_KEY`: clave pública usada únicamente para completar cargas firmadas.
+- `SUPABASE_SECRET_KEY`: clave privada del servidor; nunca debe exponerse al navegador ni incluirse en Git.
+
+La migración `supabase/migrations/20260918220000_landing_cms.sql` crea una tabla versionada aislada de las tablas comerciales existentes y el bucket público `landing-media`.
+
+Los archivos aceptados son JPG, PNG, WebP, AVIF, MP4, WebM y subtítulos VTT. También puede usarse una URL de YouTube; el reproductor se carga solo después del clic.
 
 ## Desarrollo
 
@@ -14,8 +30,9 @@ npm run start
 
 ## Contenido y decisiones
 
-- Negro, dorado y tipografía condensada para mantener continuidad con el anuncio suministrado.
-- Hero con precio y CTA; botón fijo en móvil; entregables con beneficios; condiciones visibles; cinco preguntas frecuentes.
+- Negro, dorado y tipografía condensada para mantener continuidad con la marca.
+- Hero con VSL, CTA; botón fijo y descartable en móvil; beneficios antes de entregables; condiciones visibles y preguntas frecuentes.
+- Casos de éxito desactivados por defecto. Solo deben publicarse con periodo, resultado, evidencia y autorización.
 - Sin menú de navegación, formularios redundantes, escasez inventada, testimonios ficticios ni promesas de ventas garantizadas.
 - La duración de campaña y del acompañamiento no fue proporcionada. Se confirma con el cliente antes del pago; no se promete una duración inventada.
 - Fotografía de la asesora adaptada del anuncio mediante edición asistida por IA. El anuncio original se conserva como muestra identificada del trabajo de la propia agencia, no como testimonio.
@@ -29,8 +46,8 @@ ID público: `3971063776548749`, configurado en `app/lib/config.ts`.
 - `PageView`: carga inicial y cambios de ruta.
 - `ViewContent`: visita a la oferta en `/`, con nombre y categoría del servicio; también al volver a ella mediante navegación interna. No se dispara en `/gracias` ni en páginas inexistentes, ni se duplica durante la hidratación.
 - `Lead`: primer clic en cualquier CTA de WhatsApp de la sesión. Es una intención de contacto, no prueba de mensaje enviado, venta o ingreso.
-- `content_name=Impulso Local`, `content_category=whatsapp_click`, posición del botón y UTMs.
-- No se asigna S/380 como valor de venta a los clics.
+- `content_name=Sistema de Captación Directa`, `content_category=whatsapp_click`, posición del botón y UTMs.
+- No se asigna el precio de un plan como valor de venta a los clics.
 - Visitar o recargar /gracias no dispara Lead. Volver a pulsar WhatsApp no lo duplica cuando el navegador permite sessionStorage.
 - Las UTMs se conservan en sessionStorage durante la sesión. No se guardan teléfonos ni contenido de conversaciones.
 - La integración tiene el fallback noscript suministrado por Meta. Se documenta la medición en el pie de página.
@@ -47,7 +64,7 @@ No se instalan `Purchase`, `InitiateCheckout`, `AddToCart`, `CompleteRegistratio
 
 Ejemplo de enlace para anuncios:
 
-`https://crisdal-agency.vercel.app/?utm_source=meta&utm_medium=paid_social&utm_campaign=impulso_local&utm_content=plan380_v1`
+`https://crisdal-agency.vercel.app/?utm_source=meta&utm_medium=paid_social&utm_campaign=sistema_captacion&utm_content=vsl_v1`
 
 ## Conversions API (preparada, pendiente de credenciales)
 

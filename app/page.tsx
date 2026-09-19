@@ -1,424 +1,294 @@
+import type { Metadata } from "next";
 import Image from "next/image";
-import { WhatsAppLink } from "./ui/whatsapp-link";
+import { cache } from "react";
+import { SITE_URL } from "./lib/config";
+import { getSiteContent } from "./lib/site-content";
+import { MobileDock } from "./ui/mobile-dock";
+import { SiteTracking } from "./ui/site-tracking";
 import { Icon } from "./ui/symbol";
+import { TrackedFaq } from "./ui/tracked-faq";
+import { VslPlayer } from "./ui/vsl-player";
+import { WhatsAppLink } from "./ui/whatsapp-link";
 
-const benefits = [
-  {
-    icon: "video",
-    count: "01",
-    title: "1 video publicitario",
-    text: "Una pieza que presenta tu oferta y le da a tu cliente una razón para escribirte.",
-  },
-  {
-    icon: "layers",
-    count: "06",
-    title: "6 flyers promocionales",
-    text: "Tu promoción, clara y con una imagen consistente para destacar en redes.",
-  },
-  {
-    icon: "chart",
-    count: "01",
-    title: "Monitoreo de 1 campaña",
-    text: "Revisamos el desempeño para entender qué funciona y qué conviene ajustar.",
-  },
-  {
-    icon: "headphones",
-    count: "+",
-    title: "Asesoramiento continuo",
-    text: "Acompañamiento para resolver tus dudas durante la campaña acordada.",
-  },
-  {
-    icon: "whatsapp",
-    count: "↗",
-    title: "Ruta directa a WhatsApp",
-    text: "Del interés a la conversación: facilita que te consulten, coticen o hagan un pedido.",
-  },
-];
-const faqs = [
-  [
-    "¿Los S/380 incluyen la inversión en anuncios?",
-    "No. Los S/380 son el pago único por el servicio Impulso Local. La inversión publicitaria en Meta Ads se paga aparte. Antes de empezar, acordamos contigo el presupuesto de anuncios y el alcance de la campaña.",
-  ],
-  [
-    "¿En cuánto tiempo podemos empezar y ver resultados?",
-    "Primero revisamos tu negocio, tu oferta y el material disponible. Con eso acordamos la fecha de lanzamiento. Los resultados dependen de la oferta, el público, el presupuesto y la atención a los mensajes; no prometemos una cantidad fija de ventas.",
-  ],
-  [
-    "¿Y si mi negocio todavía no tiene redes sociales?",
-    "Puedes escribirnos igual. Revisamos qué tienes y te indicamos qué necesitas para empezar. Si hace falta crear o configurar cuentas, confirmamos contigo el alcance y cualquier costo adicional antes de contratar.",
-  ],
-  [
-    "¿Cuánto dura el monitoreo y el asesoramiento?",
-    "El plan incluye el monitoreo de una campaña y asesoramiento durante el periodo acordado. La duración, las fechas y los entregables se confirman por WhatsApp antes del pago.",
-  ],
-  [
-    "¿Tengo que seguir pagando cada mes?",
-    "Impulso Local es un pago único de S/380. Si después quieres otra campaña o más contenido, acordamos una nueva propuesta contigo. No hay una renovación mensual automática.",
-  ],
-];
+export const dynamic = "force-dynamic";
+const getContent = cache(getSiteContent);
 
-export default function Home() {
+export async function generateMetadata(): Promise<Metadata> {
+  const content = await getContent();
+  return {
+    title: content.seo.title,
+    description: content.seo.description,
+    alternates: { canonical: "/" },
+    openGraph: {
+      title: content.seo.title,
+      description: content.seo.description,
+      url: SITE_URL,
+      type: "website",
+      locale: "es_PE",
+      images: content.seo.ogImageUrl ? [{ url: content.seo.ogImageUrl }] : [],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: content.seo.title,
+      description: content.seo.description,
+      images: content.seo.ogImageUrl ? [content.seo.ogImageUrl] : [],
+    },
+  };
+}
+
+const planPlacements = ["plan_420", "plan_820", "plan_1500"] as const;
+
+export default async function Home() {
+  const content = await getContent();
+
   return (
     <>
-      <a className="skip-link" href="#contenido">
-        Saltar al contenido
-      </a>
-      <header className="site-header shell">
-        <div className="brand" aria-label="Crisdal Agency">
-          <Image
-            src="/brand/crisdal-imagotipo.png"
-            width={54}
-            height={62}
-            alt=""
-            className="brand-logo"
-          />
-          <span>
-            CRISDAL<small>AGENCY</small>
-          </span>
+      <SiteTracking />
+      <a className="skip-link" href="#contenido">Saltar al contenido</a>
+
+      <header className="site-header">
+        <div className="shell header-inner">
+          <a className="brand" href="#inicio" aria-label="Crisdal Agency, ir al inicio">
+            <Image src={content.brand.logoUrl} width={44} height={52} alt="" className="brand-logo" priority />
+            <span>CRISDAL<small>AGENCY</small></span>
+          </a>
+          <span className="header-note"><span className="status-dot" />{content.brand.headerLabel}</span>
+          <a className="header-plan-link" href="#planes">Planes</a>
+          <WhatsAppLink
+            placement="header"
+            eventName="click_whatsapp_header"
+            phone={content.brand.whatsappNumber}
+            message={content.finalCta.whatsappMessage}
+            className="header-cta"
+          >
+            Hablar por WhatsApp <Icon name="arrow" />
+          </WhatsAppLink>
         </div>
-        <span className="header-note">
-          <span className="status-dot" /> Marketing para negocios locales
-        </span>
-        <WhatsAppLink placement="header" className="header-cta">
-          Hablemos de tu negocio <Icon name="arrow" />
-        </WhatsAppLink>
       </header>
+
       <main id="contenido">
-        <section className="hero shell" aria-labelledby="hero-title">
+        <section className="hero shell" id="inicio" aria-labelledby="hero-title">
           <div className="hero-copy">
-            <div className="eyebrow">
-              <span /> TU NEGOCIO, EN EL RADAR CORRECTO
-            </div>
-            <h1 id="hero-title">
-              IMPULSO
-              <br />
-              <span>
-                LOCAL<span className="title-dot">.</span>
-              </span>
-            </h1>
-            <h2>
-              Empieza con una oferta real.
-              <br />
-              <span>Y mide resultados.</span>
-            </h2>
-            <p className="hero-description">
-              Convierte lo que vendes en una oferta que invite a escribirte.
-              Contenido, campaña y acompañamiento para dar el siguiente paso.
-            </p>
-            <div className="hero-price">
-              <span className="price">
-                <small>S/</small>380
-              </span>
-              <div>
-                <strong>Pago único</strong>
-                <span>Inversión en Meta Ads aparte</span>
-              </div>
-            </div>
-            <WhatsAppLink placement="hero" className="button button-gold">
-              <Icon name="whatsapp" /> Escríbenos hoy <Icon name="arrow" />
-            </WhatsAppLink>
-            <p className="cta-note">
-              <Icon name="check" /> Hablemos de tu negocio. Sin compromiso.
-            </p>
+            <p className="eyebrow"><span />{content.hero.eyebrow}</p>
+            <h1 id="hero-title">{content.hero.title}<em>{content.hero.accent}</em></h1>
+            <p className="hero-description">{content.hero.description}</p>
+            <div className="hero-proof"><Icon name="check" /><span>{content.hero.proof}</span></div>
           </div>
-          <div className="hero-visual">
-            <div className="portrait-frame">
-              <div className="portrait-label">
-                <span className="status-dot" /> ESTRATEGIA CON ROSTRO HUMANO
-              </div>
-              <Image
-                className="advisor-image"
-                src="/brand/asesora-impulso.webp"
-                alt="Asesora de Crisdal Agency con el polo de la marca"
-                fill
-                sizes="(max-width: 760px) 92vw, 46vw"
-                preload
-              />
-              <div className="portrait-bottom">
-                <span>Tu negocio tiene potencial.</span>
-                <strong>Hagamos que se vea.</strong>
-              </div>
+
+          <div className="hero-media">
+            <div className="vsl-heading">
+              <p className="eyebrow">{content.vsl.eyebrow}</p>
+              <h2>{content.vsl.title}</h2>
+              <p>{content.vsl.description}</p>
             </div>
-            <div className="floating-tag">
-              <span className="tag-icon">
-                <Icon name="target" />
-              </span>
-              <div>
-                <small>EL OBJETIVO</small>
-                <strong>
-                  De tu anuncio
-                  <br />a su WhatsApp.
-                </strong>
-              </div>
-              <Icon name="arrow" />
-            </div>
-            <span className="visual-index">CRISDAL / IMPULSO LOCAL — 01</span>
+            <VslPlayer url={content.vsl.url} posterUrl={content.vsl.posterUrl} posterAlt={content.vsl.posterAlt} captionsUrl={content.vsl.captionsUrl} />
+          </div>
+
+          <div className="hero-action">
+            <WhatsAppLink
+              placement="hero"
+              eventName="click_whatsapp_hero"
+              phone={content.brand.whatsappNumber}
+              message={content.finalCta.whatsappMessage}
+              className="button button-gold"
+            >
+              <Icon name="whatsapp" /> {content.hero.cta} <Icon name="arrow" />
+            </WhatsAppLink>
+            <p>{content.hero.microcopy}</p>
           </div>
         </section>
-        <div className="trust-strip">
+
+        <div className="trust-strip" aria-label="Ruta de captación">
           <div className="shell trust-items">
-            <span>
-              <Icon name="check" /> Un solo pago por el servicio
-            </span>
-            <span>
-              <Icon name="headphones" /> Trato directo, de persona a persona
-            </span>
-            <span>
-              <Icon name="target" /> Una oferta. Un objetivo claro.
-            </span>
+            <span>Contenido que atrae</span><i>→</i><span>Meta Ads que distribuye</span><i>→</i><span>WhatsApp que recibe</span>
           </div>
         </div>
-        <section
-          className="section problem shell"
-          aria-labelledby="problem-title"
-        >
-          <div>
-            <p className="eyebrow">PUBLICAR ES SOLO EL COMIENZO</p>
-            <h2 id="problem-title">
-              Que tu próxima promoción
-              <br />
-              tenga <em>un propósito.</em>
-            </h2>
+
+        <section className="section shell problem" aria-labelledby="pain-title">
+          <div className="section-heading section-heading-split">
+            <div><p className="eyebrow">{content.pain.eyebrow}</p><h2 id="pain-title">{content.pain.title}</h2></div>
+            <p>{content.pain.intro}</p>
           </div>
-          <div className="problem-copy">
-            <p>
-              ¿Publicas y no sabes si funciona? ¿Inviertes sin tener claro qué
-              está pasando?
-            </p>
-            <p>
-              Con <strong>Impulso Local</strong> conectamos una oferta concreta,
-              contenido que la explica y una campaña que podemos medir. Para que
-              tu siguiente decisión tenga una base.
-            </p>
+          <div className="symptom-grid">
+            {content.pain.symptoms.map((symptom, index) => (
+              <article key={symptom}><span>{String(index + 1).padStart(2, "0")}</span><p>{symptom}</p></article>
+            ))}
           </div>
+          <p className="section-closing">{content.pain.closing}</p>
         </section>
-        <section
-          className="offer-section section"
-          aria-labelledby="offer-title"
-        >
-          <div className="shell offer-layout">
-            <div className="offer-intro">
-              <p className="eyebrow">MENOS VUELTAS. MÁS DIRECCIÓN.</p>
-              <h2 id="offer-title">
-                Todo conectado.
-                <br />
-                <em>Desde el inicio.</em>
-              </h2>
-              <p>
-                Cinco piezas de un mismo plan: presentar tu oferta y abrir
-                conversaciones con posibles clientes.
-              </p>
-              <div className="offer-price-card">
-                <span className="plan-label">TU PLAN · IMPULSO LOCAL</span>
-                <div className="price">
-                  <small>S/</small>380
-                </div>
-                <strong>Un solo pago. Un primer paso claro.</strong>
-                <span className="ad-disclosure">
-                  La inversión en anuncios de Meta se paga aparte.
-                </span>
-                <WhatsAppLink placement="offer" className="button button-gold">
-                  <Icon name="whatsapp" /> Quiero impulsar mi negocio{" "}
-                  <Icon name="arrow" />
-                </WhatsAppLink>
-              </div>
+
+        <section className="section paradigm-section" aria-labelledby="paradigm-title">
+          <div className="shell">
+            <div className="section-heading centered-heading">
+              <p className="eyebrow">{content.paradigm.eyebrow}</p>
+              <h2 id="paradigm-title">{content.paradigm.title}</h2>
+              <p>{content.paradigm.description}</p>
             </div>
-            <div className="deliverables">
-              {benefits.map((item) => (
-                <article className="deliverable" key={item.title}>
-                  <span className="deliverable-icon">
-                    <Icon name={item.icon} />
-                  </span>
-                  <div>
-                    <h3>{item.title}</h3>
-                    <p>{item.text}</p>
-                  </div>
-                  <span className="deliverable-count">{item.count}</span>
+            <div className="route-grid">
+              {content.paradigm.steps.map((step, index) => (
+                <article key={step.title}>
+                  <span className="route-number">0{index + 1}</span>
+                  <div><h3>{step.title}</h3><p>{step.text}</p></div>
+                  {index < content.paradigm.steps.length - 1 ? <b aria-hidden="true">→</b> : null}
                 </article>
               ))}
-              <p className="scope-note">
-                Acordamos el plazo y el alcance de la campaña contigo antes de
-                empezar.
-              </p>
             </div>
           </div>
         </section>
-        <section
-          className="section shell process"
-          aria-labelledby="process-title"
-        >
-          <div className="section-heading">
-            <div>
-              <p className="eyebrow">DE “QUIERO EMPEZAR” A UN PLAN CLARO</p>
-              <h2 id="process-title">
-                Pequeño primer paso.
-                <br />
-                <em>Una dirección real.</em>
-              </h2>
+
+        <section className="section shell authority" aria-labelledby="authority-title">
+          <div className="editorial-image">
+            <Image src={content.authority.image.url} alt={content.authority.image.alt} width={900} height={1080} sizes="(max-width: 760px) 92vw, 44vw" />
+            <span>CRISDAL / AGENCY</span>
+          </div>
+          <div className="editorial-copy">
+            <p className="eyebrow">{content.authority.eyebrow}</p>
+            <h2 id="authority-title">{content.authority.title}</h2>
+            <p>{content.authority.description}</p>
+            <p className="evidence-note"><Icon name="shield" />{content.authority.note}</p>
+          </div>
+        </section>
+
+        <section className="section origin-section" aria-labelledby="origin-title">
+          <div className="shell origin-layout">
+            <div className="origin-copy">
+              <p className="eyebrow">{content.origin.eyebrow}</p>
+              <h2 id="origin-title">{content.origin.title}</h2>
+              <p>{content.origin.description}</p>
             </div>
-            <p>
-              No necesitas saber de marketing.
-              <br />
-              Necesitas conocer tu negocio.
-              <br />
-              Lo demás, lo trabajamos contigo.
-            </p>
-          </div>
-          <div className="pillars">
-            <article>
-              <span className="pillar-top">
-                <Icon name="shield" />
-                <small>01 / BAJO RIESGO</small>
-              </span>
-              <h3>Empieza a tu medida.</h3>
-              <p>
-                S/380 por el servicio y un presupuesto de anuncios acordado
-                contigo. Sabes qué contratas antes de pagar.
-              </p>
-            </article>
-            <article>
-              <span className="pillar-top">
-                <Icon name="bolt" />
-                <small>02 / INICIO RÁPIDO</small>
-              </span>
-              <h3>Del mensaje a la acción.</h3>
-              <p>
-                Nos cuentas qué vendes. Definimos la oferta, reunimos el
-                material y acordamos la fecha de lanzamiento.
-              </p>
-            </article>
-            <article>
-              <span className="pillar-top">
-                <Icon name="chart" />
-                <small>03 / RESULTADOS REALES</small>
-              </span>
-              <h3>Mide para decidir.</h3>
-              <p>
-                Observamos el desempeño de la campaña. Identificamos qué ajustar
-                antes de dar el siguiente paso.
-              </p>
-            </article>
+            <div className="origin-image">
+              <Image src={content.origin.image.url} alt={content.origin.image.alt} width={1080} height={1350} sizes="(max-width: 760px) 78vw, 30vw" />
+            </div>
           </div>
         </section>
-        <section className="real-work shell" aria-labelledby="work-title">
-          <div className="real-work-image">
-            <Image
-              src="/brand/plan-380.webp"
-              width={1080}
-              height={1440}
-              sizes="(max-width: 760px) 80vw, 300px"
-              alt="Anuncio real de Crisdal: Impulso Local, S/380, con los cinco entregables del plan"
-            />
-          </div>
-          <div className="real-work-copy">
-            <p className="eyebrow">
-              LA OFERTA QUE VISTE. EL EQUIPO QUE LA HACE.
-            </p>
-            <h2 id="work-title">
-              Coherencia desde
-              <br />
-              <em>el primer clic.</em>
-            </h2>
-            <p>
-              Este es nuestro propio anuncio de Impulso Local. El mismo mensaje,
-              la misma identidad y una invitación clara a conversar.
-            </p>
-            <p className="work-principle">
-              Así queremos presentar tu negocio: con claridad, intención y una
-              ruta directa al siguiente paso.
-            </p>
-            <WhatsAppLink placement="work" className="text-cta">
-              Conversemos sobre tu oferta <Icon name="arrow" />
-            </WhatsAppLink>
+
+        {content.cases.enabled && content.cases.items.length ? (
+          <section className="section shell cases" aria-labelledby="cases-title">
+            <div className="section-heading centered-heading">
+              <p className="eyebrow">{content.cases.eyebrow}</p>
+              <h2 id="cases-title">{content.cases.title}</h2>
+              <p>{content.cases.intro}</p>
+            </div>
+            <div className="case-grid">
+              {content.cases.items.map((item) => (
+                <article key={item.title}>
+                  <h3>{item.title}</h3>
+                  <dl>
+                    <div><dt>Antes</dt><dd>{item.before}</dd></div>
+                    <div><dt>Intervención</dt><dd>{item.intervention}</dd></div>
+                    <div><dt>Resultado</dt><dd>{item.result}</dd></div>
+                    <div><dt>Prueba</dt><dd>{item.proof}</dd></div>
+                  </dl>
+                </article>
+              ))}
+            </div>
+          </section>
+        ) : null}
+
+        <section className="section mechanism-section" aria-labelledby="mechanism-title">
+          <div className="shell">
+            <div className="section-heading section-heading-split">
+              <div><p className="eyebrow">{content.mechanism.eyebrow}</p><h2 id="mechanism-title">{content.mechanism.title}</h2></div>
+              <p>{content.mechanism.description}</p>
+            </div>
+            <ol className="mechanism-list">
+              {content.mechanism.steps.map((step, index) => (
+                <li key={step.title}><span>{String(index + 1).padStart(2, "0")}</span><h3>{step.title}</h3><p>{step.text}</p></li>
+              ))}
+            </ol>
           </div>
         </section>
-        <section
-          className="section shell faq-section"
-          aria-labelledby="faq-title"
-        >
-          <div>
-            <p className="eyebrow">HABLEMOS CLARO</p>
-            <h2 id="faq-title">
-              Antes de dar
-              <br />
-              <em>el primer paso.</em>
-            </h2>
-            <p className="faq-intro">Tu inversión merece respuestas claras.</p>
-          </div>
-          <div className="faqs">
-            {faqs.map(([q, a], i) => (
-              <details key={q} name="preguntas" open={i === 0}>
-                <summary>
-                  {q}
-                  <span aria-hidden="true">+</span>
-                </summary>
-                <p>{a}</p>
-              </details>
+
+        <section className="section shell benefits" aria-labelledby="benefits-title">
+          <div className="benefits-title"><p className="eyebrow">{content.benefits.eyebrow}</p><h2 id="benefits-title">{content.benefits.title}</h2></div>
+          <div className="benefit-list">
+            {content.benefits.items.map((benefit, index) => (
+              <article key={benefit}><span>0{index + 1}</span><p>{benefit}</p></article>
             ))}
           </div>
         </section>
-        <section className="closing-section">
+
+        <section className="section plans-section" id="planes" aria-labelledby="plans-title">
+          <div className="shell">
+            <div className="section-heading centered-heading">
+              <p className="eyebrow">{content.plans.eyebrow}</p>
+              <h2 id="plans-title">{content.plans.title}</h2>
+              <p>{content.plans.intro}</p>
+            </div>
+            <div className="plans-grid">
+              {content.plans.items.map((plan, index) => (
+                <article className={`plan-card${plan.highlighted ? " plan-featured" : ""}`} key={plan.slug}>
+                  {plan.badge ? <span className="plan-badge">{plan.badge}</span> : null}
+                  <div className="plan-header"><span>0{index + 1}</span><h3>{plan.name}</h3></div>
+                  <p className="plan-audience">{plan.audience}</p>
+                  <div className="plan-price"><strong>{plan.price}</strong><span>{plan.period}</span></div>
+                  <p className="plan-description">{plan.description}</p>
+                  <ul>{plan.features.map((feature) => <li key={feature}><Icon name="check" />{feature}</li>)}</ul>
+                  <p className="plan-disclaimer">{plan.disclaimer}</p>
+                  <WhatsAppLink
+                    placement={planPlacements[index]}
+                    eventName={`click_whatsapp_${planPlacements[index]}`}
+                    phone={content.brand.whatsappNumber}
+                    message={plan.whatsappMessage}
+                    className={`button ${plan.highlighted ? "button-gold" : "button-outline"}`}
+                  >
+                    {plan.cta} <Icon name="arrow" />
+                  </WhatsAppLink>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="section shell process" aria-labelledby="process-title">
+          <div className="section-heading section-heading-split">
+            <div><p className="eyebrow">{content.process.eyebrow}</p><h2 id="process-title">{content.process.title}</h2></div>
+            <p>{content.process.intro}</p>
+          </div>
+          <ol className="process-grid">
+            {content.process.steps.map((step, index) => (
+              <li key={step.title}><span>{String(index + 1).padStart(2, "0")}</span><h3>{step.title}</h3><p>{step.text}</p></li>
+            ))}
+          </ol>
+        </section>
+
+        <section className="section faq-section" aria-labelledby="faq-title">
+          <div className="shell faq-layout">
+            <div><p className="eyebrow">{content.faq.eyebrow}</p><h2 id="faq-title">{content.faq.title}</h2><p className="faq-intro">{content.faq.intro}</p></div>
+            <div className="faqs">{content.faq.items.map((item, index) => <TrackedFaq key={item.question} question={item.question} answer={item.answer} index={index} />)}</div>
+          </div>
+        </section>
+
+        <section className="closing-section" aria-labelledby="closing-title">
           <div className="shell closing-content">
-            <p className="eyebrow">TU NEGOCIO LOCAL, EN EL RADAR CORRECTO.</p>
-            <h2>
-              Tu próximo impulso
-              <br />
-              <em>empieza conversando.</em>
-            </h2>
-            <p>
-              Cuéntanos qué vendes y dónde está tu negocio.
-              <br />
-              Veamos juntos cómo poner tu oferta en marcha.
-            </p>
-            <WhatsAppLink placement="closing" className="button button-gold">
-              <Icon name="whatsapp" /> Escríbenos hoy <Icon name="arrow" />
+            <p className="eyebrow">{content.finalCta.eyebrow}</p>
+            <h2 id="closing-title">{content.finalCta.title}</h2>
+            <p>{content.finalCta.description}</p>
+            <WhatsAppLink
+              placement="final"
+              eventName="click_whatsapp_final"
+              phone={content.brand.whatsappNumber}
+              message={content.finalCta.whatsappMessage}
+              className="button button-gold"
+            >
+              <Icon name="whatsapp" /> {content.finalCta.cta} <Icon name="arrow" />
             </WhatsAppLink>
-            <span className="closing-price">
-              S/380 · Pago único <span> / </span> Meta Ads aparte
-            </span>
           </div>
         </section>
       </main>
-      <footer className="site-footer shell">
-        <div className="brand footer-brand">
-          <Image
-            src="/brand/crisdal-imagotipo.png"
-            width={36}
-            height={42}
-            alt=""
-            className="brand-logo"
-          />
-          <span>
-            CRISDAL<small>AGENCY</small>
-          </span>
+
+      <footer className="site-footer">
+        <div className="shell footer-layout">
+          <div className="brand footer-brand">
+            <Image src={content.brand.logoUrl} width={36} height={42} alt="" className="brand-logo" />
+            <span>CRISDAL<small>AGENCY</small></span>
+          </div>
+          <p>{content.footer.tagline}<span>{content.footer.legal}</span></p>
+          <details className="privacy"><summary>Privacidad y medición</summary><p>{content.footer.privacy}</p></details>
         </div>
-        <p>
-          Marketing con dirección.
-          <br />
-          <span>© 2026 Crisdal Agency · Perú</span>
-        </p>
-        <details className="privacy">
-          <summary>Privacidad y medición</summary>
-          <p>
-            Usamos el píxel de Meta para medir visitas y clics en WhatsApp. Meta
-            puede utilizar cookies para atribuir estas acciones a anuncios. No
-            recibimos el contenido de tus conversaciones a través de esta web.
-            Al abrir WhatsApp, tú decides qué información enviarnos. Puedes
-            consultarnos sobre tus datos en el +51 992 566 725.
-          </p>
-        </details>
       </footer>
-      <div className="mobile-dock">
-        <div>
-          <strong>
-            S/380 <small>pago único</small>
-          </strong>
-          <span>Meta Ads aparte</span>
-        </div>
-        <WhatsAppLink placement="sticky" className="button button-gold">
-          <Icon name="whatsapp" /> Escríbenos hoy
-        </WhatsAppLink>
-      </div>
+
+      <MobileDock content={content} />
     </>
   );
 }

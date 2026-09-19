@@ -10,12 +10,13 @@ export function MetaPixel() {
   const pathname = usePathname();
   const previousPath = useRef(pathname);
   useEffect(() => {
-    if (previousPath.current !== pathname) {
+    if (!pathname.startsWith("/admin") && previousPath.current !== pathname) {
       window.fbq?.("track", "PageView");
       if (pathname === "/") window.fbq?.("track", "ViewContent", OFFER_EVENT_DATA);
       previousPath.current = pathname;
     }
   }, [pathname]);
+  if (pathname.startsWith("/admin")) return null;
   return (
     <Script id="meta-pixel" strategy="beforeInteractive">{`
     !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?

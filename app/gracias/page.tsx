@@ -13,7 +13,7 @@ export default function Thanks() {
       <span className="thanks-icon">
         <Icon name="whatsapp" />
       </span>
-      <p className="eyebrow">GRACIAS POR INTERESARTE EN IMPULSO LOCAL</p>
+      <p className="eyebrow">GRACIAS POR CONTACTAR A CRISDAL AGENCY</p>
       <h1>
         Un paso más.
         <br />
@@ -31,9 +31,7 @@ export default function Thanks() {
         <br />
         Tu consulta llega cuando envías el mensaje en WhatsApp.
       </p>
-      <Link href="/" className="thanks-back">
-        ← Volver a Impulso Local
-      </Link>
+      <Link href="/" className="thanks-back">← Volver a la landing</Link>
     </main>
   );
 }

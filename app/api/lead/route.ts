@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
         event_source_url: `${SITE_URL}${data.path}`,
         user_data: userData,
         custom_data: {
-          content_name: "Impulso Local",
+          content_name: "Sistema de Captación Directa",
           content_category: "whatsapp_click",
           placement: data.placement,
           ...attribution,

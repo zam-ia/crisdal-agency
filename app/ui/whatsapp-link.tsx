@@ -2,14 +2,13 @@
 
 import { useEffect, type MouseEvent, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { WHATSAPP_URL, UTM_KEYS, type Placement } from "../lib/config";
-
-type PixelFunction = ((...args: unknown[]) => void) & { queue?: unknown[][] };
-declare global {
-  interface Window {
-    fbq?: PixelFunction;
-  }
-}
+import {
+  WHATSAPP_MESSAGE,
+  WHATSAPP_NUMBER,
+  UTM_KEYS,
+  type Placement,
+} from "../lib/config";
+import { trackMarketingEvent } from "./site-events";
 
 const ATTRIBUTION_KEY = "crisdal:attribution";
 const LEAD_KEY = "crisdal:lead";
@@ -44,7 +43,9 @@ function cookie(name: string) {
     ?.slice(name.length + 1);
 }
 
-function trackLead(placement: Placement) {
+function trackLead(placement: Placement, eventName: string) {
+  const attribution = readAttribution();
+  trackMarketingEvent(eventName, { placement, ...attribution });
   if (sentInMemory) return;
   try {
     if (sessionStorage.getItem(LEAD_KEY)) return;
@@ -53,9 +54,8 @@ function trackLead(placement: Placement) {
   }
   sentInMemory = true;
   const eventId = crypto.randomUUID();
-  const attribution = readAttribution();
   const details = {
-    content_name: "Impulso Local",
+    content_name: "Sistema de Captación Directa",
     content_category: "whatsapp_click",
     placement,
     ...attribution,
@@ -97,18 +97,25 @@ export function WhatsAppLink({
   children,
   placement,
   className = "",
+  phone = WHATSAPP_NUMBER,
+  message = WHATSAPP_MESSAGE,
+  eventName = `click_whatsapp_${placement}`,
 }: {
   children: ReactNode;
   placement: Placement;
   className?: string;
+  phone?: string;
+  message?: string;
+  eventName?: string;
 }) {
   const router = useRouter();
+  const href = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
   useEffect(() => {
     readAttribution();
   }, []);
   function onClick(event: MouseEvent<HTMLAnchorElement>) {
     // Keep native links: mobile app routing, new-tab gestures and no-JS fallback work.
-    trackLead(placement);
+    trackLead(placement, eventName);
     if (
       placement !== "thanks" &&
       !event.ctrlKey &&
@@ -121,7 +128,7 @@ export function WhatsAppLink({
   }
   return (
     <a
-      href={WHATSAPP_URL}
+      href={href}
       target="_blank"
       rel="noopener noreferrer"
       className={className}
