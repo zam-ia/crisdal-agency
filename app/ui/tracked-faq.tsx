@@ -14,6 +14,7 @@ export function TrackedFaq({
   return (
     <details
       className="faq-item"
+      name="landing-faq"
       onToggle={(event) => {
         if (event.currentTarget.open) {
           trackMarketingEvent("faq_open", { question, index });

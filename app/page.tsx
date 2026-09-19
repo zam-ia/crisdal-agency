@@ -4,10 +4,13 @@ import { cache } from "react";
 import { SITE_URL } from "./lib/config";
 import { getSiteContent } from "./lib/site-content";
 import { MobileDock } from "./ui/mobile-dock";
+import { AnimatedSteps } from "./ui/animated-steps";
+import { RevealText } from "./ui/reveal-text";
 import { SiteTracking } from "./ui/site-tracking";
 import { Icon } from "./ui/symbol";
 import { TrackedFaq } from "./ui/tracked-faq";
 import { VslPlayer } from "./ui/vsl-player";
+import { VslJumpLink } from "./ui/vsl-jump-link";
 import { WhatsAppLink } from "./ui/whatsapp-link";
 
 export const dynamic = "force-dynamic";
@@ -75,24 +78,27 @@ export default async function Home() {
         <section className="hero shell" id="inicio" aria-labelledby="hero-title">
           <div className="hero-copy">
             <p className="eyebrow"><span />{content.hero.eyebrow}</p>
-            <h1 id="hero-title">{content.hero.title}{" "}<em>{content.hero.accent}</em></h1>
+            <RevealText title={content.hero.title} accent={content.hero.accent} />
             <p className="hero-description">{content.hero.description}</p>
             <div className="hero-action">
-              <WhatsAppLink
-                placement="hero"
-                eventName="click_whatsapp_hero"
-                phone={content.brand.whatsappNumber}
-                message={content.finalCta.whatsappMessage}
-                className="button button-gold"
-              >
-                <Icon name="whatsapp" /> {content.hero.cta} <Icon name="arrow" />
-              </WhatsAppLink>
+              <div className="hero-buttons">
+                <WhatsAppLink
+                  placement="hero"
+                  eventName="click_whatsapp_hero"
+                  phone={content.brand.whatsappNumber}
+                  message={content.finalCta.whatsappMessage}
+                  className="button button-gold"
+                >
+                  <Icon name="whatsapp" /> {content.hero.cta} <Icon name="arrow" />
+                </WhatsAppLink>
+                <VslJumpLink />
+              </div>
               <p>{content.hero.microcopy}</p>
             </div>
             <div className="hero-proof"><Icon name="check" /><span>{content.hero.proof}</span></div>
           </div>
 
-          <div className="hero-media">
+          <div className="hero-media" id="vsl">
             <div className="vsl-heading">
               <p className="eyebrow">{content.vsl.eyebrow}</p>
               <h2>{content.vsl.title}</h2>
@@ -154,11 +160,7 @@ export default async function Home() {
               <h2 id="mechanism-title">{content.mechanism.title}</h2>
               <p>{content.mechanism.description}</p>
             </div>
-            <ol className="mechanism-list">
-              {content.mechanism.steps.map((step, index) => (
-                <li key={step.title}><span>{String(index + 1).padStart(2, "0")}</span><h3>{step.title}</h3><p>{step.text}</p></li>
-              ))}
-            </ol>
+            <AnimatedSteps steps={content.mechanism.steps} />
           </div>
         </section>
 

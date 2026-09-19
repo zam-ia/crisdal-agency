@@ -55,6 +55,7 @@ const caseSchema = z.object({
 });
 
 export const siteContentSchema = z.object({
+  schemaVersion: z.number().int().min(1).default(1),
   brand: z.object({
     logoUrl: mediaUrl,
     whatsappNumber: z.string().regex(/^\d{8,15}$/),
@@ -162,6 +163,7 @@ export const siteContentSchema = z.object({
 export type SiteContent = z.infer<typeof siteContentSchema>;
 
 export const defaultSiteContent: SiteContent = {
+  schemaVersion: 2,
   brand: {
     logoUrl: "/brand/crisdal-imagotipo.png",
     whatsappNumber: "51992566725",
@@ -169,11 +171,11 @@ export const defaultSiteContent: SiteContent = {
   },
   hero: {
     eyebrow: "NO PUBLICAMOS POR PUBLICAR",
-    title: "Transformamos contenido y publicidad",
-    accent: "en conversaciones reales para tu negocio.",
+    title: "Deja de publicar.",
+    accent: "Empieza a captar.",
     description:
-      "Creamos tus piezas, configuramos Meta Ads y conectamos todo con tu WhatsApp para que cada publicación tenga una dirección comercial.",
-    cta: "Quiero atraer más clientes",
+      "Contenido + Meta Ads + WhatsApp conectados para generar oportunidades para tu negocio.",
+    cta: "Quiero captar clientes",
     microcopy:
       "Conversemos por WhatsApp sobre lo que vendes y la ruta que necesitas.",
     proof: "Estrategia, contenido, publicidad y WhatsApp en una sola ruta.",
@@ -438,6 +440,23 @@ export const defaultSiteContent: SiteContent = {
 
 const CONTENT_TABLE = "landing_content_versions";
 
+function upgradeLegacyContent(content: SiteContent): SiteContent {
+  if (content.schemaVersion >= 2) return content;
+
+  return {
+    ...content,
+    schemaVersion: 2,
+    hero: {
+      ...content.hero,
+      title: "Deja de publicar.",
+      accent: "Empieza a captar.",
+      description:
+        "Contenido + Meta Ads + WhatsApp conectados para generar oportunidades para tu negocio.",
+      cta: "Quiero captar clientes",
+    },
+  };
+}
+
 export async function getSiteContent(): Promise<SiteContent> {
   if (!isSupabaseConfigured()) return defaultSiteContent;
 
@@ -451,7 +470,7 @@ export async function getSiteContent(): Promise<SiteContent> {
 
     if (error) throw error;
     if (!data) return defaultSiteContent;
-    return siteContentSchema.parse(data.content);
+    return upgradeLegacyContent(siteContentSchema.parse(data.content));
   } catch (error) {
     console.error("No se pudo leer el contenido administrable", error);
     return defaultSiteContent;

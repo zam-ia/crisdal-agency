@@ -156,6 +156,7 @@ h2 {
   color: var(--gold);
   font-style: normal;
 }
+.reveal-word { display: inline-block; will-change: transform, opacity, filter; }
 .hero-description {
   max-width: 610px;
   margin-top: 28px;
@@ -225,6 +226,7 @@ button.vsl-facade { cursor: pointer; text-align: left; }
 .vsl-frame video { width: 100%; height: 100%; border: 0; object-fit: contain; }
 .vsl-empty { cursor: default; }
 .hero-action { grid-area: action; align-self: start; }
+.hero-buttons { display: flex; flex-wrap: wrap; gap: 12px; }
 .hero-action > p { max-width: 470px; margin-top: 13px; color: var(--muted); font-size: 11px; line-height: 1.55; }
 .button {
   min-height: 54px;
@@ -759,6 +761,26 @@ button.vsl-facade { cursor: pointer; text-align: left; }
   width: 1px;
   background: linear-gradient(var(--gold), #f6bf4a28);
 }
+.route-flow:after {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  top: 46px;
+  left: 29px;
+  width: 5px;
+  height: 54px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, transparent, var(--gold), transparent);
+  box-shadow: 0 0 18px #f6bf4a99;
+  animation: route-signal 3.8s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes route-signal {
+  0% { top: 10px; opacity: 0; }
+  16% { opacity: 1; }
+  84% { opacity: 1; }
+  100% { top: calc(100% - 122px); opacity: 0; }
+}
 .route-flow article {
   position: relative;
   display: grid;
@@ -849,6 +871,7 @@ button.vsl-facade { cursor: pointer; text-align: left; }
   .hero-copy h1 { font-size: clamp(44px, 12vw, 57px); }
   .hero-action { margin-top: 26px; }
   .hero-action .button { width: 100%; }
+  .hero-buttons { display: grid; grid-template-columns: 1fr; }
   .hero-proof { align-items: flex-start; }
   .vsl-heading h2 { font-size: 32px; }
   .trust-items { display: flex; justify-content: flex-start; gap: 10px; }
@@ -863,6 +886,7 @@ button.vsl-facade { cursor: pointer; text-align: left; }
   .route-intro blockquote { font-size: 15px; }
   .route-flow article { grid-template-columns: 42px 1fr; min-height: 0; padding: 23px 20px; }
   .route-flow:before { left: 20px; }
+  .route-flow:after { left: 18px; }
   .route-flow h3 { font-size: 21px; }
   .route-outcome { align-items: flex-start; flex-direction: column; margin-left: 42px; }
   .mechanism-list { grid-template-columns: 1fr; }
