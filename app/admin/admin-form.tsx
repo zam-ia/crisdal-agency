@@ -182,7 +182,7 @@ export function AdminForm({
         </div>
       </Section>
 
-      <Section title="Cambio de paradigma" description="La ruta Contenido, Meta Ads y WhatsApp">
+      <Section title="Ruta Crisdal" description="El mecanismo que conecta mensaje, contenido, Meta Ads y WhatsApp">
         <div className="admin-grid">
           <Field label="Etiqueta" value={content.paradigm.eyebrow} onChange={(value) => update(["paradigm", "eyebrow"], value)} />
           <Field label="Título" value={content.paradigm.title} onChange={(value) => update(["paradigm", "title"], value)} />
@@ -198,24 +198,14 @@ export function AdminForm({
         </div>
       </Section>
 
-      <Section title="Autoridad" description="Presentación de la agencia y foto">
+      <Section title="Resultados y evidencia" description="Presentación visible mientras no existan casos autorizados">
         <div className="admin-grid">
           <Field label="Etiqueta" value={content.authority.eyebrow} onChange={(value) => update(["authority", "eyebrow"], value)} />
           <Field label="Título" value={content.authority.title} onChange={(value) => update(["authority", "title"], value)} />
           <TextArea label="Descripción" value={content.authority.description} onChange={(value) => update(["authority", "description"], value)} />
           <TextArea label="Nota verificable" value={content.authority.note} onChange={(value) => update(["authority", "note"], value)} rows={3} />
-          <MediaUploader label="Foto de presentación" kind="image" value={content.authority.image.url} onChange={(value) => update(["authority", "image", "url"], value)} disabled={!cmsConfigured} />
+          <MediaUploader label="Foto de producción real" kind="image" value={content.authority.image.url} onChange={(value) => update(["authority", "image", "url"], value)} disabled={!cmsConfigured} />
           <Field label="Texto alternativo" value={content.authority.image.alt} onChange={(value) => update(["authority", "image", "alt"], value)} />
-        </div>
-      </Section>
-
-      <Section title="Historia de origen" description="Motivo por el que nació Crisdal Agency">
-        <div className="admin-grid">
-          <Field label="Etiqueta" value={content.origin.eyebrow} onChange={(value) => update(["origin", "eyebrow"], value)} />
-          <Field label="Título" value={content.origin.title} onChange={(value) => update(["origin", "title"], value)} />
-          <TextArea label="Historia" value={content.origin.description} onChange={(value) => update(["origin", "description"], value)} rows={7} />
-          <MediaUploader label="Imagen de la historia" kind="image" value={content.origin.image.url} onChange={(value) => update(["origin", "image", "url"], value)} disabled={!cmsConfigured} />
-          <Field label="Texto alternativo" value={content.origin.image.alt} onChange={(value) => update(["origin", "image", "alt"], value)} />
         </div>
       </Section>
 
@@ -244,7 +234,7 @@ export function AdminForm({
         <button type="button" className="admin-secondary" onClick={() => update(["cases", "items"], [...content.cases.items, { title: "Nuevo caso", before: "Situación inicial verificable", intervention: "Trabajo realizado", result: "Resultado con periodo exacto", proof: "Evidencia y autorización" }])}>Agregar caso</button>
       </Section>
 
-      <Section title="Sistema de captación" description="Mecanismo de cuatro pasos">
+      <Section title="Cómo funciona" description="Los cuatro pasos de trabajo visibles en la landing">
         <div className="admin-grid">
           <Field label="Etiqueta" value={content.mechanism.eyebrow} onChange={(value) => update(["mechanism", "eyebrow"], value)} />
           <Field label="Título" value={content.mechanism.title} onChange={(value) => update(["mechanism", "title"], value)} />
@@ -282,29 +272,12 @@ export function AdminForm({
               <Field label="Precio" value={plan.price} onChange={(value) => update(["plans", "items", index, "price"], value)} />
               <Field label="Periodo" value={plan.period} onChange={(value) => update(["plans", "items", index, "period"], value)} />
               <TextArea label="Para quién es" value={plan.audience} onChange={(value) => update(["plans", "items", index, "audience"], value)} />
-              <TextArea label="Descripción" value={plan.description} onChange={(value) => update(["plans", "items", index, "description"], value)} />
               <ListEditor label="Incluye" value={plan.features} onChange={(value) => update(["plans", "items", index, "features"], value)} />
               <label className="admin-check"><input type="checkbox" checked={plan.highlighted} onChange={(event) => update(["plans", "items", index, "highlighted"], event.target.checked)} />Dar énfasis visual</label>
               <Field label="Etiqueta de énfasis" value={plan.badge} onChange={(value) => update(["plans", "items", index, "badge"], value)} />
               <Field label="Aclaración de pauta" value={plan.disclaimer} onChange={(value) => update(["plans", "items", index, "disclaimer"], value)} />
               <Field label="Texto del botón" value={plan.cta} onChange={(value) => update(["plans", "items", index, "cta"], value)} />
               <TextArea label="Mensaje de WhatsApp" value={plan.whatsappMessage} onChange={(value) => update(["plans", "items", index, "whatsappMessage"], value)} rows={3} />
-            </div>
-          ))}
-        </div>
-      </Section>
-
-      <Section title="Cómo trabajamos" description="Proceso operativo visible para el cliente">
-        <div className="admin-grid">
-          <Field label="Etiqueta" value={content.process.eyebrow} onChange={(value) => update(["process", "eyebrow"], value)} />
-          <Field label="Título" value={content.process.title} onChange={(value) => update(["process", "title"], value)} />
-          <TextArea label="Introducción" value={content.process.intro} onChange={(value) => update(["process", "intro"], value)} />
-        </div>
-        <div className="admin-repeaters">
-          {content.process.steps.map((step, index) => (
-            <div className="admin-repeater" key={`${step.title}-${index}`}>
-              <Field label={`Paso ${index + 1}`} value={step.title} onChange={(value) => updateStep("process", index, "title", value)} />
-              <TextArea label="Explicación" value={step.text} onChange={(value) => updateStep("process", index, "text", value)} rows={3} />
             </div>
           ))}
         </div>

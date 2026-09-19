@@ -165,70 +165,73 @@ export const defaultSiteContent: SiteContent = {
   brand: {
     logoUrl: "/brand/crisdal-imagotipo.png",
     whatsappNumber: "51992566725",
-    headerLabel: "Contenido, Meta Ads y WhatsApp",
+    headerLabel: "Ruta Crisdal",
   },
   hero: {
-    eyebrow: "SISTEMA DE CAPTACIÓN DIRECTA",
-    title: "Tu negocio no necesita publicar más.",
-    accent: "Necesita convertir atención en conversaciones de venta.",
+    eyebrow: "NO PUBLICAMOS POR PUBLICAR",
+    title: "Transformamos contenido y publicidad",
+    accent: "en conversaciones reales para tu negocio.",
     description:
-      "Creamos contenido, lo conectamos con campañas en Meta y llevamos a tus potenciales clientes directamente a WhatsApp para que tu marketing deje de sentirse como piezas sueltas.",
-    cta: "Quiero una ruta para mi negocio",
+      "Creamos tus piezas, configuramos Meta Ads y conectamos todo con tu WhatsApp para que cada publicación tenga una dirección comercial.",
+    cta: "Quiero atraer más clientes",
     microcopy:
-      "Te llevamos a WhatsApp. Cuéntanos qué vendes y revisamos qué plan encaja.",
-    proof: "Una ruta clara desde el contenido hasta la conversación comercial.",
+      "Conversemos por WhatsApp sobre lo que vendes y la ruta que necesitas.",
+    proof: "Estrategia, contenido, publicidad y WhatsApp en una sola ruta.",
   },
   vsl: {
-    eyebrow: "MIRA CÓMO FUNCIONA",
-    title: "Contenido, distribución y WhatsApp en una sola ruta",
+    eyebrow: "MINI VSL · 2 MIN APROX.",
+    title: "¿Cómo convertimos contenido en conversaciones?",
     description:
-      "La VSL explica el problema, el mecanismo y qué plan tiene sentido según el momento de tu negocio.",
+      "Una explicación directa de por qué publicar más no basta y cómo conectamos cada pieza de tu captación.",
     url: "",
     posterUrl: "/brand/asesora-impulso.webp",
     posterAlt: "Presentación de Crisdal Agency",
     captionsUrl: "/captions/empty.vtt",
   },
   pain: {
-    eyebrow: "EL MARKETING SE SIENTE DESCONECTADO",
-    title: "¿Te pasa algo de esto?",
+    eyebrow: "EL PROBLEMA NO ES PUBLICAR POCO",
+    title: "Publicar más no arregla un sistema desconectado",
     intro:
-      "Publicas, quizá impulsas anuncios, pero el cliente no encuentra un camino claro para comprarte.",
+      "Puedes tener buenos videos, invertir en publicidad e incluso recibir mensajes. Si cada parte funciona por separado, terminas gastando tiempo y dinero sin saber qué acerca personas a tu negocio.",
     symptoms: [
-      "Subes contenido, pero no sabes qué pieza realmente ayuda a vender.",
-      "Has pagado publicidad, pero los mensajes que llegan son pocos, caros o poco claros.",
-      "Tu Instagram se ve activo, pero no conduce al cliente a una acción concreta.",
-      "Tienes un buen producto o servicio, pero el marketing depende de improvisar cada semana.",
+      "Publicas, pero sin una dirección comercial: el contenido existe porque hay que publicar, no porque cumpla una función.",
+      "Pagas publicidad, pero el prospecto llega frío: el clic no continúa en una experiencia preparada para conversar.",
+      "Recibes mensajes, pero no existe una ruta: Instagram, anuncios, perfil y WhatsApp parecen piezas separadas.",
     ],
     closing:
-      "El problema no siempre es tu producto. Muchas veces es que contenido, publicidad y atención están trabajando por separado.",
+      "El problema no siempre es tu producto. Es que contenido, publicidad y atención todavía no trabajan como un mismo sistema.",
   },
   paradigm: {
-    eyebrow: "UNA RUTA SIMPLE",
-    title: "No necesitas veinte tácticas aisladas",
+    eyebrow: "RUTA CRISDAL",
+    title: "No necesitas otra persona que solamente publique por ti",
     description:
-      "Conectamos las piezas que ya necesita tu negocio para que cada acción tenga una función dentro del proceso comercial.",
+      "Necesitas que mensaje, contenido, publicidad y conversación trabajen como un mismo sistema. Ruta Crisdal es el vehículo que conecta esas piezas.",
     steps: [
       {
-        title: "Contenido que atrae",
-        text: "Piezas creadas para explicar, demostrar y provocar interés real.",
+        title: "Mensaje",
+        text: "Aterrizamos qué vendes, para quién y qué acción queremos provocar.",
       },
       {
-        title: "Meta Ads que distribuye",
-        text: "Campañas que ponen el mensaje frente a audiencias relevantes.",
+        title: "Contenido",
+        text: "Creamos piezas que atraen, explican y mueven a la siguiente acción.",
       },
       {
-        title: "WhatsApp que recibe",
-        text: "Una ruta directa y con contexto para iniciar la conversación.",
+        title: "Meta Ads",
+        text: "Distribuimos el mensaje frente a audiencias relevantes y monitoreamos señales.",
+      },
+      {
+        title: "WhatsApp",
+        text: "Reducimos fricción para que el interés termine en una conversación con contexto.",
       },
     ],
   },
   authority: {
     eyebrow: "CRISDAL AGENCY",
-    title: "Marketing pensado para negocios que necesitan movimiento",
+    title: "Trabajo real antes que métricas de adorno",
     description:
-      "Trabajamos la producción y la pauta como un mismo sistema. Cada pieza debe cumplir una función: atraer, explicar, demostrar o abrir una conversación comercial.",
+      "La estrategia se vuelve tangible en guiones, rodajes, piezas, campañas y rutas hacia WhatsApp. Mostramos el proceso real mientras documentamos los casos que puedan publicarse con contexto.",
     note:
-      "La experiencia, cantidad de proyectos y resultados se publicarán únicamente cuando exista evidencia verificable.",
+      "Los resultados y testimonios se publican solo con periodo, contexto, evidencia verificable y autorización del cliente.",
     image: {
       url: "/brand/asesora-impulso.webp",
       alt: "Presentación visual de Crisdal Agency",
@@ -246,52 +249,52 @@ export const defaultSiteContent: SiteContent = {
   },
   cases: {
     enabled: false,
-    eyebrow: "CASOS REALES",
-    title: "Resultados con contexto y evidencia",
+    eyebrow: "RESULTADOS Y EVIDENCIA",
+    title: "Prueba real, no promesas vacías",
     intro:
-      "Publicaremos cada caso con situación inicial, intervención, periodo, resultado y prueba autorizada.",
+      "Cada caso se publicará con situación inicial, trabajo realizado, periodo, resultado y evidencia autorizada. Mientras tanto, mostramos el trabajo que sí podemos verificar.",
     items: [],
   },
   mechanism: {
-    eyebrow: "SISTEMA DE CAPTACIÓN DIRECTA",
-    title: "Cuatro pasos conectados",
+    eyebrow: "CÓMO FUNCIONA",
+    title: "Así construimos tu ruta",
     description:
-      "El sistema permite entender qué mensaje se usa, cómo se distribuye y dónde se pierde una oportunidad.",
+      "Un servicio complejo debe sentirse simple de entender. Estos cuatro pasos ordenan el trabajo desde la oferta hasta la conversación.",
     steps: [
       {
-        title: "Mensaje",
-        text: "Definimos qué comunicar y qué acción queremos provocar.",
+        title: "Entendemos qué vendes",
+        text: "Definimos oferta, cliente, mensaje y objetivo antes de producir.",
       },
       {
-        title: "Contenido",
-        text: "Grabamos piezas verticales que explican, demuestran y venden.",
+        title: "Creamos el contenido",
+        text: "Grabamos piezas pensadas para llamar la atención y mover a una acción.",
       },
       {
-        title: "Distribución",
-        text: "Configuramos u optimizamos Meta Ads para mostrar las piezas a audiencias relevantes.",
+        title: "Activamos publicidad",
+        text: "Configuramos y monitoreamos campañas para distribuir el mensaje.",
       },
       {
-        title: "WhatsApp",
-        text: "Reducimos fricción y llevamos al prospecto a una conversación comercial.",
+        title: "Conectamos WhatsApp",
+        text: "Llevamos al prospecto a una conversación directa, clara y con contexto.",
       },
     ],
   },
   benefits: {
     eyebrow: "LO QUE CAMBIA PARA TU NEGOCIO",
-    title: "Beneficios antes que entregables",
+    title: "Lo que cambia cuando existe una ruta",
     items: [
-      "Una ruta comercial más fácil de entender y medir.",
-      "Mejor percepción de tu negocio mediante creativos y un perfil más claros.",
-      "Menos improvisación al decidir qué publicar o promocionar.",
-      "Más oportunidades de conversación sin depender solo del alcance orgánico.",
+      "Cada pieza tiene una función dentro del proceso comercial.",
+      "La campaña y el perfil conducen hacia una acción concreta.",
+      "Decides qué producir y promocionar con menos improvisación.",
+      "El prospecto llega a WhatsApp con más contexto.",
       "Piezas reutilizables en anuncios, perfil y seguimiento comercial.",
     ],
   },
   plans: {
-    eyebrow: "ELIGE SEGÚN TU MOMENTO",
-    title: "Tres rutas para avanzar",
+    eyebrow: "SERVICIOS Y PLANES",
+    title: "Elige el nivel de impulso que necesita tu negocio",
     intro:
-      "La inversión en Meta Ads se define y paga por separado. Antes de contratar, revisamos si el alcance del plan encaja con tu negocio.",
+      "Primero definimos la ruta. Después eliges el alcance de producción y acompañamiento que encaja con tu momento.",
     items: [
       {
         slug: "activacion",
@@ -299,7 +302,7 @@ export const defaultSiteContent: SiteContent = {
         price: "S/420",
         period: "por mes",
         audience:
-          "Para negocios que quieren validar una primera ruta de captación sin contratar una estructura grande.",
+          "Para negocios que necesitan empezar a atraer prospectos con una ruta clara.",
         description:
           "Una base compacta para empezar a conectar contenido, campaña y contacto.",
         features: [
@@ -312,7 +315,7 @@ export const defaultSiteContent: SiteContent = {
         highlighted: false,
         badge: "",
         disclaimer: "Inversión en pauta no incluida.",
-        cta: "Consultar Activación",
+        cta: "Quiero activar mi negocio",
         whatsappMessage:
           "Hola, estoy viendo el Plan Activación de S/420 y quiero saber si encaja con mi negocio.",
       },
@@ -322,21 +325,20 @@ export const defaultSiteContent: SiteContent = {
         price: "S/820",
         period: "por mes",
         audience:
-          "Para negocios que ya venden y necesitan mayor frecuencia creativa, mejor perfil y optimización continua.",
+          "Para negocios que quieren producir más contenido y mejorar su presencia antes de invertir más en captación.",
         description:
           "Más consistencia creativa y aprendizaje continuo para una ruta que ya está en movimiento.",
         features: [
-          "4 videos con grabación y edición",
+          "4 videos estratégicos",
+          "Grabación, edición y optimización",
+          "Monitoreo de campañas",
           "Optimización del perfil y su CTA",
-          "Monitoreo y optimización de campañas",
-          "3 visitas presenciales",
-          "Ruta directa hacia WhatsApp Business",
-          "Asesoramiento continuo",
+          "3 visitas presenciales y ruta hacia WhatsApp",
         ],
         highlighted: true,
-        badge: "PLAN CENTRAL",
+        badge: "NEGOCIOS EN CRECIMIENTO",
         disclaimer: "Inversión en pauta no incluida.",
-        cta: "Consultar Tracción",
+        cta: "Quiero generar tracción",
         whatsappMessage:
           "Hola, estoy viendo el Plan Tracción de S/820 y quiero saber si encaja con mi negocio.",
       },
@@ -346,22 +348,20 @@ export const defaultSiteContent: SiteContent = {
         price: "S/1,500",
         period: "por mes",
         audience:
-          "Para negocios que necesitan construir autoridad, variedad creativa y una estrategia mensual más completa.",
+          "Para negocios que necesitan una estrategia más completa y producción constante.",
         description:
           "Una operación de contenido y pauta con más activos, seguimiento y dirección mensual.",
         features: [
-          "6 videos verticales",
-          "10 fotografías editadas de producto o servicio",
-          "Perfil optimizado y CTA",
-          "Monitoreo y optimización de campaña",
-          "4 visitas presenciales",
-          "Ruta directa a WhatsApp Business",
+          "6 videos estratégicos",
+          "10 fotografías profesionales editadas",
           "Estrategia mensual de contenido",
+          "Perfil optimizado, campañas y ruta a WhatsApp",
+          "4 visitas presenciales",
         ],
         highlighted: false,
         badge: "",
         disclaimer: "Inversión en pauta no incluida.",
-        cta: "Consultar Crecimiento",
+        cta: "Quiero construir mi estrategia",
         whatsappMessage:
           "Hola, estoy viendo el Plan Crecimiento de S/1,500 y quiero saber si encaja con mi negocio.",
       },
@@ -383,60 +383,55 @@ export const defaultSiteContent: SiteContent = {
   },
   faq: {
     eyebrow: "PREGUNTAS FRECUENTES",
-    title: "Lo que conviene aclarar antes de empezar",
-    intro: "Queremos que sepas qué incluye la propuesta y qué depende de cada negocio.",
+    title: "Respuestas antes de escribirnos",
+    intro: "Condiciones claras para que sepas qué hacemos, qué depende de tu negocio y qué se contrata por separado.",
     items: [
       {
-        question: "¿La inversión en Meta Ads está incluida?",
+        question: "¿El presupuesto de publicidad está incluido?",
         answer:
-          "No. El precio del plan corresponde al trabajo de estrategia, producción y gestión indicado. El presupuesto que Meta cobra por mostrar los anuncios se define y paga aparte.",
+          "No. El monto destinado a Meta Ads es independiente del servicio de Crisdal. Nosotros nos encargamos de la configuración y el monitoreo correspondiente al plan contratado.",
       },
       {
-        question: "¿Necesito tener Instagram y WhatsApp Business configurados?",
+        question: "¿Necesito tener mis redes sociales bien trabajadas antes de comenzar?",
         answer:
-          "No necesariamente. Revisamos el estado actual y definimos qué ajustes son necesarios para que la ruta funcione correctamente.",
+          "No necesariamente. Dependiendo del plan podemos ordenar y optimizar la presencia que recibirá a los prospectos antes de activar las campañas.",
       },
       {
-        question: "¿Ustedes garantizan ventas?",
+        question: "¿Tengo que saber crear contenido?",
         answer:
-          "No prometemos una cifra garantizada. La agencia trabaja estrategia, creativos, configuración y optimización; el resultado también depende de la oferta, el precio, el mercado, el presupuesto, la atención comercial y la capacidad de cierre.",
+          "No. Nosotros nos encargamos de la planificación, grabación y edición contempladas en tu plan.",
       },
       {
-        question: "¿Qué necesito para empezar?",
+        question: "¿Tengo que aparecer en los videos?",
         answer:
-          "Información del negocio, oferta principal, accesos necesarios para pauta, disponibilidad para grabaciones y una persona responsable de atender los contactos.",
+          "Dependerá de la estrategia y de tu negocio. No todos los contenidos necesitan el mismo formato ni requieren que aparezcas frente a cámara.",
       },
       {
-        question: "¿Cuánto tarda en activarse?",
+        question: "¿Crisdal garantiza ventas?",
         answer:
-          "La fecha se define después del diagnóstico, según el plan, la disponibilidad para grabar y los materiales necesarios. Confirmamos el calendario antes de iniciar.",
-      },
-      {
-        question: "¿Puedo cambiar de plan?",
-        answer:
-          "Revisamos el alcance antes de cada contratación. Cualquier cambio, permanencia o renovación se confirma de forma explícita antes del pago.",
+          "No sería responsable garantizar una cantidad de ventas sin conocer tu oferta, precio, presupuesto publicitario, capacidad de atención y proceso comercial. Nuestro trabajo es construir y optimizar el sistema que genera y dirige oportunidades hacia tu negocio.",
       },
     ],
   },
   finalCta: {
-    eyebrow: "EL SIGUIENTE PASO ES UNA CONVERSACIÓN",
-    title: "Cuéntanos qué vendes y te diremos qué ruta tiene más sentido",
+    eyebrow: "TU SIGUIENTE PASO",
+    title: "Tu negocio ya tiene algo que vender. Ahora necesita una ruta para que más personas lleguen hasta él.",
     description:
-      "Escríbenos por WhatsApp con tu ciudad, tu oferta principal y qué estás haciendo hoy para conseguir clientes.",
-    cta: "Quiero revisar mi ruta",
+      "Cuéntanos qué haces y te ayudaremos a identificar cuál de nuestras soluciones encaja mejor con tu negocio.",
+    cta: "Hablar con Crisdal por WhatsApp",
     whatsappMessage:
       "Hola, vi la landing de Crisdal Agency. Quiero saber qué ruta de captación encaja con mi negocio.",
   },
   footer: {
-    tagline: "Contenido, distribución y conversación comercial.",
+    tagline: "No publicamos por publicar. Construimos rutas de captación.",
     legal: "© 2026 Crisdal Agency · Perú",
     privacy:
       "Usamos medición para entender visitas, reproducción de la VSL y clics hacia WhatsApp. No recibimos el contenido de tus conversaciones desde esta web. Al abrir WhatsApp, tú decides qué información enviar.",
   },
   seo: {
-    title: "Contenido, Meta Ads y WhatsApp | Crisdal Agency",
+    title: "Ruta Crisdal: contenido, Meta Ads y WhatsApp",
     description:
-      "Conecta contenido, campañas en Meta y WhatsApp con un plan de captación para tu negocio. Conoce los planes de Crisdal Agency.",
+      "Transforma contenido y publicidad en conversaciones reales con una ruta que conecta estrategia, producción, Meta Ads y WhatsApp.",
     ogImageUrl: "/brand/plan-380.webp",
   },
 };

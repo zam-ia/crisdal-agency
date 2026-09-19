@@ -55,8 +55,8 @@ export function VslPlayer({
         {posterUrl ? <img src={posterUrl} alt={posterAlt} /> : null}
         <div className="vsl-overlay">
           <span className="play-button" aria-hidden="true">▶</span>
-          <strong>VSL en preparación</strong>
-          <small>Publica el video desde el panel administrativo.</small>
+          <strong>¿Cómo convertimos contenido en conversaciones?</strong>
+          <small>Mini VSL en preparación · publícala desde el panel</small>
         </div>
       </div>
     );
@@ -78,7 +78,7 @@ export function VslPlayer({
         <span className="vsl-overlay">
           <span className="play-button" aria-hidden="true">▶</span>
           <strong>Ver cómo funciona</strong>
-          <small>Reproducir video</small>
+          <small>Mini VSL · reproducir video</small>
         </span>
       </button>
     );

@@ -33,8 +33,8 @@ export function MobileDock({ content }: { content: SiteContent }) {
         ×
       </button>
       <div>
-        <strong>¿Revisamos tu ruta?</strong>
-        <span>Conversemos por WhatsApp</span>
+        <strong>Hablemos de tu ruta</strong>
+        <span>Conversación directa</span>
       </div>
       <WhatsAppLink
         placement="sticky"
@@ -43,7 +43,7 @@ export function MobileDock({ content }: { content: SiteContent }) {
         message={content.finalCta.whatsappMessage}
         className="button button-gold"
       >
-        <Icon name="whatsapp" /> Escribir
+        <Icon name="whatsapp" /> Hablar por WhatsApp
       </WhatsAppLink>
     </aside>
   );
