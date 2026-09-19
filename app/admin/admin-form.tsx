@@ -272,6 +272,7 @@ export function AdminForm({
               <Field label="Precio" value={plan.price} onChange={(value) => update(["plans", "items", index, "price"], value)} />
               <Field label="Periodo" value={plan.period} onChange={(value) => update(["plans", "items", index, "period"], value)} />
               <TextArea label="Para quién es" value={plan.audience} onChange={(value) => update(["plans", "items", index, "audience"], value)} />
+              <TextArea label="Descripción del plan" value={plan.description} onChange={(value) => update(["plans", "items", index, "description"], value)} />
               <ListEditor label="Incluye" value={plan.features} onChange={(value) => update(["plans", "items", index, "features"], value)} />
               <label className="admin-check"><input type="checkbox" checked={plan.highlighted} onChange={(event) => update(["plans", "items", index, "highlighted"], event.target.checked)} />Dar énfasis visual</label>
               <Field label="Etiqueta de énfasis" value={plan.badge} onChange={(value) => update(["plans", "items", index, "badge"], value)} />

@@ -5,6 +5,7 @@ import { SITE_URL } from "./lib/config";
 import { getSiteContent } from "./lib/site-content";
 import { MobileDock } from "./ui/mobile-dock";
 import { AnimatedSteps } from "./ui/animated-steps";
+import { PageMotion } from "./ui/page-motion";
 import { RevealText } from "./ui/reveal-text";
 import { SiteTracking } from "./ui/site-tracking";
 import { Icon } from "./ui/symbol";
@@ -40,6 +41,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 const planPlacements = ["plan_420", "plan_820", "plan_1500"] as const;
+const routeIcons = ["target", "video", "chart", "whatsapp"] as const;
 
 export default async function Home() {
   const content = await getContent();
@@ -47,6 +49,7 @@ export default async function Home() {
   return (
     <>
       <SiteTracking />
+      <PageMotion />
       <a className="skip-link" href="#contenido">Saltar al contenido</a>
 
       <header className="site-header">
@@ -116,16 +119,16 @@ export default async function Home() {
         </div>
 
         <section className="section shell problem" id="problema" aria-labelledby="pain-title">
-          <div className="section-heading section-heading-split">
+          <div className="section-heading section-heading-split" data-reveal>
             <div><p className="eyebrow">{content.pain.eyebrow}</p><h2 id="pain-title">{content.pain.title}</h2></div>
             <p>{content.pain.intro}</p>
           </div>
-          <div className="symptom-grid">
+          <div className="symptom-grid" data-reveal>
             {content.pain.symptoms.map((symptom, index) => (
               <article key={symptom}><span>{String(index + 1).padStart(2, "0")}</span><p>{symptom}</p></article>
             ))}
           </div>
-          <div className="system-contrast" aria-label="Del desorden a una ruta conectada">
+          <div className="system-contrast" aria-label="Del desorden a una ruta conectada" data-reveal>
             <div><span>Contenido</span><b>×</b><span>Ads</span><b>×</b><span>Perfil</span><b>×</b><span>WhatsApp</span><small>DESORDEN</small></div>
             <i aria-hidden="true">↓</i>
             <div className="system-connected"><span>Contenido</span><b>→</b><span>Ads</span><b>→</b><span>Perfil</span><b>→</b><span>WhatsApp</span><small>CONVERSACIÓN</small></div>
@@ -135,16 +138,16 @@ export default async function Home() {
 
         <section className="section route-section" aria-labelledby="route-title">
           <div className="shell route-layout">
-            <div className="route-intro">
+            <div className="route-intro" data-reveal>
               <p className="eyebrow">{content.paradigm.eyebrow}</p>
               <h2 id="route-title">{content.paradigm.title}</h2>
               <p>{content.paradigm.description}</p>
               <blockquote>“No vendemos videos. Construimos la ruta que convierte atención en conversaciones.”</blockquote>
             </div>
-            <div className="route-flow">
+            <div className="route-flow" data-reveal>
               {content.paradigm.steps.map((step, index) => (
                 <article key={step.title}>
-                  <span>0{index + 1}</span>
+                  <span className="route-step-marker"><Icon name={routeIcons[index] || "arrow"} /><b>0{index + 1}</b></span>
                   <div><h3>{step.title}</h3><p>{step.text}</p></div>
                 </article>
               ))}
@@ -155,7 +158,7 @@ export default async function Home() {
 
         <section className="section mechanism-section" id="como-funciona" aria-labelledby="mechanism-title">
           <div className="shell">
-            <div className="section-heading centered-heading">
+            <div className="section-heading centered-heading" data-reveal>
               <p className="eyebrow">{content.mechanism.eyebrow}</p>
               <h2 id="mechanism-title">{content.mechanism.title}</h2>
               <p>{content.mechanism.description}</p>
@@ -165,7 +168,7 @@ export default async function Home() {
         </section>
 
         <section className="section shell evidence-section" id="resultados" aria-labelledby="cases-title">
-          <div className="section-heading section-heading-split">
+          <div className="section-heading section-heading-split" data-reveal>
             <div><p className="eyebrow">{content.cases.eyebrow}</p><h2 id="cases-title">{content.cases.title}</h2></div>
             <p>{content.cases.intro}</p>
           </div>
@@ -184,7 +187,7 @@ export default async function Home() {
               ))}
             </div>
           ) : (
-            <div className="proof-editorial">
+            <div className="proof-editorial" data-reveal>
               <div className="proof-photo">
                 <Image src={content.authority.image.url} alt={content.authority.image.alt} width={900} height={1080} sizes="(max-width: 760px) 92vw, 46vw" />
                 <span>PRODUCCIÓN REAL</span>
@@ -201,7 +204,7 @@ export default async function Home() {
 
         <section className="section plans-section" id="planes" aria-labelledby="plans-title">
           <div className="shell">
-            <div className="plans-lead">
+            <div className="plans-lead" data-reveal>
               <div className="section-heading">
                 <p className="eyebrow">{content.plans.eyebrow}</p>
                 <h2 id="plans-title">{content.plans.title}</h2>
@@ -211,13 +214,14 @@ export default async function Home() {
                 {content.benefits.items.slice(0, 4).map((benefit, index) => <p key={benefit}><span>0{index + 1}</span>{benefit}</p>)}
               </div>
             </div>
-            <div className="plans-grid">
+            <div className="plans-grid" data-reveal>
               {content.plans.items.map((plan, index) => (
                 <article className={`plan-card${plan.highlighted ? " plan-featured" : ""}`} key={plan.slug}>
                   {plan.badge ? <span className="plan-badge">{plan.badge}</span> : null}
                   <div className="plan-header"><span>0{index + 1}</span><h3>{plan.name}</h3></div>
                   <div className="plan-price"><strong>{plan.price}</strong><span>{plan.period}</span></div>
                   <p className="plan-audience">{plan.audience}</p>
+                  <p className="plan-description">{plan.description}</p>
                   <ul>{plan.features.map((feature) => <li key={feature}><Icon name="check" />{feature}</li>)}</ul>
                   <p className="plan-disclaimer">{plan.disclaimer}</p>
                   <WhatsAppLink placement={planPlacements[index]} eventName={`click_whatsapp_${planPlacements[index]}`} phone={content.brand.whatsappNumber} message={plan.whatsappMessage} className={`button ${plan.highlighted ? "button-gold" : "button-outline"}`}>
@@ -231,14 +235,14 @@ export default async function Home() {
         </section>
 
         <section className="section faq-section" id="faq" aria-labelledby="faq-title">
-          <div className="shell faq-layout">
+          <div className="shell faq-layout" data-reveal>
             <div><p className="eyebrow">{content.faq.eyebrow}</p><h2 id="faq-title">{content.faq.title}</h2><p className="faq-intro">{content.faq.intro}</p></div>
             <div className="faqs">{content.faq.items.map((item, index) => <TrackedFaq key={item.question} question={item.question} answer={item.answer} index={index} />)}</div>
           </div>
         </section>
 
         <section className="closing-section" aria-labelledby="closing-title">
-          <div className="shell closing-content">
+          <div className="shell closing-content" data-reveal>
             <p className="eyebrow">{content.finalCta.eyebrow}</p>
             <h2 id="closing-title">{content.finalCta.title}</h2>
             <p>{content.finalCta.description}</p>

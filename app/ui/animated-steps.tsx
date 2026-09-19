@@ -14,10 +14,10 @@ export function AnimatedSteps({
       {steps.map((step, index) => (
         <motion.li
           key={step.title}
-          initial={reduceMotion ? false : { opacity: 0, y: 24 }}
-          whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }}
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.28 }}
-          transition={{ duration: 0.55, delay: index * 0.08, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: reduceMotion ? 0 : 0.55, delay: reduceMotion ? 0 : index * 0.08, ease: [0.22, 1, 0.36, 1] }}
         >
           <span>{String(index + 1).padStart(2, "0")}</span>
           <h3>{step.title}</h3>

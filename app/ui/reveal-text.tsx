@@ -8,11 +8,11 @@ function Words({ text, delay = 0 }: { text: string; delay?: number }) {
   return text.split(" ").map((word, index) => (
     <motion.span
       className="reveal-word"
-      initial={reduceMotion ? false : { opacity: 0, y: 22, filter: "blur(7px)" }}
-      animate={reduceMotion ? undefined : { opacity: 1, y: 0, filter: "blur(0px)" }}
+      initial={{ opacity: 0, y: 22, filter: "blur(7px)" }}
+      animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
       transition={{
-        duration: 0.72,
-        delay: delay + index * 0.04,
+        duration: reduceMotion ? 0 : 0.72,
+        delay: reduceMotion ? 0 : delay + index * 0.04,
         ease: [0.22, 1, 0.36, 1],
       }}
       key={`${word}-${index}`}
