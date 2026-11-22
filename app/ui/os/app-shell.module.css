@@ -1,0 +1,200 @@
+@import "./os-tokens.css";
+
+.shell {
+  min-height: 100dvh;
+  background: var(--os-bg);
+  color: var(--os-text);
+}
+
+.sidebar {
+  display: none;
+}
+
+.main {
+  min-width: 0;
+  padding: var(--os-space-4) var(--os-space-4)
+    calc(var(--os-mobile-nav-height) + var(--os-space-5));
+}
+
+.mobileNav {
+  position: fixed;
+  z-index: 50;
+  right: var(--os-space-3);
+  bottom: var(--os-space-3);
+  left: var(--os-space-3);
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  min-height: var(--os-mobile-nav-height);
+  padding: var(--os-space-2);
+  border: 1px solid var(--os-border);
+  border-radius: 1.35rem;
+  background: rgb(255 255 255 / 96%);
+  box-shadow: var(--os-shadow-md);
+  backdrop-filter: blur(14px);
+}
+
+.navLink {
+  display: grid;
+  place-items: center;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  padding: var(--os-space-2);
+  border-radius: var(--os-radius-sm);
+  color: var(--os-text-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-align: center;
+  text-decoration: none;
+}
+
+.navLink[aria-current="page"] {
+  background: color-mix(in srgb, var(--os-accent) 26%, white);
+  color: var(--os-accent-strong);
+}
+
+.navLink:focus-visible,
+.action:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--os-focus) 35%, transparent);
+  outline-offset: 2px;
+}
+
+.metricGrid {
+  display: grid;
+  gap: var(--os-space-3);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+}
+
+.card {
+  padding: var(--os-space-5);
+  border: 1px solid var(--os-border);
+  border-radius: var(--os-radius-md);
+  background: var(--os-surface);
+  box-shadow: var(--os-shadow-sm);
+}
+
+.metricLabel,
+.metricHint {
+  color: var(--os-text-muted);
+}
+
+.metricLabel {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 750;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.metricValue {
+  display: block;
+  margin-top: var(--os-space-3);
+  font-size: clamp(1.65rem, 5vw, 2.4rem);
+  line-height: 1;
+}
+
+.metricHint {
+  display: block;
+  margin-top: var(--os-space-2);
+  font-size: 0.86rem;
+}
+
+.emptyState {
+  display: grid;
+  justify-items: start;
+  gap: var(--os-space-3);
+  padding: clamp(1.5rem, 5vw, 3rem);
+  border: 1px dashed var(--os-border);
+  border-radius: var(--os-radius-lg);
+  background: var(--os-surface);
+}
+
+.emptyState h2,
+.emptyState p {
+  margin: 0;
+}
+
+.emptyState p {
+  max-width: 42rem;
+  color: var(--os-text-muted);
+}
+
+.action {
+  min-height: 2.75rem;
+  padding: 0.7rem 1rem;
+  border-radius: 999px;
+  background: var(--os-accent-strong);
+  color: #fff;
+  font-weight: 750;
+  text-decoration: none;
+}
+
+.skeleton {
+  min-height: 5rem;
+  border-radius: var(--os-radius-md);
+  background: linear-gradient(
+    100deg,
+    var(--os-surface-muted) 30%,
+    #fff 48%,
+    var(--os-surface-muted) 66%
+  );
+  background-size: 220% 100%;
+  animation: os-shimmer 1.5s linear infinite;
+}
+
+@keyframes os-shimmer {
+  to {
+    background-position-x: -220%;
+  }
+}
+
+@media (min-width: 64rem) {
+  .shell {
+    display: grid;
+    grid-template-columns: 17rem minmax(0, 1fr);
+  }
+
+  .sidebar {
+    position: sticky;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--os-space-5);
+    height: 100dvh;
+    padding: var(--os-space-6) var(--os-space-4);
+    border-right: 1px solid var(--os-border);
+    background: var(--os-surface);
+  }
+
+  .brand {
+    padding: 0 var(--os-space-3);
+    font-weight: 850;
+    letter-spacing: 0.08em;
+  }
+
+  .sidebar nav {
+    display: grid;
+    gap: var(--os-space-1);
+  }
+
+  .navLink {
+    place-items: center start;
+    font-size: 0.9rem;
+    text-align: left;
+  }
+
+  .main {
+    padding: var(--os-space-6);
+  }
+
+  .mobileNav {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+  }
+}
+

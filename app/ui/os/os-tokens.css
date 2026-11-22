@@ -1,0 +1,25 @@
+:global(:root) {
+  --os-bg: #f7f7f3;
+  --os-surface: #ffffff;
+  --os-surface-muted: #eff0ed;
+  --os-text: #17181b;
+  --os-text-muted: #63666a;
+  --os-accent: #5bd0c2;
+  --os-accent-strong: #14665d;
+  --os-border: #e2e5df;
+  --os-danger: #a63838;
+  --os-focus: #0d7569;
+  --os-radius-sm: 0.75rem;
+  --os-radius-md: 1.125rem;
+  --os-radius-lg: 1.75rem;
+  --os-shadow-sm: 0 1px 2px rgb(23 24 27 / 5%);
+  --os-shadow-md: 0 18px 48px rgb(23 24 27 / 8%);
+  --os-space-1: 0.25rem;
+  --os-space-2: 0.5rem;
+  --os-space-3: 0.75rem;
+  --os-space-4: 1rem;
+  --os-space-5: 1.5rem;
+  --os-space-6: 2rem;
+  --os-mobile-nav-height: 4.75rem;
+}
+
