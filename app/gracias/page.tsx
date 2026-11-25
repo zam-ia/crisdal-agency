@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { publicSite } from "../lib/public-site-content";
 import { WhatsAppLink } from "../ui/whatsapp-link";
 import { Icon } from "../ui/symbol";
 export const metadata: Metadata = {
@@ -17,21 +18,26 @@ export default function Thanks() {
       <h1>
         Un paso más.
         <br />
-        Conversemos de tu negocio.
+        Conversemos de tu proyecto.
       </h1>
       <p>
         Si ya se abrió WhatsApp, envíanos el mensaje para iniciar la
-        conversación. Cuéntanos qué vendes y en qué ciudad estás.
+        conversación. Cuéntanos si necesitas contenido, fotografía o cobertura audiovisual.
       </p>
-      <WhatsAppLink placement="thanks" className="button button-gold">
-        <Icon name="whatsapp" /> Abrir WhatsApp <Icon name="arrow" />
+      <WhatsAppLink
+        placement="thanks"
+        phone={publicSite.brand.whatsapp}
+        message={publicSite.messages.general}
+        className="button button-gold"
+      >
+        <Icon name="whatsapp" /> Abrir WhatsApp
       </WhatsAppLink>
       <p className="thanks-note">
         ¿No se abrió? Usa el botón o escríbenos al +51 992 566 725.
         <br />
         Tu consulta llega cuando envías el mensaje en WhatsApp.
       </p>
-      <Link href="/" className="thanks-back">← Volver a la landing</Link>
+      <Link href="/" className="thanks-back">Volver al sitio</Link>
     </main>
   );
 }

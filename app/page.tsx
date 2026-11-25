@@ -1,266 +1,213 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import { cache } from "react";
+import Link from "next/link";
 import { SITE_URL } from "./lib/config";
-import { getSiteContent } from "./lib/site-content";
-import { MobileDock } from "./ui/mobile-dock";
-import { AnimatedSteps } from "./ui/animated-steps";
-import { PageMotion } from "./ui/page-motion";
-import { RevealText } from "./ui/reveal-text";
-import { SiteTracking } from "./ui/site-tracking";
-import { Icon } from "./ui/symbol";
-import { TrackedFaq } from "./ui/tracked-faq";
-import { VslPlayer } from "./ui/vsl-player";
+import {
+  contentFormats,
+  productionSteps,
+  publicFaq,
+  publicSite,
+} from "./lib/public-site-content";
+import {
+  EmptyPortfolio,
+  MarketingShell,
+  SectionHeading,
+  marketingStyles as styles,
+} from "./ui/marketing/marketing-shell";
 import { WhatsAppLink } from "./ui/whatsapp-link";
 
-export const dynamic = "force-dynamic";
-const getContent = cache(getSiteContent);
+export const metadata: Metadata = {
+  title: "Crisdal Agency | Creación de contenido y producción audiovisual",
+  description:
+    "Reels, fotografía comercial, producción audiovisual y cobertura de eventos para marcas, negocios y personas.",
+  alternates: { canonical: "/" },
+  openGraph: {
+    title: "Crisdal Agency | Producción audiovisual",
+    description:
+      "Contenido visual profesional, fotografía y video para negocios y eventos.",
+    url: SITE_URL,
+    type: "website",
+    locale: "es_PE",
+    images: [{ url: "/brand/asesora-impulso.webp", width: 1000, height: 1250 }],
+  },
+};
 
-export async function generateMetadata(): Promise<Metadata> {
-  const content = await getContent();
-  return {
-    title: content.seo.title,
-    description: content.seo.description,
-    alternates: { canonical: "/" },
-    openGraph: {
-      title: content.seo.title,
-      description: content.seo.description,
-      url: SITE_URL,
-      type: "website",
-      locale: "es_PE",
-      images: content.seo.ogImageUrl ? [{ url: content.seo.ogImageUrl }] : [],
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: content.seo.title,
-      description: content.seo.description,
-      images: content.seo.ogImageUrl ? [content.seo.ogImageUrl] : [],
-    },
-  };
-}
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "ProfessionalService",
+  name: "Crisdal Agency",
+  url: SITE_URL,
+  image: `${SITE_URL}/brand/asesora-impulso.webp`,
+  telephone: `+${publicSite.brand.whatsapp}`,
+  areaServed: "Perú",
+  address: { "@type": "PostalAddress", addressLocality: "Huancayo", addressCountry: "PE" },
+  knowsAbout: ["Producción audiovisual", "Creación de contenido", "Fotografía comercial", "Video profesional"],
+};
 
-const planPlacements = ["plan_420", "plan_820", "plan_1500"] as const;
-const routeIcons = ["target", "video", "chart", "whatsapp"] as const;
-
-export default async function Home() {
-  const content = await getContent();
-
+export default function Home() {
   return (
-    <>
-      <SiteTracking />
-      <PageMotion />
-      <a className="skip-link" href="#contenido">Saltar al contenido</a>
+    <MarketingShell>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
+      />
 
-      <header className="site-header">
-        <div className="shell header-inner">
-          <a className="brand" href="#inicio" aria-label="Crisdal Agency, ir al inicio">
-            <Image src={content.brand.logoUrl} width={44} height={52} alt="" className="brand-logo" priority />
-          </a>
-          <nav className="landing-nav" aria-label="Navegación principal">
-            <a href="#como-funciona">Cómo funciona</a>
-            <a href="#resultados">Resultados</a>
-            <a href="#planes">Planes</a>
-            <a href="#faq">FAQ</a>
-          </nav>
-          <WhatsAppLink
-            placement="header"
-            eventName="click_whatsapp_header"
-            phone={content.brand.whatsappNumber}
-            message={content.finalCta.whatsappMessage}
-            className="header-cta"
-          >
-            Hablar con nosotros <Icon name="arrow" />
-          </WhatsAppLink>
-        </div>
-      </header>
-
-      <main id="contenido">
-        <section className="hero shell" id="inicio" aria-labelledby="hero-title">
-          <div className="hero-copy">
-            <p className="eyebrow"><span />{content.hero.eyebrow}</p>
-            <RevealText title={content.hero.title} accent={content.hero.accent} />
-            <p className="hero-description">{content.hero.description}</p>
-            <div className="hero-action">
-              <div className="hero-buttons">
-                <WhatsAppLink
-                  placement="hero"
-                  eventName="click_whatsapp_hero"
-                  phone={content.brand.whatsappNumber}
-                  message={content.finalCta.whatsappMessage}
-                  className="button button-gold"
-                >
-                  <Icon name="whatsapp" /> {content.hero.cta} <Icon name="arrow" />
-                </WhatsAppLink>
-              </div>
-              <p>{content.hero.microcopy}</p>
-            </div>
-            <div className="hero-proof"><Icon name="check" /><span>{content.hero.proof}</span></div>
-          </div>
-
-          <div className="hero-media" id="vsl">
-            <div className="vsl-heading">
-              <p className="eyebrow">{content.vsl.eyebrow}</p>
-              <h2>{content.vsl.title}</h2>
-              <p>{content.vsl.description}</p>
-            </div>
-            <VslPlayer url={content.vsl.url} posterUrl={content.vsl.posterUrl} posterAlt={content.vsl.posterAlt} captionsUrl={content.vsl.captionsUrl} />
-          </div>
-        </section>
-
-        <div className="trust-strip" aria-label="Capacidades conectadas">
-          <div className="shell trust-items">
-            <span>Estrategia</span><i>•</i><span>Producción</span><i>•</i><span>Meta Ads</span><i>•</i><span>WhatsApp</span>
-            <strong>Todo conectado en una sola ruta.</strong>
-          </div>
-        </div>
-
-        <section className="section shell problem" id="problema" aria-labelledby="pain-title">
-          <div className="section-heading section-heading-split" data-reveal>
-            <div><p className="eyebrow">{content.pain.eyebrow}</p><h2 id="pain-title">{content.pain.title}</h2></div>
-            <p>{content.pain.intro}</p>
-          </div>
-          <div className="symptom-grid" data-reveal>
-            {content.pain.symptoms.map((symptom, index) => (
-              <article key={symptom}><span>{String(index + 1).padStart(2, "0")}</span><p>{symptom}</p></article>
-            ))}
-          </div>
-          <div className="system-contrast" aria-label="Del desorden a una ruta conectada" data-reveal>
-            <div><span>Contenido</span><b>×</b><span>Ads</span><b>×</b><span>Perfil</span><b>×</b><span>WhatsApp</span><small>DESORDEN</small></div>
-            <i aria-hidden="true">↓</i>
-            <div className="system-connected"><span>Contenido</span><b>→</b><span>Ads</span><b>→</b><span>Perfil</span><b>→</b><span>WhatsApp</span><small>CONVERSACIÓN</small></div>
-          </div>
-          <p className="section-closing">{content.pain.closing}</p>
-        </section>
-
-        <section className="section route-section" aria-labelledby="route-title">
-          <div className="shell route-layout">
-            <div className="route-intro" data-reveal>
-              <p className="eyebrow">{content.paradigm.eyebrow}</p>
-              <h2 id="route-title">{content.paradigm.title}</h2>
-              <p>{content.paradigm.description}</p>
-              <blockquote>“No vendemos videos. Construimos la ruta que convierte atención en conversaciones.”</blockquote>
-            </div>
-            <div className="route-flow" data-reveal>
-              {content.paradigm.steps.map((step, index) => (
-                <article key={step.title}>
-                  <span className="route-step-marker"><Icon name={routeIcons[index] || "arrow"} /><b>0{index + 1}</b></span>
-                  <div><h3>{step.title}</h3><p>{step.text}</p></div>
-                </article>
-              ))}
-              <div className="route-outcome"><span>RESULTADO BUSCADO</span><strong>Oportunidad comercial</strong></div>
-            </div>
-          </div>
-        </section>
-
-        <section className="section mechanism-section" id="como-funciona" aria-labelledby="mechanism-title">
-          <div className="shell">
-            <div className="section-heading centered-heading" data-reveal>
-              <p className="eyebrow">{content.mechanism.eyebrow}</p>
-              <h2 id="mechanism-title">{content.mechanism.title}</h2>
-              <p>{content.mechanism.description}</p>
-            </div>
-            <AnimatedSteps steps={content.mechanism.steps} />
-          </div>
-        </section>
-
-        <section className="section shell evidence-section" id="resultados" aria-labelledby="cases-title">
-          <div className="section-heading section-heading-split" data-reveal>
-            <div><p className="eyebrow">{content.cases.eyebrow}</p><h2 id="cases-title">{content.cases.title}</h2></div>
-            <p>{content.cases.intro}</p>
-          </div>
-          {content.cases.enabled && content.cases.items.length ? (
-            <div className="case-grid">
-              {content.cases.items.map((item) => (
-                <article key={item.title}>
-                  <h3>{item.title}</h3>
-                  <dl>
-                    <div><dt>Antes</dt><dd>{item.before}</dd></div>
-                    <div><dt>Qué hicimos</dt><dd>{item.intervention}</dd></div>
-                    <div><dt>Después</dt><dd>{item.result}</dd></div>
-                    <div><dt>Evidencia</dt><dd>{item.proof}</dd></div>
-                  </dl>
-                </article>
-              ))}
-            </div>
-          ) : (
-            <div className="proof-editorial" data-reveal>
-              <div className="proof-photo">
-                <Image src={content.authority.image.url} alt={content.authority.image.alt} width={900} height={1080} sizes="(max-width: 760px) 92vw, 46vw" />
-                <span>PRODUCCIÓN REAL</span>
-              </div>
-              <div className="proof-copy">
-                <p className="eyebrow">TRABAJO, CONTEXTO Y AUTORIZACIÓN</p>
-                <h3>{content.authority.title}</h3>
-                <p>{content.authority.description}</p>
-                <div className="evidence-note"><Icon name="shield" /><span>{content.authority.note}</span></div>
-              </div>
-            </div>
-          )}
-        </section>
-
-        <section className="section plans-section" id="planes" aria-labelledby="plans-title">
-          <div className="shell">
-            <div className="plans-lead" data-reveal>
-              <div className="section-heading">
-                <p className="eyebrow">{content.plans.eyebrow}</p>
-                <h2 id="plans-title">{content.plans.title}</h2>
-                <p>{content.plans.intro}</p>
-              </div>
-              <div className="benefit-mini-grid" aria-label={content.benefits.title}>
-                {content.benefits.items.slice(0, 4).map((benefit, index) => <p key={benefit}><span>0{index + 1}</span>{benefit}</p>)}
-              </div>
-            </div>
-            <div className="plans-grid" data-reveal>
-              {content.plans.items.map((plan, index) => (
-                <article className={`plan-card${plan.highlighted ? " plan-featured" : ""}`} key={plan.slug}>
-                  {plan.badge ? <span className="plan-badge">{plan.badge}</span> : null}
-                  <div className="plan-header"><span>0{index + 1}</span><h3>{plan.name}</h3></div>
-                  <div className="plan-price"><strong>{plan.price}</strong><span>{plan.period}</span></div>
-                  <p className="plan-audience">{plan.audience}</p>
-                  <p className="plan-description">{plan.description}</p>
-                  <ul>{plan.features.map((feature) => <li key={feature}><Icon name="check" />{feature}</li>)}</ul>
-                  <p className="plan-disclaimer">{plan.disclaimer}</p>
-                  <WhatsAppLink placement={planPlacements[index]} eventName={`click_whatsapp_${planPlacements[index]}`} phone={content.brand.whatsappNumber} message={plan.whatsappMessage} className={`button ${plan.highlighted ? "button-gold" : "button-outline"}`}>
-                    {plan.cta} <Icon name="arrow" />
-                  </WhatsAppLink>
-                </article>
-              ))}
-            </div>
-            <p className="plans-disclaimer">La inversión destinada a Meta Ads se contrata por separado y no está incluida en el precio del servicio.</p>
-          </div>
-        </section>
-
-        <section className="section faq-section" id="faq" aria-labelledby="faq-title">
-          <div className="shell faq-layout" data-reveal>
-            <div><p className="eyebrow">{content.faq.eyebrow}</p><h2 id="faq-title">{content.faq.title}</h2><p className="faq-intro">{content.faq.intro}</p></div>
-            <div className="faqs">{content.faq.items.map((item, index) => <TrackedFaq key={item.question} question={item.question} answer={item.answer} index={index} />)}</div>
-          </div>
-        </section>
-
-        <section className="closing-section" aria-labelledby="closing-title">
-          <div className="shell closing-content" data-reveal>
-            <p className="eyebrow">{content.finalCta.eyebrow}</p>
-            <h2 id="closing-title">{content.finalCta.title}</h2>
-            <p>{content.finalCta.description}</p>
-            <WhatsAppLink placement="final" eventName="click_whatsapp_final" phone={content.brand.whatsappNumber} message={content.finalCta.whatsappMessage} className="button button-gold">
-              <Icon name="whatsapp" /> {content.finalCta.cta} <Icon name="arrow" />
+      <section className={styles.homeHero} aria-labelledby="home-title">
+        <div className={styles.heroCopy}>
+          <p className={styles.eyebrow}>Creación de contenido · Fotografía · Video</p>
+          <h1 id="home-title">Tu negocio tiene algo que mostrar. <em>Hagamos que se vea como debería.</em></h1>
+          <p>
+            Creamos contenido visual profesional para marcas, negocios y personas. Desde reels y
+            fotografía comercial hasta producciones audiovisuales y cobertura de eventos.
+          </p>
+          <div className={styles.heroActions}>
+            <WhatsAppLink placement="content_hero" eventName="click_whatsapp_content_hero" phone={publicSite.brand.whatsapp} message={publicSite.messages.content} className={styles.primaryButton}>
+              Quiero contenido para mi negocio
             </WhatsAppLink>
-            <small>Conversación directa. Sin formularios interminables.</small>
+            <WhatsAppLink placement="events_hero" eventName="click_whatsapp_events_hero" phone={publicSite.brand.whatsapp} message={publicSite.messages.events} className={styles.secondaryButton}>
+              Quiero cotizar mi evento
+            </WhatsAppLink>
           </div>
-        </section>
-      </main>
-
-      <footer className="site-footer">
-        <div className="shell footer-layout">
-          <div className="brand footer-brand">
-            <Image src={content.brand.logoUrl} width={36} height={42} alt="" className="brand-logo" />
-            <span>CRISDAL<small>AGENCY</small></span>
+          <div className={styles.heroNote}>
+            <span>Contenido para negocios</span><i />
+            <span>Fotografía profesional</span><i />
+            <span>Producción audiovisual</span>
           </div>
-          <p>{content.footer.tagline}<span>{content.footer.legal}</span></p>
-          <details className="privacy"><summary>Privacidad y medición</summary><p>{content.footer.privacy}</p></details>
         </div>
-      </footer>
-      <MobileDock content={content} />
-    </>
+        <div className={styles.heroVisual}>
+          <div className={styles.heroFrame}>
+            <Image src="/brand/asesora-impulso.webp" alt="Integrante del equipo de Crisdal Agency" fill priority sizes="(max-width: 800px) 94vw, 44vw" />
+          </div>
+          <p><span>Dirección creativa</span> Producción con intención, no piezas aisladas.</p>
+        </div>
+      </section>
+
+      <section className={styles.serviceSelector} aria-labelledby="choose-title">
+        <div className={styles.selectorIntro}>
+          <p className={styles.eyebrow}>Dos líneas, una misma exigencia visual</p>
+          <h2 id="choose-title">¿Qué necesitas producir?</h2>
+        </div>
+        <Link href="/contenido" className={styles.selectorCard}>
+          <span>70%</span><small>Para marcas y negocios</small>
+          <h3>Contenido que muestra mejor lo que vendes.</h3>
+          <p>Reels, fotografía comercial y campañas audiovisuales.</p>
+        </Link>
+        <Link href="/eventos" className={`${styles.selectorCard} ${styles.selectorEvent}`}>
+          <span>30%</span><small>Para momentos importantes</small>
+          <h3>Fotografía y video para conservar la historia.</h3>
+          <p>Cobertura profesional con condiciones y fechas confirmadas.</p>
+        </Link>
+      </section>
+
+      <section className={styles.darkSection}>
+        <div className={styles.splitFeature}>
+          <div>
+            <SectionHeading eyebrow="Producción para negocios" title="Una imagen profesional antes de pedir atención." description="Diseñamos cada producción alrededor de una necesidad concreta: presentar, explicar, vender o construir confianza." />
+            <ul className={styles.statementList}>
+              <li><span>01</span> Mensaje y dirección visual antes de grabar.</li>
+              <li><span>02</span> Producción adaptada al canal y al objetivo.</li>
+              <li><span>03</span> Entregables y condiciones acordados por escrito.</li>
+            </ul>
+            <Link className={styles.textLink} href="/contenido">Explorar contenido para negocios</Link>
+          </div>
+          <div className={styles.editorialImage}>
+            <Image src="/brand/plan-380.webp" alt="Pieza visual producida para la presentación comercial de Crisdal Agency" fill sizes="(max-width: 800px) 92vw, 42vw" />
+            <span>Material de presentación Crisdal</span>
+          </div>
+        </div>
+      </section>
+
+      <section className={styles.lightSection}>
+        <SectionHeading eyebrow="Proceso de producción" title="De la idea a una pieza que sí tiene un lugar." />
+        <ol className={styles.processGrid}>
+          {productionSteps.map((step) => (
+            <li key={step.number}><span>{step.number}</span><h3>{step.title}</h3><p>{step.text}</p></li>
+          ))}
+        </ol>
+      </section>
+
+      <section className={styles.formatsSection}>
+        <SectionHeading eyebrow="Formatos audiovisuales" title="El formato correcto para lo que necesitas comunicar." description="No empezamos por la cantidad. Empezamos por el uso, el contexto y la intención de cada activo." />
+        <div className={styles.formatGrid}>
+          {contentFormats.map((format) => (
+            <article key={format.title}><span>Formato audiovisual</span><h3>{format.title}</h3><p>{format.text}</p></article>
+          ))}
+        </div>
+      </section>
+
+      <section className={styles.plansSection} id="planes">
+        <SectionHeading eyebrow="Planes de contenido" title="Un punto de partida. El alcance se confirma contigo." description="Publicamos los precios de referencia aprobados. Los entregables y condiciones se validan antes de contratar." />
+        <div className={styles.planGrid}>
+          {publicSite.contentPlans.map((plan) => (
+            <article className={plan.recommended ? styles.featuredPlan : styles.planCard} key={plan.slug}>
+              {plan.recommended ? <strong className={styles.planBadge}>Recomendado</strong> : null}
+              <span>Punto de partida</span><h3>{plan.name}</h3><p className={styles.price}>{plan.price}</p>
+              <p>{plan.summary}</p><small>Alcance y condiciones sujetos a confirmación.</small>
+              <WhatsAppLink placement={`plan_${plan.slug}`} eventName={`click_whatsapp_plan_${plan.slug}`} phone={publicSite.brand.whatsapp} message={plan.message} className={plan.recommended ? styles.primaryButton : styles.secondaryButton}>
+                Consultar este plan
+              </WhatsAppLink>
+            </article>
+          ))}
+        </div>
+        <Link className={styles.textLinkDark} href="/planes">Comparar planes y condiciones</Link>
+      </section>
+
+      <section className={styles.photoFeature}>
+        <div className={styles.photoCopy}>
+          <SectionHeading eyebrow="Fotografía profesional" title="Producto, espacio y equipo con una mirada coherente." description="La fotografía comercial ayuda a que la calidad que ya existe en tu negocio también se perciba en pantalla." />
+          <WhatsAppLink placement="photography" eventName="click_whatsapp_photography" phone={publicSite.brand.whatsapp} message={publicSite.messages.photography} className={styles.secondaryButton}>Cotizar fotografía comercial</WhatsAppLink>
+        </div>
+        <div className={styles.photoComposition} aria-hidden><span>4:5</span><span>16:9</span><span>9:16</span></div>
+      </section>
+
+      <section className={styles.portfolioSection}>
+        <SectionHeading eyebrow="Portafolio" title="Trabajo real, contexto real y publicación autorizada." />
+        <EmptyPortfolio />
+      </section>
+
+      <section className={styles.eventsSection}>
+        <div className={styles.eventsLead}>
+          <p className={styles.eyebrow}>Cobertura de eventos</p>
+          <h2>Hay momentos que no se repiten. La producción tampoco debería improvisarse.</h2>
+          <p>Fotografía y video profesional para eventos, con disponibilidad, equipo y entregables confirmados antes de reservar.</p>
+          <WhatsAppLink placement="events_section" eventName="click_whatsapp_events_section" phone={publicSite.brand.whatsapp} message={publicSite.messages.events} className={styles.primaryButton}>Consultar disponibilidad</WhatsAppLink>
+        </div>
+        <div className={styles.eventPackages}>
+          {publicSite.eventPackages.map((pack) => (
+            <article key={pack.slug}><span>Cobertura</span><h3>{pack.name}</h3><p>{pack.summary}</p>
+              <WhatsAppLink placement={`event_${pack.slug}`} eventName={`click_whatsapp_event_${pack.slug}`} phone={publicSite.brand.whatsapp} message={pack.message}>Consultar paquete</WhatsAppLink>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className={styles.methodSection}>
+        <SectionHeading eyebrow="Metodología" title="Una producción clara desde la primera conversación." />
+        <div className={styles.methodStrip}>
+          <p><span>Brief</span> Entendemos la necesidad y el uso final.</p>
+          <p><span>Propuesta</span> Acordamos alcance, fecha y condiciones.</p>
+          <p><span>Producción</span> Ejecutamos con dirección y cuidado técnico.</p>
+          <p><span>Entrega</span> Compartimos lo contratado y cerramos el proyecto.</p>
+        </div>
+      </section>
+
+      <section className={styles.faqSection}>
+        <SectionHeading eyebrow="Preguntas frecuentes" title="Claridad antes de producir." />
+        <div className={styles.faqList}>
+          {publicFaq.map((item) => (
+            <details key={item.question}><summary>{item.question}<span aria-hidden>+</span></summary><p>{item.answer}</p></details>
+          ))}
+        </div>
+      </section>
+
+      <section className={styles.finalCta}>
+        <p className={styles.eyebrow}>Tu próxima producción</p>
+        <h2>Muéstranos qué quieres comunicar. Nosotros te ayudamos a convertirlo en imagen.</h2>
+        <div className={styles.heroActions}>
+          <WhatsAppLink placement="public_final" eventName="click_whatsapp_public_final" phone={publicSite.brand.whatsapp} message={publicSite.messages.general} className={styles.darkButton}>Hablar con Crisdal</WhatsAppLink>
+          <Link className={styles.lightLink} href="/contacto">Elegir una consulta</Link>
+        </div>
+      </section>
+    </MarketingShell>
   );
 }

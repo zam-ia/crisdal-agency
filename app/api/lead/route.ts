@@ -31,7 +31,16 @@ export async function POST(request: NextRequest) {
     typeof data !== "object" ||
     !/^[a-f0-9-]{36}$/i.test(data.eventId || "") ||
     !PLACEMENTS.includes(data.placement) ||
-    !["/", "/gracias"].includes(data.path)
+    ![
+      "/",
+      "/contenido",
+      "/eventos",
+      "/portafolio",
+      "/planes",
+      "/contacto",
+      "/ruta-crisdal",
+      "/gracias",
+    ].includes(data.path)
   )
     return Response.json({ error: "Invalid event" }, { status: 400 });
   const token = process.env.META_CAPI_ACCESS_TOKEN;

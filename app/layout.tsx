@@ -12,33 +12,36 @@ const displayFont = localFont({
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: "Crisdal Agency | Contenido, Meta Ads y WhatsApp",
+  title: {
+    default: "Crisdal Agency | Producción audiovisual",
+    template: "%s",
+  },
   description:
-    "Conecta contenido, campañas en Meta y WhatsApp con una ruta de captación clara para tu negocio.",
+    "Creación de contenido, fotografía comercial, video profesional y cobertura audiovisual para negocios y eventos.",
   alternates: { canonical: "/" },
   icons: { icon: "/brand/crisdal-imagotipo.png" },
   openGraph: {
-    title: "Crisdal Agency | Sistema de Captación Directa",
+    title: "Crisdal Agency | Creación de contenido y producción audiovisual",
     description:
-      "Contenido, Meta Ads y WhatsApp conectados en una ruta comercial.",
+      "Reels, fotografía comercial, video profesional y cobertura de eventos.",
     url: SITE_URL,
     type: "website",
     locale: "es_PE",
     images: [
       {
-        url: "/brand/plan-380.webp",
-        width: 1080,
-        height: 1440,
+        url: "/brand/asesora-impulso.webp",
+        width: 1000,
+        height: 1250,
         alt: "Crisdal Agency",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Crisdal Agency | Sistema de Captación Directa",
+    title: "Crisdal Agency | Producción audiovisual",
     description:
-      "Contenido, Meta Ads y WhatsApp conectados en una ruta comercial.",
-    images: ["/brand/plan-380.webp"],
+      "Contenido visual profesional para negocios y eventos.",
+    images: ["/brand/asesora-impulso.webp"],
   },
 };
 export const viewport: Viewport = {

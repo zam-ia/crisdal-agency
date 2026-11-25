@@ -54,8 +54,11 @@ function trackLead(placement: Placement, eventName: string) {
   }
   sentInMemory = true;
   const eventId = crypto.randomUUID();
+  const isRutaCrisdal = window.location.pathname.startsWith("/ruta-crisdal");
   const details = {
-    content_name: "Sistema de Captación Directa",
+    content_name: isRutaCrisdal
+      ? "Sistema de Captación Directa"
+      : "Crisdal Agency | Producción audiovisual",
     content_category: "whatsapp_click",
     placement,
     ...attribution,
