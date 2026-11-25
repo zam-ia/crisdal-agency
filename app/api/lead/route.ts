@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { PIXEL_ID, PLACEMENTS, SITE_URL, UTM_KEYS } from "../../lib/config";
+import { eventDataForPath, PIXEL_ID, PLACEMENTS, SITE_URL, UTM_KEYS } from "../../lib/config";
 
 export const runtime = "nodejs";
 
@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
         event_source_url: `${SITE_URL}${data.path}`,
         user_data: userData,
         custom_data: {
-          content_name: "Sistema de Captación Directa",
+          ...eventDataForPath(data.path),
           content_category: "whatsapp_click",
           placement: data.placement,
           ...attribution,

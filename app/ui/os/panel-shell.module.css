@@ -1,0 +1,28 @@
+@import "./os-tokens.css";
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--os-space-4);
+  margin-bottom: var(--os-space-6);
+  padding: var(--os-space-3) var(--os-space-4);
+  border: 1px solid var(--os-border);
+  border-radius: var(--os-radius-md);
+  background: rgb(255 255 255 / 88%);
+}
+
+.topbar div { display: grid; gap: 0.15rem; }
+.topbar span { color: var(--os-text-muted); font-size: 0.8rem; }
+.topbar button {
+  min-height: 2.75rem;
+  padding: 0.65rem 1rem;
+  border: 1px solid var(--os-border);
+  border-radius: 999px;
+  background: var(--os-surface);
+  color: var(--os-text);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.topbar button:focus-visible { outline: 3px solid color-mix(in srgb, var(--os-focus) 35%, transparent); }

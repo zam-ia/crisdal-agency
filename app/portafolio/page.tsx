@@ -7,13 +7,10 @@ export const metadata: Metadata = {
   alternates: { canonical: "/portafolio" },
 };
 
-const filters = ["Todos", "Reels", "Fotografía", "Producto", "Eventos", "Corporativo"];
-
 export default function PortfolioPage() {
   return <MarketingShell>
     <PageHero eyebrow="Portafolio" title="Producciones reales, publicadas con contexto y autorización." description="Esta página está preparada para mostrar proyectos por formato y categoría sin convertir material de presentación en casos de éxito." />
     <section className={styles.portfolioSection}>
-      <div className={styles.filterRow} aria-label="Categorías de portafolio">{filters.map((filter,index)=><span aria-current={index===0?"true":undefined} key={filter}>{filter}</span>)}</div>
       <EmptyPortfolio />
     </section>
   </MarketingShell>;

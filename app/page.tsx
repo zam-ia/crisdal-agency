@@ -39,8 +39,6 @@ const jsonLd = {
   url: SITE_URL,
   image: `${SITE_URL}/brand/asesora-impulso.webp`,
   telephone: `+${publicSite.brand.whatsapp}`,
-  areaServed: "Perú",
-  address: { "@type": "PostalAddress", addressLocality: "Huancayo", addressCountry: "PE" },
   knowsAbout: ["Producción audiovisual", "Creación de contenido", "Fotografía comercial", "Video profesional"],
 };
 
@@ -76,7 +74,7 @@ export default function Home() {
         </div>
         <div className={styles.heroVisual}>
           <div className={styles.heroFrame}>
-            <Image src="/brand/asesora-impulso.webp" alt="Integrante del equipo de Crisdal Agency" fill priority sizes="(max-width: 800px) 94vw, 44vw" />
+            <Image src="/brand/asesora-impulso.webp" alt="Material promocional de Crisdal Agency" fill priority sizes="(max-width: 800px) 94vw, 44vw" />
           </div>
           <p><span>Dirección creativa</span> Producción con intención, no piezas aisladas.</p>
         </div>

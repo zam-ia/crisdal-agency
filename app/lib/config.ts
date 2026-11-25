@@ -3,6 +3,13 @@ export const OFFER_EVENT_DATA = {
   content_name: "Sistema de Captación Directa",
   content_category: "Contenido, Meta Ads y WhatsApp",
 };
+export const PUBLIC_EVENT_DATA = {
+  content_name: "Crisdal Agency | Producción audiovisual",
+  content_category: "Producción audiovisual",
+};
+export function eventDataForPath(path: string) {
+  return path.startsWith("/ruta-crisdal") ? OFFER_EVENT_DATA : PUBLIC_EVENT_DATA;
+}
 export const SITE_URL = "https://crisdal-agency.vercel.app";
 export const WHATSAPP_NUMBER = "51992566725";
 export const WHATSAPP_MESSAGE =
