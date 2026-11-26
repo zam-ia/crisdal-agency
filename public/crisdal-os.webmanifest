@@ -1,0 +1,40 @@
+{
+  "id": "/panel",
+  "name": "Crisdal OS",
+  "short_name": "Crisdal OS",
+  "description": "Gestión comercial y operativa de Crisdal Agency.",
+  "lang": "es-PE",
+  "start_url": "/panel",
+  "scope": "/panel",
+  "display": "standalone",
+  "theme_color": "#111210",
+  "background_color": "#f5f7f4",
+  "icons": [
+    {
+      "src": "/brand/os-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/brand/os-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Agenda",
+      "url": "/panel/agenda"
+    },
+    {
+      "name": "Clientes",
+      "url": "/panel/clientes"
+    },
+    {
+      "name": "Finanzas",
+      "url": "/panel/finanzas"
+    }
+  ]
+}
