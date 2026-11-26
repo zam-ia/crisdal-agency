@@ -12,7 +12,7 @@
 .sample > div { padding: 1rem; }
 .sample span { color: #fab713; font-size: .78rem; }
 .sample h3 { margin: .3rem 0; font-family: Georgia, serif; font-size: clamp(1.4rem,3vw,2rem); overflow-wrap: anywhere; }
-.pending { color: rgb(244 238 227 / 78%); max-width: 40rem; line-height: 1.6; }
+.pending { color: #4b4940; max-width: 40rem; line-height: 1.6; }
 .coverages { display: flex; flex-wrap: wrap; gap: .55rem; }
 .coverages span { display: inline-flex; padding: .42rem .7rem; border: 1px solid #c9bca8; border-radius: 999px; font-size: .83rem; }
 @media (max-width: 48rem) {
