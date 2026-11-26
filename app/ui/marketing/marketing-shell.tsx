@@ -25,7 +25,7 @@ export function MarketingShell({ children }: { children: ReactNode }) {
         <div className={styles.headerInner}>
           <Link className={styles.logo} href="/" aria-label="Crisdal Agency, inicio">
             <Image
-              src="/brand/crisdal-symbol.svg"
+              src="/brand/crisdal-icon.png"
               width={42}
               height={40}
               alt=""
@@ -71,10 +71,7 @@ export function MarketingShell({ children }: { children: ReactNode }) {
         message={publicSite.messages.general}
         className={styles.floatingWhatsApp}
       >
-        <svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <path d="M20.1 11.8a8 8 0 0 1-11.5 7.1L4 20l1.25-4.3A8 8 0 1 1 20.1 11.8Z" />
-          <path d="M9 8.1c-.3-.6-.5-.6-.8-.6-.35 0-.8.5-1 1.2-.35 1.7 1.75 4.4 4.25 5.8 1.9 1.1 3.25 1 3.8.55.3-.25.65-.9.65-1.3l-2.2-1.1-.95 1a6.65 6.65 0 0 1-2.9-3l.95-.95Z" />
-        </svg>
+        <Image src="/brand/whatsapp-official.png" alt="" width={30} height={30} aria-hidden="true" />
         <span>WhatsApp</span>
       </WhatsAppLink>
     </div>
