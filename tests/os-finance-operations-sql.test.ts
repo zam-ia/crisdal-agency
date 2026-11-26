@@ -32,3 +32,17 @@ test("idempotency uses payload digest and transaction includes audit event",()=>
  assert.match(sql,/insert into public\.crisdal_os_audit_events/);
  assert.match(sql,/update public\.crisdal_finance_requests set result_id=result_value/);
 });
+
+test("migration contains a single transaction and single RPC definitions",()=>{
+ assert.equal((sql.match(/commit;/g)||[]).length,1);
+ assert.equal((sql.match(/create function public\.crisdal_finance_write/g)||[]).length,1);
+ assert.equal((sql.match(/create function public\.crisdal_finance_snapshot/g)||[]).length,1);
+ assert.ok(sql.includes("payload_hash text not null check (payload_hash ~ '^[a-f0-9]{64}$')"));
+ assert.ok(sql.includes("result_id uuid"));
+});
+test("voucher provenance and detail are stored independently from cash",()=>{
+ assert.match(sql,/source_kind in \('sunat_original','commercial_summary','manual_reference'\)/);
+ assert.match(sql,/jsonb_array_length\(voucher_items\)>20/);
+ assert.match(sql,/discount_minor bigint/);
+ assert.match(sql,/items=voucher_items/);
+});
