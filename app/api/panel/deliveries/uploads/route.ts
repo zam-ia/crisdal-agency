@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import sharp from "sharp";
+import {readBoundedJson} from "../../../../lib/os/bounded-json";
 import { z } from "zod";
 import { authorizePanelApi } from "../../../../lib/commercial/api-auth";
 import { DELIVERY_BUCKET, MAX_DELIVERY_IMAGE_BYTES, detectedDeliveryImageMime } from "../../../../lib/deliveries/domain";
@@ -22,7 +23,7 @@ export async function POST(request: Request) {
   const auth = await authorizePanelApi(request, "projects.write", true);
   if ("response" in auth) return auth.response;
   if (Number(request.headers.get("content-length") || 0) > 4000) return Response.json({ error: "Datos demasiado grandes." }, { status: 413 });
-  const parse = schema.safeParse(await request.json().catch(() => null));
+  const parse = schema.safeParse(await readBoundedJson(request,4000).catch(() => null));
   if (!parse.success) return Response.json({ error: "Carga inválida." }, { status: 422, headers: NEVER_CACHE });
   const input = parse.data;
   try {
@@ -52,6 +53,7 @@ export async function POST(request: Request) {
       return Response.json({ error: "La autorización de carga venció; vuelve a subir la imagen." }, { status: 409, headers: NEVER_CACHE });
     const { data: file, error: downloadError } = await db.storage.from(DELIVERY_BUCKET).download(intent.storage_path);
     if (downloadError || !file) return Response.json({ error: "El archivo todavía no está disponible." }, { status: 409, headers: NEVER_CACHE });
+    if (file.size !== intent.size_bytes || file.size > MAX_DELIVERY_IMAGE_BYTES) return Response.json({error:"El tamaño recibido no coincide con la autorización."},{status:415,headers:NEVER_CACHE});
     const raw = new Uint8Array(await file.arrayBuffer());
     if (raw.byteLength !== intent.size_bytes || detectedDeliveryImageMime(raw) !== intent.mime_type) {
       await db.from("crisdal_client_gallery_upload_intents").update({ status: "failed" }).eq("id", intent.id);
@@ -66,8 +68,8 @@ export async function POST(request: Request) {
       const base = `client-deliveries/${gallery.id}/derived/${assetId}`;
       const previewPath = `${base}-web.webp`, thumbnailPath = `${base}-thumb.webp`;
       const [preview, thumbnail] = await Promise.all([
-        sharp(raw).rotate().resize({ width: 2560, height: 2560, fit: "inside", withoutEnlargement: true }).webp({ quality: 88, effort: 4 }).toBuffer(),
-        sharp(raw).rotate().resize({ width: 640, height: 640, fit: "inside", withoutEnlargement: true }).webp({ quality: 80, effort: 3 }).toBuffer(),
+        sharp(raw, {limitInputPixels: 80_000_000}).rotate().resize({ width: 2560, height: 2560, fit: "inside", withoutEnlargement: true }).webp({ quality: 88, effort: 4 }).toBuffer(),
+        sharp(raw, {limitInputPixels: 80_000_000}).rotate().resize({ width: 640, height: 640, fit: "inside", withoutEnlargement: true }).webp({ quality: 80, effort: 3 }).toBuffer(),
       ]);
       const [{ error: previewError }, { error: thumbError }] = await Promise.all([
         db.storage.from(DELIVERY_BUCKET).upload(previewPath, preview, { contentType: "image/webp", upsert: false }),

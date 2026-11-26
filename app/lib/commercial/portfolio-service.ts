@@ -3,11 +3,14 @@ import type { PortfolioRepository } from "./portfolio-repository";
 
 export async function savePortfolioProject(repository: PortfolioRepository, input: PortfolioDraftInput, actorUserId: string) {
   const parsed = portfolioDraftInputSchema.parse(input);
-  const saved = await repository.saveDraft(parsed, actorUserId);
-  if ((parsed.consentStatus === "revoked" || parsed.consentStatus === "missing") && saved.status === "published") {
-    return repository.setStatus(saved.id, "draft", actorUserId);
+  // Unpublish before accepting an invalid consent change. A failed save must not keep the gallery public.
+  if (parsed.id) {
+    const previous = await repository.findAdminById(parsed.id);
+    if (previous?.status === "published" && (parsed.consentStatus !== "verified" || !parsed.consentEvidenceReference.trim() || !parsed.consentScope.trim() || !parsed.consentAuthorizedAt || !previous.media.some(item => item.id === parsed.coverAssetId))) {
+      await repository.setStatus(previous.id, "draft", actorUserId);
+    }
   }
-  return saved;
+  return repository.saveDraft(parsed, actorUserId);
 }
 
 export async function changePortfolioStatus(repository: PortfolioRepository, id: string, status: PortfolioStatus, actorUserId: string) {

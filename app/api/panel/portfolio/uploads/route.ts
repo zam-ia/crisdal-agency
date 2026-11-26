@@ -1,5 +1,6 @@
 import { createHash, randomUUID } from "node:crypto";
 import sharp from "sharp";
+import {readBoundedJson} from "../../../../lib/os/bounded-json";
 import { z } from "zod";
 import { authorizePanelApi } from "../../../../lib/commercial/api-auth";
 import { detectedImageMime } from "../../../../lib/commercial/portfolio";
@@ -14,7 +15,7 @@ const confirmSchema = z.object({ action: z.literal("confirm"), projectId: z.stri
 export async function POST(request: Request) {
   const auth = await authorizePanelApi(request, "portfolio.manage", true);
   if ("response" in auth) return auth.response;
-  const body = await request.json().catch(() => null);
+  const body = await readBoundedJson(request,4096).catch(() => null);
   const sign = signSchema.safeParse(body);
   const confirm = confirmSchema.safeParse(body);
   if (!sign.success && !confirm.success) return Response.json({ error: "Datos de carga inválidos." }, { status: 400 });
@@ -32,7 +33,7 @@ export async function POST(request: Request) {
     if (intentError) return Response.json({ error: "No se pudo preparar la carga privada." }, { status: 503 });
     const { data, error } = await db.storage.from("crisdal-private-media").createSignedUploadUrl(storagePath);
     if (error || !data) return Response.json({ error: "No se pudo firmar la carga privada." }, { status: 503 });
-    return Response.json({ intentId, storagePath, signedUrl: data.signedUrl, token: data.token, expiresAt });
+    return Response.json({ intentId, storagePath, signedUrl: data.signedUrl, token: data.token, expiresAt },{headers:{"Cache-Control":"no-store"}});
   }
 
   if (!confirm.success) return Response.json({ error: "Confirmación inválida." }, { status: 400 });
@@ -41,6 +42,7 @@ export async function POST(request: Request) {
   if (intentError || !intent || intent.status !== "signed" || Date.parse(intent.expires_at) < Date.now()) return Response.json({ error: "La autorización de carga expiró. Reintenta el archivo." }, { status: 409 });
   const { data: object, error: downloadError } = await db.storage.from("crisdal-private-media").download(intent.storage_path);
   if (downloadError || !object) return Response.json({ error: "La carga aún no está disponible para verificar." }, { status: 409 });
+  if (object.size !== intent.size_bytes || object.size > MAX_BYTES) return Response.json({error:"El tamaño recibido no coincide con la autorización."},{status:415});
   const original = new Uint8Array(await object.arrayBuffer());
   if (original.byteLength !== intent.size_bytes || detectedImageMime(original) !== intent.mime_type) {
     await db.from("portfolio_upload_intents").update({ status: "failed" }).eq("id", intent.id);
@@ -48,12 +50,12 @@ export async function POST(request: Request) {
     return Response.json({ error: "El archivo recibido no coincide con la imagen autorizada." }, { status: 415 });
   }
   try {
-    const pipeline = sharp(original).rotate();
+    const pipeline = sharp(original, {limitInputPixels: 80_000_000}).rotate();
     const metadata = await pipeline.metadata();
-    if (!metadata.width || !metadata.height) throw new Error("Imagen sin dimensiones verificables.");
+    if (!metadata.width || !metadata.height || metadata.width * metadata.height > 80_000_000) throw new Error("Imagen sin dimensiones verificables o demasiado grande.");
     const assetId = randomUUID();
-    const optimized = await sharp(original).rotate().resize({ width: 2400, height: 2400, fit: "inside", withoutEnlargement: true }).webp({ quality: 88, effort: 4 }).toBuffer();
-    const thumbnail = await sharp(original).rotate().resize({ width: 560, height: 560, fit: "inside", withoutEnlargement: true }).webp({ quality: 80, effort: 3 }).toBuffer();
+    const optimized = await sharp(original, {limitInputPixels: 80_000_000}).rotate().resize({ width: 2400, height: 2400, fit: "inside", withoutEnlargement: true }).webp({ quality: 88, effort: 4 }).toBuffer();
+    const thumbnail = await sharp(original, {limitInputPixels: 80_000_000}).rotate().resize({ width: 560, height: 560, fit: "inside", withoutEnlargement: true }).webp({ quality: 80, effort: 3 }).toBuffer();
     const privatePath = `optimized/${input.projectId}/${assetId}.webp`;
     const thumbnailPath = `thumbnails/${input.projectId}/${assetId}.webp`;
     const [{ error: optimizedError }, { error: thumbnailError }] = await Promise.all([
@@ -72,7 +74,7 @@ export async function POST(request: Request) {
       db.storage.from("crisdal-private-media").createSignedUrl(privatePath, 900),
       db.storage.from("crisdal-private-media").createSignedUrl(thumbnailPath, 900),
     ]);
-    return Response.json({ media: { id: assetId, kind: "image", url: signed?.signedUrl, posterUrl: poster?.signedUrl || null, alt: input.alt, orientation: input.orientation, sortOrder: links?.length || 0, mimeType: "image/webp", width: metadata.width, height: metadata.height } });
+    return Response.json({ media: { id: assetId, kind: "image", url: signed?.signedUrl, posterUrl: poster?.signedUrl || null, alt: input.alt, orientation: input.orientation, sortOrder: links?.length || 0, mimeType: "image/webp", width: metadata.width, height: metadata.height } },{headers:{"Cache-Control":"no-store"}});
   } catch {
     await db.from("portfolio_upload_intents").update({ status: "failed" }).eq("id", intent.id);
     return Response.json({ error: "No se pudo verificar y optimizar la imagen." }, { status: 503 });
