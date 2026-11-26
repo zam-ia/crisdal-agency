@@ -5,11 +5,10 @@ import { notFound } from "next/navigation";
 import { safePublicPortfolio, safePublicPortfolioProject } from "../../lib/commercial/portfolio-repository";
 import { MarketingShell } from "../../ui/marketing/marketing-shell";
 import { ProjectShare } from "../project-share";
+import { PortfolioGallery } from "../portfolio-gallery";
 import styles from "../portfolio.module.css";
 
-function embedUrl(value: string) {
-  try { const url = new URL(value); if (url.hostname.includes("youtu")) { const id = url.hostname === "youtu.be" ? url.pathname.slice(1) : url.searchParams.get("v"); return id ? `https://www.youtube-nocookie.com/embed/${id}` : null; } if (url.hostname.includes("vimeo")) { const id = url.pathname.split("/").filter(Boolean).at(-1); return id ? `https://player.vimeo.com/video/${id}` : null; } return null; } catch { return null; }
-}
+function narrative(category:string){const normalized=category.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();if(/boda|quince|celebr|bautizo|pedida/.test(normalized))return"Una historia para volver a sentirla.";if(/corporativo|empresa/.test(normalized))return"Cobertura profesional, claridad visual y cada momento importante en contexto.";return"Una producción construida alrededor de una historia real.";}
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params; const project = await safePublicPortfolioProject(slug);
@@ -23,11 +22,8 @@ export default async function PortfolioProjectPage({ params }: { params: Promise
   return <MarketingShell><article className={styles.projectPage}>
     <header className={styles.projectHeader}><p>{project.categoryName}</p><h1>{project.title}</h1><span>{project.serviceType}{project.year ? ` · ${project.year}` : ""}</span></header>
     {cover?.kind === "image" ? <img className={styles.projectCover} src={cover.url} alt={cover.alt} /> : null}
-    <div className={styles.projectStory}><div><p>Una historia que merecía ser contada.</p><h2>{project.objective || "Una producción diseñada alrededor de un objetivo real."}</h2></div><p>{project.description}</p></div>
-    <section className={styles.mediaGrid} aria-label="Galería del proyecto">{project.media.filter((item) => item.id !== cover?.id).map((media) => {
-      if (media.kind === "image") return <img key={media.id} src={media.url} alt={media.alt} loading="lazy" decoding="async" data-orientation={media.orientation} />;
-      const embed = embedUrl(media.url); return embed ? <iframe key={media.id} src={embed} title={media.alt} loading="lazy" allow="accelerometer; encrypted-media; picture-in-picture; fullscreen" allowFullScreen /> : <a key={media.id} href={media.url} target="_blank" rel="noopener noreferrer">Abrir video en el proveedor aprobado</a>;
-    })}</section>
+    <div className={styles.projectStory}><div><p>{narrative(project.categorySlug)}</p><h2>{project.objective || narrative(project.categorySlug)}</h2></div><p>{project.description}</p></div>
+    <PortfolioGallery media={project.media.filter((item) => item.id !== cover?.id)} />
     <ProjectShare title={project.title} path={`/portafolio/${project.slug}`} />
     {related.length ? <aside className={styles.related}><h2>Proyectos relacionados</h2>{related.map((item) => <Link href={`/portafolio/${item.slug}`} key={item.id}>{item.title}</Link>)}</aside> : null}
   </article></MarketingShell>;

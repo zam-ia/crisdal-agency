@@ -4,14 +4,14 @@ import { createHash, randomUUID } from "node:crypto";
 import { getSupabaseAdmin } from "../supabase-admin";
 import type { PortfolioDraftInput, PortfolioMedia, PortfolioProject, PortfolioStatus } from "./portfolio";
 
-export type PortfolioCategory = { id: string; slug: string; name: string; active: boolean; sortOrder: number };
+export type PortfolioCategory = { id: string; slug: string; name: string; active: boolean; visible?: boolean; sortOrder: number };
 
 type ProjectRow = {
   id: string; slug: string; title: string; category_id: string; client_name: string | null;
   client_display_authorized: boolean; production_year: number | null; description: string;
   objective: string; service_type: string; status: PortfolioStatus; featured: boolean;
   cover_asset_id: string | null; published_at: string | null; created_at: string; updated_at: string;
-  portfolio_categories: { slug: string; name: string } | { slug: string; name: string }[] | null;
+  portfolio_categories: { slug: string; name: string; visible?: boolean } | { slug: string; name: string; visible?: boolean }[] | null;
 };
 
 export interface PortfolioRepository {
@@ -22,9 +22,11 @@ export interface PortfolioRepository {
   findAdminById(id: string): Promise<PortfolioProject | null>;
   saveDraft(input: PortfolioDraftInput, actorUserId: string): Promise<PortfolioProject>;
   setStatus(id: string, status: PortfolioStatus, actorUserId: string): Promise<PortfolioProject>;
-  addExternalVideo(projectId: string, input: { url: string; posterUrl?: string | null; alt: string; orientation: PortfolioMedia["orientation"] }, actorUserId: string): Promise<PortfolioMedia>;
+  addExternalVideo(projectId: string, input: { url: string; posterUrl?: string | null; alt: string; orientation: PortfolioMedia["orientation"]; provider?: PortfolioMedia["provider"]; embedMode?: PortfolioMedia["embedMode"]; title?: string }, actorUserId: string): Promise<PortfolioMedia>;
   addUploadedImage(projectId: string, input: { bytes: Uint8Array; mimeType: string; extension: string; alt: string; orientation: PortfolioMedia["orientation"] }, actorUserId: string): Promise<PortfolioMedia>;
   reorderMedia(projectId: string, mediaIds: string[], actorUserId: string): Promise<void>;
+  unlinkMedia(projectId: string, mediaId: string, actorUserId: string): Promise<void>;
+  updateCategoryLayout(updates: { id: string; visible: boolean; sortOrder: number }[]): Promise<void>;
 }
 
 function relation(value: ProjectRow["portfolio_categories"]) {
@@ -35,28 +37,38 @@ export class SupabasePortfolioRepository implements PortfolioRepository {
   private readonly db = getSupabaseAdmin();
 
   async listCategories() {
-    const { data, error } = await this.db.from("portfolio_categories").select("id,slug,name,active,sort_order").eq("active", true).order("sort_order");
+    const { data, error } = await this.db.from("portfolio_categories").select("id,slug,name,active,visible,sort_order").eq("active", true).order("sort_order");
     if (error) throw error;
-    return (data || []).map((row) => ({ id: row.id, slug: row.slug, name: row.name, active: row.active, sortOrder: row.sort_order }));
+    return (data || []).map((row) => ({ id: row.id, slug: row.slug, name: row.name, active: row.active, visible: row.visible, sortOrder: row.sort_order }));
   }
 
   private async hydrate(rows: ProjectRow[]) {
     if (!rows.length) return [];
     const ids = rows.map((row) => row.id);
     const [{ data: links, error: linksError }, { data: consents, error: consentError }] = await Promise.all([
-      this.db.from("portfolio_media").select("project_id,sort_order,media_assets(id,kind,public_url,poster_url,alt_text,orientation,mime_type,width,height)").in("project_id", ids).order("sort_order"),
+      this.db.from("portfolio_media").select("project_id,sort_order,media_assets(id,kind,public_url,poster_url,alt_text,orientation,mime_type,width,height,external_provider,embed_mode,title,private_storage_path,thumbnail_storage_path)").in("project_id", ids).order("sort_order"),
       this.db.from("publication_consents").select("project_id,status,scope,evidence_reference,authorized_at").in("project_id", ids),
     ]);
     if (linksError) throw linksError;
     if (consentError) throw consentError;
-    return rows.map((row) => {
+    return Promise.all(rows.map(async (row) => {
       const category = relation(row.portfolio_categories);
       const consent = (consents || []).find((item) => item.project_id === row.id);
-      const media = (links || []).filter((item) => item.project_id === row.id).map((item) => {
+      const media = await Promise.all((links || []).filter((item) => item.project_id === row.id).map(async (item) => {
         const raw = Array.isArray(item.media_assets) ? item.media_assets[0] : item.media_assets;
         if (!raw) return null;
-        return { id: raw.id, kind: raw.kind, url: raw.public_url, posterUrl: raw.poster_url, alt: raw.alt_text, orientation: raw.orientation, sortOrder: item.sort_order, mimeType: raw.mime_type, width: raw.width, height: raw.height } as PortfolioMedia;
-      }).filter((item): item is PortfolioMedia => Boolean(item));
+        let url = raw.public_url;
+        let posterUrl = raw.poster_url;
+        if (raw.private_storage_path && (!url || url.startsWith("private:"))) {
+          const { data } = await this.db.storage.from("crisdal-private-media").createSignedUrl(raw.private_storage_path, 900);
+          if (data?.signedUrl) url = data.signedUrl;
+        }
+        if (raw.thumbnail_storage_path && (!posterUrl || posterUrl.startsWith("private:"))) {
+          const { data } = await this.db.storage.from("crisdal-private-media").createSignedUrl(raw.thumbnail_storage_path, 900);
+          if (data?.signedUrl) posterUrl = data.signedUrl;
+        }
+        return { id: raw.id, kind: raw.kind, url, posterUrl, alt: raw.alt_text, orientation: raw.orientation, sortOrder: item.sort_order, mimeType: raw.mime_type, width: raw.width, height: raw.height, provider: raw.external_provider||undefined, embedMode: raw.embed_mode||undefined, title: raw.title||undefined } as PortfolioMedia;
+      }));
       return {
         id: row.id, slug: row.slug, title: row.title, categoryId: row.category_id,
         categorySlug: category?.slug || "", categoryName: category?.name || "Sin categoría",
@@ -66,13 +78,13 @@ export class SupabasePortfolioRepository implements PortfolioRepository {
         status: row.status, featured: row.featured, coverAssetId: row.cover_asset_id,
         publishedAt: row.published_at, consentStatus: consent?.status || "missing",
         consentScope: consent?.scope || "", consentEvidenceReference: consent?.evidence_reference || "",
-        consentAuthorizedAt: consent?.authorized_at || null, media, createdAt: row.created_at, updatedAt: row.updated_at,
+        consentAuthorizedAt: consent?.authorized_at || null, media: media.filter((item): item is PortfolioMedia => Boolean(item)), createdAt: row.created_at, updatedAt: row.updated_at,
       } satisfies PortfolioProject;
-    });
+    }));
   }
 
-  private baseSelect() {
-    return "id,slug,title,category_id,client_name,client_display_authorized,production_year,description,objective,service_type,status,featured,cover_asset_id,published_at,created_at,updated_at,portfolio_categories(slug,name)";
+  private baseSelect(publicOnly = false) {
+    return `id,slug,title,category_id,client_name,client_display_authorized,production_year,description,objective,service_type,status,featured,cover_asset_id,published_at,created_at,updated_at,portfolio_categories${publicOnly ? "!inner" : ""}(slug,name,visible)`;
   }
 
   async listAdmin() {
@@ -82,7 +94,7 @@ export class SupabasePortfolioRepository implements PortfolioRepository {
   }
 
   async listPublished(categorySlug?: string) {
-    let query = this.db.from("portfolio_projects").select(this.baseSelect()).eq("status", "published").order("featured", { ascending: false }).order("published_at", { ascending: false });
+    let query = this.db.from("portfolio_projects").select(this.baseSelect(true)).eq("status", "published").eq("portfolio_categories.visible", true).order("featured", { ascending: false }).order("published_at", { ascending: false });
     if (categorySlug) query = query.eq("portfolio_categories.slug", categorySlug);
     const { data, error } = await query;
     if (error) throw error;
@@ -91,7 +103,7 @@ export class SupabasePortfolioRepository implements PortfolioRepository {
   }
 
   async findPublishedBySlug(slug: string) {
-    const { data, error } = await this.db.from("portfolio_projects").select(this.baseSelect()).eq("slug", slug).eq("status", "published").maybeSingle();
+    const { data, error } = await this.db.from("portfolio_projects").select(this.baseSelect(true)).eq("slug", slug).eq("status", "published").eq("portfolio_categories.visible", true).maybeSingle();
     if (error) throw error;
     if (!data) return null;
     const project = (await this.hydrate([data as unknown as ProjectRow]))[0];
@@ -128,12 +140,35 @@ export class SupabasePortfolioRepository implements PortfolioRepository {
   async setStatus(id: string, status: PortfolioStatus, actorUserId: string) {
     const { error } = await this.db.from("portfolio_projects").update({ status, published_at: status === "published" ? new Date().toISOString() : null, updated_by: actorUserId }).eq("id", id);
     if (error) throw error;
-    if (status === "published") {
-      const { data: links, error: linksError } = await this.db.from("portfolio_media").select("media_asset_id").eq("project_id", id);
+    {
+      const { data: links, error: linksError } = await this.db.from("portfolio_media").select("media_asset_id,media_assets(id,private_storage_path,storage_bucket,storage_path,mime_type)").eq("project_id", id);
       if (linksError) throw linksError;
       const assetIds = (links || []).map((item) => item.media_asset_id);
-      if (assetIds.length) {
-        const { error: assetError } = await this.db.from("media_assets").update({ publication_authorized: true }).in("id", assetIds);
+      if (status === "published") {
+        for (const link of links || []) {
+          const asset = Array.isArray(link.media_assets) ? link.media_assets[0] : link.media_assets;
+          if (!asset?.private_storage_path || asset.storage_bucket === "crisdal-public-media") continue;
+          const { data: file, error: downloadError } = await this.db.storage.from("crisdal-private-media").download(asset.private_storage_path);
+          if (downloadError || !file) throw downloadError || new Error("No se pudo preparar el medio público.");
+          const publicPath = `portfolio/${id}/${asset.id}.webp`;
+          const { error: uploadError } = await this.db.storage.from("crisdal-public-media").upload(publicPath, file, { contentType: asset.mime_type, cacheControl: "31536000", upsert: true });
+          if (uploadError) throw uploadError;
+          const publicUrl = this.db.storage.from("crisdal-public-media").getPublicUrl(publicPath).data.publicUrl;
+          const { error: updateError } = await this.db.from("media_assets").update({ storage_bucket: "crisdal-public-media", storage_path: publicPath, public_url: publicUrl, publication_authorized: true }).eq("id", asset.id);
+          if (updateError) throw updateError;
+        }
+        if (assetIds.length) {
+          const { error: assetError } = await this.db.from("media_assets").update({ publication_authorized: true }).in("id", assetIds);
+          if (assetError) throw assetError;
+        }
+      } else if (assetIds.length) {
+        for (const link of links || []) {
+          const asset = Array.isArray(link.media_assets) ? link.media_assets[0] : link.media_assets;
+          if (!asset?.private_storage_path || asset.storage_bucket !== "crisdal-public-media" || !asset.storage_path) continue;
+          await this.db.storage.from("crisdal-public-media").remove([asset.storage_path]);
+          await this.db.from("media_assets").update({ storage_bucket: "crisdal-private-media", storage_path: asset.private_storage_path, public_url: `private:${asset.id}`, publication_authorized: false }).eq("id", asset.id);
+        }
+        const { error: assetError } = await this.db.from("media_assets").update({ publication_authorized: false }).in("id", assetIds);
         if (assetError) throw assetError;
       }
     }
@@ -142,16 +177,16 @@ export class SupabasePortfolioRepository implements PortfolioRepository {
     return project;
   }
 
-  async addExternalVideo(projectId: string, input: { url: string; posterUrl?: string | null; alt: string; orientation: PortfolioMedia["orientation"] }, actorUserId: string): Promise<PortfolioMedia> {
+  async addExternalVideo(projectId: string, input: { url: string; posterUrl?: string | null; alt: string; orientation: PortfolioMedia["orientation"]; provider?: PortfolioMedia["provider"]; embedMode?: PortfolioMedia["embedMode"]; title?: string }, actorUserId: string): Promise<PortfolioMedia> {
     const id = randomUUID();
     const { data: countRows, error: countError } = await this.db.from("portfolio_media").select("id").eq("project_id", projectId);
     if (countError) throw countError;
-    const { error } = await this.db.from("media_assets").insert({ id, kind: "video", provider: "external", public_url: input.url, poster_url: input.posterUrl || null, alt_text: input.alt, orientation: input.orientation, mime_type: "text/uri-list", created_by: actorUserId, publication_authorized: false });
+    const { error } = await this.db.from("media_assets").insert({ id, kind: "video", provider: "external", external_provider: input.provider, embed_mode: input.embedMode||"embed", title: input.title||input.alt, public_url: input.url, poster_url: input.posterUrl || null, alt_text: input.alt, orientation: input.orientation, mime_type: "text/uri-list", created_by: actorUserId, publication_authorized: false });
     if (error) throw error;
     const sortOrder = countRows?.length || 0;
     const { error: linkError } = await this.db.from("portfolio_media").insert({ project_id: projectId, media_asset_id: id, sort_order: sortOrder });
     if (linkError) throw linkError;
-    return { id, kind: "video", url: input.url, posterUrl: input.posterUrl || null, alt: input.alt, orientation: input.orientation, sortOrder, mimeType: "text/uri-list", width: null, height: null };
+    return { id, kind: "video", url: input.url, posterUrl: input.posterUrl || null, alt: input.alt, orientation: input.orientation, sortOrder, mimeType: "text/uri-list", width: null, height: null, provider: input.provider, embedMode: input.embedMode||"embed", title: input.title||input.alt };
   }
 
   async addUploadedImage(projectId: string, input: { bytes: Uint8Array; mimeType: string; extension: string; alt: string; orientation: PortfolioMedia["orientation"] }, actorUserId: string): Promise<PortfolioMedia> {
@@ -182,6 +217,16 @@ export class SupabasePortfolioRepository implements PortfolioRepository {
     }));
     const { error } = await this.db.from("portfolio_projects").update({ updated_by: actorUserId }).eq("id", projectId);
     if (error) throw error;
+  }
+
+  async unlinkMedia(projectId: string, mediaId: string, actorUserId: string) {
+    const { error } = await this.db.from("portfolio_media").delete().eq("project_id", projectId).eq("media_asset_id", mediaId);
+    if (error) throw error;
+    await this.db.from("portfolio_projects").update({ cover_asset_id: null, updated_by: actorUserId }).eq("id", projectId).eq("cover_asset_id", mediaId);
+  }
+
+  async updateCategoryLayout(updates: { id: string; visible: boolean; sortOrder: number }[]) {
+    await Promise.all(updates.map(async (item) => { const { error } = await this.db.from("portfolio_categories").update({ visible: item.visible, sort_order: item.sortOrder, updated_at: new Date().toISOString() }).eq("id", item.id); if (error) throw error; }));
   }
 }
 

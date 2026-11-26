@@ -15,6 +15,8 @@ export const PORTFOLIO_CATEGORY_SEEDS = [
 export const portfolioStatusSchema = z.enum(["draft", "published", "archived"]);
 export const mediaKindSchema = z.enum(["image", "video"]);
 export const mediaOrientationSchema = z.enum(["portrait", "landscape", "square"]);
+export const externalVideoProviderSchema = z.enum(["youtube","vimeo","tiktok","facebook"]);
+export const externalVideoModeSchema = z.enum(["embed","external"]);
 export const consentStatusSchema = z.enum(["missing", "pending", "verified", "revoked"]);
 
 export const portfolioMediaSchema = z.object({
@@ -28,6 +30,9 @@ export const portfolioMediaSchema = z.object({
   mimeType: z.string().max(120),
   width: z.number().int().positive().nullable(),
   height: z.number().int().positive().nullable(),
+  provider: externalVideoProviderSchema.optional(),
+  embedMode: externalVideoModeSchema.optional(),
+  title: z.string().max(180).optional(),
 });
 
 export const portfolioProjectSchema = z.object({
@@ -102,10 +107,15 @@ export function slugifyPortfolioTitle(value: string) {
   return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 120);
 }
 
-const VIDEO_HOSTS = new Set(["www.youtube.com", "youtube.com", "youtu.be", "vimeo.com", "player.vimeo.com"]);
-export function isApprovedExternalVideoUrl(value: string) {
-  try { return VIDEO_HOSTS.has(new URL(value).hostname.toLowerCase()); } catch { return false; }
-}
+export type ExternalVideoProvider=z.infer<typeof externalVideoProviderSchema>;
+export type ExternalVideoInfo={provider:ExternalVideoProvider;canonicalUrl:string;embedUrl:string|null;postId:string|null};
+export function parseExternalVideoUrl(value:string):ExternalVideoInfo|null{try{const url=new URL(value);if(url.protocol!=="https:")return null;const host=url.hostname.toLowerCase().replace(/^www\./,"");
+  if(host==="youtu.be"||host==="youtube.com"||host==="m.youtube.com"){const id=host==="youtu.be"?url.pathname.split("/").filter(Boolean)[0]:url.searchParams.get("v")||url.pathname.match(/^\/shorts\/([\w-]{6,})/)?.[1]||url.pathname.match(/^\/embed\/([\w-]{6,})/)?.[1];if(!id||!/^[\w-]{6,20}$/.test(id))return null;return{provider:"youtube",canonicalUrl:`https://www.youtube.com/watch?v=${id}`,embedUrl:`https://www.youtube-nocookie.com/embed/${id}?rel=0`,postId:id};}
+  if(host==="vimeo.com"||host==="player.vimeo.com"){const id=url.pathname.split("/").filter(Boolean).find((part)=>/^\d{6,12}$/.test(part));if(!id)return null;return{provider:"vimeo",canonicalUrl:`https://vimeo.com/${id}`,embedUrl:`https://player.vimeo.com/video/${id}`,postId:id};}
+  if(host==="tiktok.com"||host==="m.tiktok.com"){const id=url.pathname.match(/\/video\/(\d{10,24})/)?.[1]||url.pathname.match(/\/player\/v1\/(\d{10,24})/)?.[1];if(!id)return null;return{provider:"tiktok",canonicalUrl:value,embedUrl:`https://www.tiktok.com/player/v1/${id}?controls=1&autoplay=0&rel=0`,postId:id};}
+  if(host==="facebook.com"||host==="m.facebook.com"||host==="fb.watch"){if(!url.pathname||url.pathname==="/")return null;return{provider:"facebook",canonicalUrl:value,embedUrl:null,postId:null};}
+  return null;}catch{return null;}}
+export function isApprovedExternalVideoUrl(value: string) { return Boolean(parseExternalVideoUrl(value)); }
 
 export function detectedImageMime(bytes: Uint8Array) {
   if (bytes.length < 12) return null;

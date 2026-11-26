@@ -11,7 +11,9 @@ const mutationSchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("save"), project: portfolioDraftInputSchema }),
   z.object({ action: z.literal("status"), id: z.string().uuid(), status: portfolioStatusSchema }),
   z.object({ action: z.literal("reorder"), id: z.string().uuid(), mediaIds: z.array(z.string().uuid()).max(100) }),
-  z.object({ action: z.literal("video"), id: z.string().uuid(), url: z.string().url(), posterUrl: z.string().url().nullable().optional(), alt: z.string().min(3).max(240), orientation: z.enum(["portrait", "landscape", "square"]) }),
+  z.object({ action: z.literal("unlink"), id: z.string().uuid(), mediaId: z.string().uuid() }),
+  z.object({ action: z.literal("categories"), updates: z.array(z.object({ id: z.string().uuid(), visible: z.boolean(), sortOrder: z.number().int().nonnegative() })).min(1).max(30) }),
+  z.object({ action: z.literal("video"), id: z.string().uuid(), url: z.string().url(), posterUrl: z.string().url().nullable().optional(), alt: z.string().min(3).max(240), title:z.string().min(2).max(180),provider:z.enum(["youtube","vimeo","tiktok","facebook"]),embedMode:z.enum(["embed","external"]), orientation: z.enum(["portrait", "landscape", "square"]) }),
 ]);
 
 async function audit(request: Request, session: { userId: string }, action: string, entityId?: string) {
@@ -50,6 +52,16 @@ export async function POST(request: Request) {
     if (input.action === "reorder") {
       await reorderPortfolioMedia(repository, input.id, input.mediaIds, auth.session.userId);
       await audit(request, auth.session, "portfolio.media.reordered", input.id);
+      return Response.json({ ok: true });
+    }
+    if (input.action === "unlink") {
+      await repository.unlinkMedia(input.id, input.mediaId, auth.session.userId);
+      await audit(request, auth.session, "portfolio.media.unlinked", input.id);
+      return Response.json({ ok: true });
+    }
+    if (input.action === "categories") {
+      await repository.updateCategoryLayout(input.updates);
+      await audit(request, auth.session, "portfolio.categories.updated");
       return Response.json({ ok: true });
     }
     const media = await addPortfolioVideo(repository, input.id, input, auth.session.userId);

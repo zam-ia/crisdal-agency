@@ -21,6 +21,7 @@ export const CAPABILITIES = [
   "packages.write",
   "quotes.manage",
   "portfolio.manage",
+  "promotions.manage",
   "site.manage",
   "users.manage",
 ] as const;
@@ -41,6 +42,7 @@ export const ROLE_CAPABILITIES: Record<RoleCode, readonly Capability[]> = {
     "packages.read",
     "quotes.manage",
     "site.manage",
+    "promotions.manage",
   ],
   production: [
     "calendar.read",
@@ -61,6 +63,7 @@ export const ROLE_CAPABILITIES: Record<RoleCode, readonly Capability[]> = {
     "packages.read",
     "quotes.manage",
     "portfolio.manage",
+    "promotions.manage",
   ],
 };
 
