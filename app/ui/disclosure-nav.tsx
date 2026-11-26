@@ -1,15 +1,17 @@
 "use client";
-import { useEffect,useRef,type ReactNode } from "react";
-/** Native disclosure keeps keyboard behavior and works without custom menu roles. */
+import {useEffect,useRef,type ReactNode} from "react";
+/** Native disclosure preserves built-in keyboard and expanded-state semantics. */
 export function DisclosureNav({className,label,navLabel,children}:{className:string;label:string;navLabel:string;children:ReactNode}){
  const ref=useRef<HTMLDetailsElement>(null);
  useEffect(()=>{
-   const closeOutside=(e:PointerEvent)=>{const el=ref.current;if(el?.open&&e.target instanceof Node&&!el.contains(e.target))el.open=false;};
+   const el=ref.current;if(!el)return;
+   const closeOutside=(e:PointerEvent)=>{if(el.open&&e.target instanceof Node&&!el.contains(e.target))el.open=false;};
+   const onKey=(e:KeyboardEvent)=>{if(e.key==="Escape"&&el.open){e.preventDefault();el.open=false;el.querySelector("summary")?.focus();}};
+   const onLink=(e:MouseEvent)=>{if(e.target instanceof Element&&e.target.closest("nav a"))el.open=false;};
    document.addEventListener("pointerdown",closeOutside);
-   return ()=>document.removeEventListener("pointerdown",closeOutside);
+   el.addEventListener("keydown",onKey);
+   el.addEventListener("click",onLink);
+   return ()=>{document.removeEventListener("pointerdown",closeOutside);el.removeEventListener("keydown",onKey);el.removeEventListener("click",onLink);};
  },[]);
- return <details ref={ref} className={className} onKeyDown={e=>{if(e.key==="Escape"&&ref.current?.open){e.preventDefault();ref.current.open=false;ref.current.querySelector("summary")?.focus();}}}>
-  <summary>{label}</summary>
-  <nav aria-label={navLabel} onClick={e=>{if(e.target instanceof Element&&e.target.closest("a")&&ref.current)ref.current.open=false;}}>{children}</nav>
- </details>;
+ return <details ref={ref} className={className}><summary>{label}</summary><nav aria-label={navLabel}>{children}</nav></details>;
 }
