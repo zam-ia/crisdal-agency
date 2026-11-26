@@ -6,6 +6,7 @@ import {
   WHATSAPP_MESSAGE,
   WHATSAPP_NUMBER,
   UTM_KEYS,
+  eventDataForPath,
   type Placement,
 } from "../lib/config";
 import { trackMarketingEvent } from "./site-events";
@@ -55,7 +56,7 @@ function trackLead(placement: Placement, eventName: string) {
   sentInMemory = true;
   const eventId = crypto.randomUUID();
   const details = {
-    content_name: "Sistema de Captación Directa",
+    ...eventDataForPath(window.location.pathname),
     content_category: "whatsapp_click",
     placement,
     ...attribution,

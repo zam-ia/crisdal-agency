@@ -1,0 +1,32 @@
+@import "../ui/os/os-tokens.css";
+
+.loginPage, .loading { min-height: 100dvh; background: radial-gradient(circle at 80% 10%, #d8fbf5, transparent 30%), var(--os-bg); color: var(--os-text); padding: 1rem; }
+.loginPage { display: grid; place-items: center; }
+.loginCard { width: min(100%, 28rem); padding: clamp(1.5rem, 6vw, 2.75rem); border: 1px solid var(--os-border); border-radius: var(--os-radius-lg); background: rgb(255 255 255 / 94%); box-shadow: var(--os-shadow-md); }
+.loginCard h1, .heading h1 { margin: 0; font-size: clamp(2rem, 6vw, 3.8rem); letter-spacing: -0.04em; }
+.loginCard > p:not(.eyebrow):not(.error), .heading > p:not(.eyebrow) { color: var(--os-text-muted); line-height: 1.6; }
+.eyebrow { margin: 1rem 0 0.3rem; color: var(--os-accent-strong); font-size: 0.74rem; font-weight: 850; letter-spacing: 0.13em; text-transform: uppercase; }
+.loginForm { display: grid; gap: 0.7rem; margin-top: 1.5rem; }
+.loginForm label { font-size: 0.86rem; font-weight: 750; }
+.loginForm input { min-height: 3rem; padding: 0.7rem 0.85rem; border: 1px solid var(--os-border); border-radius: var(--os-radius-sm); background: #fff; font: inherit; }
+.loginForm input:focus { border-color: var(--os-focus); outline: 3px solid color-mix(in srgb, var(--os-focus) 18%, transparent); }
+.loginForm button, .retry { min-height: 3rem; margin-top: 0.4rem; border: 0; border-radius: 999px; background: var(--os-accent-strong); color: #fff; font: inherit; font-weight: 800; cursor: pointer; }
+.loginForm button:disabled { cursor: not-allowed; opacity: 0.55; }
+.error { padding: 0.8rem 1rem; border: 1px solid color-mix(in srgb, var(--os-danger) 30%, white); border-radius: var(--os-radius-sm); background: #fff2f2; color: var(--os-danger); }
+.heading { max-width: 52rem; margin-bottom: var(--os-space-6); }
+.sectionGap { margin-top: var(--os-space-6); }
+.quickLinks{margin-bottom:1rem;padding:1.25rem;border:1px solid var(--os-border);border-radius:var(--os-radius-md);background:white}.quickLinks h2{margin-top:0}.quickLinks div{display:flex;flex-wrap:wrap;gap:.65rem}.quickLinks a{padding:.7rem 1rem;border-radius:999px;background:var(--os-surface-muted);color:inherit;font-weight:750;text-decoration:none}
+.details { display: grid; gap: 1px; overflow: hidden; border: 1px solid var(--os-border); border-radius: var(--os-radius-md); background: var(--os-border); }
+.details div { display: grid; gap: 0.3rem; padding: 1rem; background: var(--os-surface); }
+.details dt { color: var(--os-text-muted); font-size: 0.76rem; font-weight: 750; text-transform: uppercase; }
+.details dd { margin: 0; overflow-wrap: anywhere; font-weight: 750; }
+.capabilities { margin-top: var(--os-space-6); }
+.capabilities ul { display: flex; flex-wrap: wrap; gap: 0.5rem; padding: 0; list-style: none; }
+.capabilities li { padding: 0.5rem 0.7rem; border-radius: 999px; background: color-mix(in srgb, var(--os-accent) 24%, white); color: var(--os-accent-strong); font-family: ui-monospace, monospace; font-size: 0.75rem; }
+.tableWrap { overflow-x: auto; border: 1px solid var(--os-border); border-radius: var(--os-radius-md); background: var(--os-surface); }
+.tableWrap table { width: 100%; border-collapse: collapse; }
+.tableWrap th, .tableWrap td { padding: 0.9rem 1rem; border-bottom: 1px solid var(--os-border); text-align: left; white-space: nowrap; }
+.tableWrap th { color: var(--os-text-muted); font-size: 0.74rem; text-transform: uppercase; }
+.loading { display: grid; align-content: center; gap: 1rem; padding: 10vw; }
+.retry { padding: 0.6rem 1rem; }
+@media (min-width: 48rem) { .details { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
