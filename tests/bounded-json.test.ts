@@ -1,0 +1,10 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import {JsonBodyError,readBoundedJson} from "../app/lib/os/bounded-json";
+const request=(body:string,headers:Record<string,string>={})=>new Request("https://crisdal.example/api",{method:"POST",body,headers:{"Content-Type":"application/json",...headers}});
+const status=(code:number)=>(error:unknown)=>error instanceof JsonBodyError&&error.status===code;
+test("bounded JSON accepts valid UTF-8 and content type parameters",async()=>{assert.deepEqual(await readBoundedJson(request('{"name":"Muñoz"}',{"Content-Type":"application/json; charset=utf-8"}),100),{name:"Muñoz"});});
+test("rejects oversized actual bytes without content-length",async()=>{await assert.rejects(readBoundedJson(request(JSON.stringify("é".repeat(20))),24),status(413));});
+test("rejects dishonest content-length",async()=>{await assert.rejects(readBoundedJson(request(JSON.stringify("a".repeat(50)),{"Content-Length":"1"}),24),status(413));});
+test("rejects declared oversize before reading",async()=>{await assert.rejects(readBoundedJson(request("{}",{"Content-Length":"300"}),100),status(413));});
+test("rejects malformed JSON and unsupported media types",async()=>{await assert.rejects(readBoundedJson(request("{"),100),status(400));await assert.rejects(readBoundedJson(request("{}",{"Content-Type":"application/jsonp"}),100),status(415));});

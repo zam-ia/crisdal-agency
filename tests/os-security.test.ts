@@ -14,3 +14,7 @@ test("Pixel and CAPI resolve the same preserved content identifiers", () => {
   assert.equal(eventDataForPath("/ruta-crisdal").content_name, "Sistema de Captación Directa");
   assert.deepEqual(eventDataForPath("/ruta-crisdal?utm_source=test"), eventDataForPath("/ruta-crisdal"));
 });
+
+test("CSRF rejects non-web schemes, credentials and paths in Origin", () => {
+ for(const origin of ["ftp://crisdal.example","https://u:p@crisdal.example","https://crisdal.example/path","https://crisdal.example?x=1","https://crisdal.example/#x","http://crisdal.example"])assert.equal(isTrustedOrigin({origin,host:"crisdal.example"}),false);
+});

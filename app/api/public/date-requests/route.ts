@@ -1,4 +1,5 @@
 import { createHmac } from "node:crypto";
+import {JsonBodyError,readBoundedJson} from "../../../lib/os/bounded-json";
 import { validateInquiry } from "../../../lib/availability/inquiry";
 import { peruToday } from "../../../lib/availability/public-calendar";
 import { savePublicInquiry } from "../../../lib/availability/repository";
@@ -7,39 +8,13 @@ import { isTrustedOrigin } from "../../../lib/os/security";
 export const runtime = "nodejs";
 const NO_CACHE = { "Cache-Control": "no-store" };
 
-async function readBodyBounded(request: Request, maxBytes: number): Promise<string> {
-  if (!request.body) return "";
-  const reader = request.body.getReader();
-  const decoder = new TextDecoder();
-  let bytes = 0;
-  let output = "";
-  try {
-    while (true) {
-      const { value, done } = await reader.read();
-      if (done) break;
-      bytes += value.byteLength;
-      if (bytes > maxBytes) throw new Error("BODY_TOO_LARGE");
-      output += decoder.decode(value, { stream: true });
-    }
-    return output + decoder.decode();
-  } finally { reader.releaseLock(); }
-}
-
 export async function POST(request: Request) {
   if (!isTrustedOrigin({ origin: request.headers.get("origin"), host: request.headers.get("host"), forwardedHost: request.headers.get("x-forwarded-host") })) {
     return Response.json({ error: "Origen no autorizado." }, { status: 403, headers: NO_CACHE });
   }
-  if (!request.headers.get("content-type")?.startsWith("application/json")) {
-    return Response.json({ error: "Formato no admitido." }, { status: 415, headers: NO_CACHE });
-  }
-  if (Number(request.headers.get("content-length") || 0) > 4500) {
-    return Response.json({ error: "Solicitud demasiado larga." }, { status: 413, headers: NO_CACHE });
-  }
-  let text: string;
-  try { text = await readBodyBounded(request, 4500); }
-  catch { return Response.json({ error: "Solicitud demasiado larga." }, { status: 413, headers: NO_CACHE }); }
-  let parsed: unknown;
-  try { parsed = JSON.parse(text); } catch { return Response.json({ error: "Formulario inválido." }, { status: 400, headers: NO_CACHE }); }
+  let parsed:unknown;
+  try { parsed=await readBoundedJson(request,4500); }
+  catch(error){return Response.json({error:error instanceof JsonBodyError?error.message:"Formulario inválido."},{status:error instanceof JsonBodyError?error.status:400,headers:NO_CACHE});}
   const validated = validateInquiry(parsed, peruToday());
   if (!validated.ok) return Response.json({ error: "Revisa los campos.", errors: validated.errors }, { status: 422, headers: NO_CACHE });
   const secret = process.env.OS_AUDIT_PEPPER;

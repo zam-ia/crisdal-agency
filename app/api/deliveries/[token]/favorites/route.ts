@@ -1,4 +1,5 @@
 import { z } from "zod";
+import {readBoundedJson} from "../../../../lib/os/bounded-json";
 import { setPrivateGalleryFavorite } from "../../../../lib/deliveries/repository";
 import { isTrustedOrigin } from "../../../../lib/os/security";
 export const runtime = "nodejs";
@@ -10,7 +11,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ tok
     return Response.json({ error: "Origen inválido." }, { status: 403, headers: HEADERS });
   if (Number(request.headers.get("content-length") || 0) > 800)
     return Response.json({ error: "Solicitud inválida." }, { status: 413, headers: HEADERS });
-  const parsed = schema.safeParse(await request.json().catch(() => null));
+  const parsed = schema.safeParse(await readBoundedJson(request,800).catch(() => null));
   if (!parsed.success) return Response.json({ error: "Datos inválidos." }, { status: 422, headers: HEADERS });
   const { token } = await params;
   try {
