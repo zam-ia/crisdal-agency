@@ -47,3 +47,5 @@
 @media(max-width:560px){.stage{padding-top:7rem}.heading{gap:1rem;margin-bottom:1.7rem}.columns{gap:1rem}.formTwo{grid-template-columns:1fr}.calendarCard,.inquiryCard{padding:1.1rem}.days,.weekdays{gap:.2rem}.day{border-radius:.65rem;font-size:.86rem}.day i{width:.28rem;height:.28rem}.calendarHeader{margin-bottom:1rem}.legend{gap:.65rem}.heading h1{font-size:clamp(2.65rem,11vw,3.9rem)}}
 @media(prefers-reduced-motion:reduce){.day,.monthActions button,.primary,.formRow input,.formRow select,.formRow textarea{transition:none!important}.day[data-selected=true]{transform:none}}
 @supports not (backdrop-filter:blur(1px)){.calendarCard,.inquiryCard{background:#25251f}}
+
+.inquiryFields{border:0;padding:0;margin:0;min-width:0;display:grid;gap:.9rem}.reference{padding:.75rem 1rem;border:1px solid rgb(160 125 70 / 35%);border-radius:.75rem;line-height:1.5;overflow-wrap:anywhere}.retry{min-height:44px;border:0;background:transparent;text-decoration:underline;text-underline-offset:3px;color:inherit;cursor:pointer;font:inherit;font-weight:700}.retry:focus-visible{outline:2px solid currentColor;outline-offset:2px}

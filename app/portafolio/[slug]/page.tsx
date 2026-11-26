@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { safePublicPortfolio, safePublicPortfolioProject } from "../../lib/commercial/portfolio-repository";
 import { SITE_URL } from "../../lib/config";
 import { portfolioCover, portfolioDetailMedia } from "../../lib/commercial/portfolio-public-card";
+import {inquiryHref,eventTypeForCategory} from "../../lib/availability/inquiry-context";
 import { MarketingShell } from "../../ui/marketing/marketing-shell";
 import { ProjectShare } from "../project-share";
 import { PortfolioGallery } from "../portfolio-gallery";
@@ -27,7 +28,7 @@ export default async function PortfolioProjectPage({ params }: { params: Promise
     {cover?.kind === "image" ? <img className={styles.projectCover} src={cover.url} alt={cover.alt} /> : null}
     {gallery.length ? <PortfolioGallery media={gallery} /> : null}
     <div className={styles.projectStory}><div><h2>{project.objective || narrative(project.categorySlug)}</h2></div><p>{project.description}</p></div>
-    <div className={styles.nextStep}><div><h2>¿Buscas una cobertura así?</h2><div className={styles.journeyLinks}><Link href="/consultar-fecha">Consultar mi fecha</Link><Link href="/portafolio">Ver más trabajos</Link></div></div><ProjectShare title={project.title} url={new URL(`/portafolio/${project.slug}`, SITE_URL).href} /></div>
+    <div className={styles.nextStep}><div><h2>¿Buscas una cobertura así?</h2><div className={styles.journeyLinks}><Link href={inquiryHref({eventType:eventTypeForCategory(project.categorySlug),project:project.title})}>Consultar mi fecha</Link><Link href="/portafolio">Ver más trabajos</Link></div></div><ProjectShare title={project.title} url={new URL(`/portafolio/${project.slug}`, SITE_URL).href} /></div>
     {related.length ? <aside className={styles.related}><h2>Proyectos relacionados</h2>{related.map((item) => <Link href={`/portafolio/${item.slug}`} key={item.id}>{item.title}</Link>)}</aside> : null}
   </article></MarketingShell>;
 }

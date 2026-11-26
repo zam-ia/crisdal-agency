@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { MarketingShell } from "../ui/marketing/marketing-shell";
+import { inquiryContext } from "../lib/availability/inquiry-context";
 import { PublicAvailabilityExperience } from "../ui/availability/public-availability";
 
 export const metadata: Metadata = {
@@ -8,6 +9,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/consultar-fecha" },
 };
 export const dynamic = "force-dynamic";
-export default function ConsultarFechaPage() {
-  return <MarketingShell><PublicAvailabilityExperience /></MarketingShell>;
+export default async function ConsultarFechaPage({searchParams}:{searchParams:Promise<Record<string,string|string[]|undefined>>}) {
+  const context=inquiryContext(await searchParams);
+  return <MarketingShell><PublicAvailabilityExperience context={context} /></MarketingShell>;
 }

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import {inquiryHref} from "../../lib/availability/inquiry-context";
 import {publicSite} from "../../lib/public-site-content";
 import {WhatsAppLink} from "../whatsapp-link";
 import styles from "./coverage-section.module.css";
@@ -14,7 +15,8 @@ export function CoverageSection({showCatalogLink=true}:{showCatalogLink?:boolean
     <div className={styles.cardTop}><span className={styles.label}>Cobertura</span><span className={styles.number} aria-hidden="true">{String(index+1).padStart(2,"0")}</span></div>
     <h3>{pack.name}</h3>
     <p>{pack.summary}</p>
-    <WhatsAppLink className={styles.action} placement={`event_${pack.slug}`} eventName={`click_whatsapp_event_${pack.slug}`} phone={publicSite.brand.whatsapp} message={pack.message}>Consultar paquete <span aria-hidden="true">↗</span></WhatsAppLink>
+    <Link className={styles.action} href={inquiryHref({packageName:pack.name})}>Consultar fecha <span aria-hidden="true">→</span></Link>
+    <WhatsAppLink className={styles.action} placement={`event_${pack.slug}`} eventName={`click_whatsapp_event_${pack.slug}`} phone={publicSite.brand.whatsapp} message={pack.message}>Consultar por WhatsApp <span aria-hidden="true">↗</span></WhatsAppLink>
    </article>)}
   </div>
   <div className={styles.bottom}><p>La disponibilidad y las condiciones se confirman antes de reservar.</p>{showCatalogLink?<Link href="/paquetes">Explorar paquetes <span aria-hidden="true">→</span></Link>:<Link href="/consultar-fecha">Consultar mi fecha <span aria-hidden="true">→</span></Link>}</div>
