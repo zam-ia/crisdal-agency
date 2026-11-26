@@ -26,3 +26,5 @@
   cursor: pointer;
 }
 .topbar button:focus-visible { outline: 3px solid color-mix(in srgb, var(--os-focus) 35%, transparent); }
+
+.topbar{flex-wrap:wrap;gap:.75rem}.topbar>div{min-width:0;overflow-wrap:anywhere}.topbar form{flex-shrink:0}.topbar button{max-width:100%}@media(max-width:24rem){.topbar{padding:.75rem}.topbar button{font-size:.8rem;padding-inline:.75rem}}

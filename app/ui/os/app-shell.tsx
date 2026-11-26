@@ -1,6 +1,8 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import styles from "./app-shell.module.css";
+import { DisclosureNav } from "../disclosure-nav";
+import { selectMobileNavigation } from "./mobile-navigation";
 
 export type OsNavigationItem = {
   href: string;
@@ -36,17 +38,21 @@ export function AppShell({
   navigation,
   brand = "CRISDAL OS",
 }: AppShellProps) {
-  const mobileItems = navigation.slice(0, 5);
+  const mobileItems = selectMobileNavigation(navigation);
 
   return (
     <div className={styles.shell}>
+      <a className={styles.skipLink} href="#os-main">Saltar al contenido</a>
       <aside className={styles.sidebar}>
         <span className={styles.brand}>{brand}</span>
         <Navigation items={navigation} />
       </aside>
-      <main className={styles.main}>{children}</main>
+      <main className={styles.main} id="os-main" tabIndex={-1}>{children}</main>
       <div className={styles.mobileNav}>
         <Navigation items={mobileItems} />
+        <DisclosureNav className={styles.mobileMore} label="Más" navLabel="Todos los módulos de Crisdal OS">
+          {navigation.map(item => <Link className={styles.navLink} key={item.href} href={item.href} aria-current={item.active ? "page" : undefined}>{item.label}</Link>)}
+        </DisclosureNav>
       </div>
     </div>
   );
