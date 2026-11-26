@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { hasCapability } from "../../lib/os/capabilities";
 import { requirePanelSession } from "../../lib/os/dal";
 import { LIMA_TIME_ZONE } from "../../lib/os/domain-schemas";
 import { PanelShell } from "../../ui/os/panel-shell";
@@ -18,6 +20,7 @@ export default async function ConfigurationPage() {
         <div><dt>Rol</dt><dd>{session.role}</dd></div>
         <div><dt>Vence</dt><dd>{expiry} ({LIMA_TIME_ZONE})</dd></div>
       </dl>
+      {hasCapability(session.capabilities, "finance.read") ? <section className={styles.quickLinks}><h2>Herramientas internas</h2><div><Link href="/panel/finanzas">Abrir simulador de caja</Link></div></section> : null}
       <section className={styles.capabilities}><h2>Capacidades efectivas</h2><ul>{session.capabilities.map((capability) => <li key={capability}>{capability}</li>)}</ul></section>
     </PanelShell>
   );
