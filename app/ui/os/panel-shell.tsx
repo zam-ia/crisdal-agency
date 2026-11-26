@@ -29,6 +29,9 @@ export function PanelShell({
     ...(hasCapability(session.capabilities, "packages.read")
       ? [{ href: "/panel/paquetes", label: "Paquetes", active: currentPath === "/panel/paquetes" }]
       : []),
+    ...(hasCapability(session.capabilities, "quotes.manage")
+      ? [{ href: "/panel/cotizaciones", label: "Cotizaciones", active: currentPath === "/panel/cotizaciones" }]
+      : []),
     ...(hasCapability(session.capabilities, "promotions.manage")
       ? [{ href: "/panel/promociones", label: "Promociones", active: currentPath === "/panel/promociones" }]
       : []),

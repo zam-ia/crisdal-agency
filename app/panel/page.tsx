@@ -1,4 +1,5 @@
 import { requirePanelSession } from "../lib/os/dal";
+import { hasCapability } from "../lib/os/capabilities";
 import { EmptyState, MetricCard, MetricGrid } from "../ui/os/app-shell";
 import { PanelShell } from "../ui/os/panel-shell";
 import { safeAgendaSummary } from "../lib/os/agenda-repository";
@@ -23,7 +24,7 @@ export default async function PanelPage({ searchParams }: { searchParams: Promis
         <MetricCard label="Rol activo" value={session.role} hint={`${session.capabilities.length} permisos explícitos habilitados.`} />
       </MetricGrid>
       <div className={styles.sectionGap}>
-        <section className={styles.quickLinks}><h2>Acciones rápidas</h2><div><Link href="/panel/agenda">Abrir agenda</Link><Link href="/panel/portafolio">Gestionar portafolio</Link><Link href="/panel/paquetes">Revisar paquetes</Link><Link href="/panel/promociones">Programar promoción</Link></div></section>
+        <section className={styles.quickLinks}><h2>Acciones rápidas</h2><div><Link href="/panel/agenda">Abrir agenda</Link><Link href="/panel/portafolio">Gestionar portafolio</Link><Link href="/panel/paquetes">Revisar paquetes</Link><Link href="/panel/promociones">Programar promoción</Link>{hasCapability(session.capabilities, "quotes.manage") ? <Link href="/panel/cotizaciones">Armar cotización</Link> : null}</div></section>
         {agenda.status !== "ready" ? <EmptyState title="Agenda pendiente de activación" description="El código y la migración están versionados, pero no se muestran datos hasta conectar la base real." action={{ href: "/panel/configuracion", label: "Ver configuración" }} /> : null}
       </div>
     </PanelShell>
