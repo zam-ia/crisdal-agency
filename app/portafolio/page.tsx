@@ -1,17 +1,16 @@
 import type { Metadata } from "next";
-import { EmptyPortfolio, MarketingShell, PageHero, marketingStyles as styles } from "../ui/marketing/marketing-shell";
+import { safePublicPortfolio } from "../lib/commercial/portfolio-repository";
+import { EmptyPortfolio, MarketingShell } from "../ui/marketing/marketing-shell";
+import { PortfolioExplorer } from "./portfolio-explorer";
+import styles from "./portfolio.module.css";
 
-export const metadata: Metadata = {
-  title: "Portafolio audiovisual | Crisdal Agency",
-  description: "Portafolio de fotografía, reels, producto, eventos y producción corporativa de Crisdal Agency.",
-  alternates: { canonical: "/portafolio" },
-};
+export const metadata: Metadata = { title: "Portafolio audiovisual | Crisdal Agency", description: "Proyectos reales de fotografía y producción audiovisual publicados con autorización.", alternates: { canonical: "/portafolio" } };
+export const dynamic = "force-dynamic";
 
-export default function PortfolioPage() {
+export default async function PortfolioPage() {
+  const projects = await safePublicPortfolio();
   return <MarketingShell>
-    <PageHero eyebrow="Portafolio" title="Producciones reales, publicadas con contexto y autorización." description="Esta página está preparada para mostrar proyectos por formato y categoría sin convertir material de presentación en casos de éxito." />
-    <section className={styles.portfolioSection}>
-      <EmptyPortfolio />
-    </section>
+    <section className={styles.hero}><p>Portafolio audiovisual</p><h1>Historias reales, producidas con intención.</h1><span>Fotografía y video organizados por proyecto, contexto y servicio. Solo publicamos material autorizado.</span></section>
+    <section className={styles.archive}>{projects.length ? <PortfolioExplorer projects={projects} /> : <EmptyPortfolio />}</section>
   </MarketingShell>;
 }
