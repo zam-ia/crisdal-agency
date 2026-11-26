@@ -117,10 +117,9 @@ export function EmptyPortfolio() {
     <section className={styles.portfolioEmpty} aria-labelledby="portfolio-empty-title">
       <div>
         <p className={styles.eyebrow}>Archivo en preparación</p>
-        <h2 id="portfolio-empty-title">Solo publicaremos trabajos con autorización.</h2>
+        <h2 id="portfolio-empty-title">¿Quieres ver un trabajo parecido a lo que buscas?</h2>
         <p>
-          La estructura del portafolio ya está preparada para fotografías y videos reales.
-          Mientras seleccionamos el material autorizado, puedes conversar directamente con el equipo.
+          Estamos preparando esta selección. Cuéntanos qué tipo de evento tienes en mente y conversemos sobre el estilo de cobertura.
         </p>
       </div>
       <WhatsAppLink
