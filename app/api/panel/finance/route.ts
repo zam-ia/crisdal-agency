@@ -1,3 +1,4 @@
+import {JsonBodyError,readBoundedJson} from "../../../lib/os/bounded-json";
 import { z } from "zod";
 import { authorizePanelApi } from "../../../lib/commercial/api-auth";
 import { getSupabaseAdmin } from "../../../lib/supabase-admin";
@@ -92,10 +93,8 @@ export async function GET(request:Request) {
 export async function POST(request:Request) {
   const auth=await authorizePanelApi(request,"finance.write",true);
   if("response" in auth)return auth.response;
-  if(!request.headers.get("content-type")?.startsWith("application/json"))return responseError("Formato inválido.",415);
-  if(Number(request.headers.get("content-length")||0)>24000)return responseError("Solicitud demasiado grande.",413);
   let body:unknown;
-  try{const raw=await request.text();if(raw.length>24000)return responseError("Solicitud demasiado grande.",413);body=JSON.parse(raw);}catch{return responseError("Solicitud inválida.",400);}
+  try{body=await readBoundedJson(request,24000);}catch(error){return responseError(error instanceof JsonBodyError?error.message:"Solicitud inválida.",error instanceof JsonBodyError?error.status:400);}
   const parsed=inputSchema.safeParse(body);
   if(!parsed.success)return responseError("Revisa los datos: importe, fecha, identificadores y campos obligatorios.",422);
   const {requestId,action,...payload}=parsed.data;

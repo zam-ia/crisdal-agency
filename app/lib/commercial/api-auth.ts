@@ -8,9 +8,9 @@ export async function authorizePanelApi(request: Request, capability: Capability
     origin: request.headers.get("origin"),
     host: request.headers.get("host"),
     forwardedHost: request.headers.get("x-forwarded-host"),
-  })) return { response: Response.json({ error: "Origen no válido." }, { status: 403 }) } as const;
+  })) return { response: Response.json({ error: "Origen no válido." }, { status: 403, headers: { "Cache-Control": "no-store" } }) } as const;
   const session = await getPanelSession();
-  if (!session) return { response: Response.json({ error: "Sesión requerida." }, { status: 401 }) } as const;
-  if (!sessionCan(session, capability)) return { response: Response.json({ error: "Permiso insuficiente." }, { status: 403 }) } as const;
+  if (!session) return { response: Response.json({ error: "Sesión requerida." }, { status: 401, headers: { "Cache-Control": "no-store" } }) } as const;
+  if (!sessionCan(session, capability)) return { response: Response.json({ error: "Permiso insuficiente." }, { status: 403, headers: { "Cache-Control": "no-store" } }) } as const;
   return { session } as const;
 }

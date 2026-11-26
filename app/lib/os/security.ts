@@ -26,7 +26,10 @@ export function isTrustedOrigin({
   if (!origin || (!host && !forwardedHost)) return false;
   let originHost = "";
   try {
-    originHost = new URL(origin).host;
+    const url = new URL(origin);
+    if (url.username || url.password || url.pathname !== "/" || url.search || url.hash) return false;
+    if (url.protocol !== "https:" && !(process.env.NODE_ENV !== "production" && url.protocol === "http:" && LOCAL_HOSTS.has(url.host))) return false;
+    originHost = url.host;
   } catch {
     return false;
   }

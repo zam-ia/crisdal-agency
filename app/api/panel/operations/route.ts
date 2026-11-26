@@ -1,3 +1,4 @@
+import {JsonBodyError,readBoundedJson} from "../../../lib/os/bounded-json";
 import {z} from "zod";
 import {authorizePanelApi} from "../../../lib/commercial/api-auth";
 import {getSupabaseAdmin} from "../../../lib/supabase-admin";
@@ -105,9 +106,7 @@ export async function GET(request:Request){
 export async function POST(request:Request){
  if(!isTrustedOrigin({origin:request.headers.get("origin"),host:request.headers.get("host"),forwardedHost:request.headers.get("x-forwarded-host")}))return respond({error:"Origen inválido."},403);
  if(!await getPanelSession())return respond({error:"Sesión requerida."},401);
- if(!request.headers.get("content-type")?.startsWith("application/json"))return respond({error:"Formato inválido."},415);
- if(Number(request.headers.get("content-length")||0)>32000)return respond({error:"Solicitud demasiado grande."},413);
- let raw:unknown;try{const s=await request.text();if(s.length>32000)return respond({error:"Solicitud demasiado grande."},413);raw=JSON.parse(s);}catch{return respond({error:"Datos inválidos."},400);}
+ let raw:unknown;try{raw=await readBoundedJson(request,32000);}catch(error){return respond({error:error instanceof JsonBodyError?error.message:"Datos inválidos."},error instanceof JsonBodyError?error.status:400);}
  const parsed=schema.safeParse(raw);if(!parsed.success)return respond({error:"Revisa los campos obligatorios y los importes."},422);
  const auth=await authorizePanelApi(request,actionCaps[parsed.data.action],true);if("response" in auth)return auth.response;
  if(parsed.data.action==="quote_accept"&&!auth.session.capabilities.includes("finance.write"))return respond({error:"La confirmación requiere permiso financiero."},403);

@@ -1,3 +1,4 @@
+import {JsonBodyError,readBoundedJson} from "../../lib/os/bounded-json";
 import { NextRequest } from "next/server";
 import { eventDataForPath, PIXEL_ID, PLACEMENTS, SITE_URL, UTM_KEYS } from "../../lib/config";
 
@@ -15,25 +16,18 @@ export async function POST(request: NextRequest) {
     allowed.add("http://localhost:3000");
   if (!origin || !allowed.has(origin))
     return Response.json({ error: "Forbidden" }, { status: 403 });
-  if (!request.headers.get("content-type")?.startsWith("application/json"))
-    return Response.json({ error: "Invalid content type" }, { status: 415 });
-  if (Number(request.headers.get("content-length") || 0) > 4096)
-    return Response.json({ error: "Payload too large" }, { status: 413 });
   let data;
   try {
-    const text = await request.text();
-    if (text.length > 4096)
-      return Response.json({ error: "Payload too large" }, { status: 413 });
-    data = JSON.parse(text);
-  } catch {
-    return Response.json({ error: "Invalid JSON" }, { status: 400 });
+    data = await readBoundedJson(request,4096) as Record<string,unknown> | null;
+  } catch(error) {
+    return Response.json({error:error instanceof JsonBodyError?error.message:"Invalid JSON"},{status:error instanceof JsonBodyError?error.status:400});
   }
   if (
     !data ||
     typeof data !== "object" ||
-    !/^[a-f0-9-]{36}$/i.test(data.eventId || "") ||
-    !PLACEMENTS.includes(data.placement) ||
-    !isLeadTrackingPath(data.path)
+    typeof data.eventId !== "string" || !/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(data.eventId) ||
+    typeof data.placement !== "string" || !PLACEMENTS.some(p=>p===data.placement) ||
+    typeof data.path !== "string" || !isLeadTrackingPath(data.path)
   )
     return Response.json({ error: "Invalid event" }, { status: 400 });
   if (!canMeasureMarketing(request.cookies.get(MARKETING_CONSENT_COOKIE)?.value))
@@ -46,9 +40,10 @@ export async function POST(request: NextRequest) {
   if (!version || !/^v\d+\.\d+$/.test(version))
     return Response.json({ status: "not_configured" }, { status: 202 });
   const attribution: Record<string, string> = {};
+  const source = data.attribution && typeof data.attribution === "object" ? data.attribution as Record<string,unknown> : {};
   for (const key of UTM_KEYS)
-    if (typeof data.attribution?.[key] === "string")
-      attribution[key] = data.attribution[key].slice(0, 120);
+    if (typeof source[key] === "string")
+      attribution[key] = (source[key] as string).slice(0, 120);
   const userData: Record<string, string> = {
     client_user_agent: request.headers.get("user-agent") || "",
   };
@@ -57,9 +52,9 @@ export async function POST(request: NextRequest) {
   for (const key of ["fbp", "fbc"])
     if (
       typeof data[key] === "string" &&
-      /^fb\.\d+\.\d+\.[A-Za-z0-9_.-]{1,500}$/.test(data[key])
+      /^fb\.\d+\.\d+\.[A-Za-z0-9_.-]{1,500}$/.test(data[key] as string)
     )
-      userData[key] = data[key];
+      userData[key] = data[key] as string;
   const payload = {
     data: [
       {
