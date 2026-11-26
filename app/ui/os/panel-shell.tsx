@@ -32,6 +32,9 @@ export function PanelShell({
     ...(hasCapability(session.capabilities, "promotions.manage")
       ? [{ href: "/panel/promociones", label: "Promociones", active: currentPath === "/panel/promociones" }]
       : []),
+    ...(hasCapability(session.capabilities, "finance.read")
+      ? [{ href: "/panel/finanzas", label: "Finanzas", active: currentPath === "/panel/finanzas" }]
+      : []),
     ...(hasCapability(session.capabilities, "users.manage")
       ? [{ href: "/panel/usuarios", label: "Usuarios", active: currentPath === "/panel/usuarios" }]
       : []),
