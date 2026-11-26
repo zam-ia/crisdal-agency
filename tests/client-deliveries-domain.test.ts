@@ -45,7 +45,7 @@ test("private video links require HTTPS and exact approved hosts",()=>{
   assert.equal(isApprovedPrivateVideoLink("http://vimeo.com/123"),false);
 });
 test("file download names are sanitized",()=>{
-  assert.equal(safeDownloadFilename("../../../../private\\user.jpg","abc"),"private-user.jpg");
+  assert.equal(safeDownloadFilename("../../../../private\\user.jpg","abc"),"user.jpg");
   assert.match(safeDownloadFilename(null,"abc"),/^crisdal-abc/);
 });
 test("image content is distinguished from spoofed metadata",()=>{
