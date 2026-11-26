@@ -1,0 +1,49 @@
+.stage{position:relative;isolation:isolate;overflow:hidden;padding:clamp(6.2rem,12vw,9rem) clamp(1rem,5vw,5rem) clamp(4rem,9vw,7rem);background:#11120f;color:#f4efe5}
+.ambient{position:absolute;z-index:-1;top:7rem;left:48%;width:min(50rem,90vw);height:32rem;background:radial-gradient(ellipse at 42% 45%,rgba(239,193,105,.13),transparent 65%),radial-gradient(ellipse at 80% 65%,rgba(117,115,85,.13),transparent 65%);filter:blur(30px);pointer-events:none}
+.heading{max-width:92rem;margin:0 auto 3rem;display:grid;grid-template-columns:minmax(0,1.7fr) minmax(12rem,.6fr);align-items:end;gap:2rem}
+.kicker,.overline{font-size:.72rem;letter-spacing:.17em;font-weight:800;text-transform:uppercase;color:#d6ab63}
+.heading h1{font-family:Georgia,'Times New Roman',serif;font-weight:400;letter-spacing:-.055em;line-height:.99;font-size:clamp(2.7rem,6vw,6rem);max-width:65rem;margin:1.1rem 0 0}
+.heading h1 em,.inquiryCard h2 em{color:#e1bd80;font-style:italic;font-weight:400}
+.heading>p{margin:0 0 .4rem;max-width:24rem;color:#c5c1b7;line-height:1.7}
+.columns{display:grid;grid-template-columns:minmax(0,1.04fr) minmax(0,.96fr);gap:clamp(1rem,2vw,1.75rem);max-width:92rem;margin:auto;align-items:start}
+.calendarCard,.inquiryCard{border:1px solid rgba(244,238,227,.15);border-radius:clamp(1.2rem,3vw,1.8rem);background:linear-gradient(140deg,rgba(255,255,255,.08),rgba(255,255,255,.025) 58%);box-shadow:0 20px 64px rgba(0,0,0,.18);padding:clamp(1.2rem,3vw,2.2rem);backdrop-filter:blur(15px) saturate(110%);-webkit-backdrop-filter:blur(15px) saturate(110%)}
+.calendarHeader{display:flex;justify-content:space-between;align-items:center;gap:1rem;margin-bottom:2.2rem}
+.calendarHeader h2{font-size:clamp(1.55rem,3vw,2.1rem);font-family:Georgia,'Times New Roman',serif;font-weight:400;margin:.55rem 0 0;text-transform:capitalize}
+.monthActions{display:flex;gap:.35rem}
+.monthActions button{display:grid;place-items:center;width:2.8rem;height:2.8rem;border:1px solid rgba(247,235,215,.21);border-radius:50%;color:#fff;background:rgba(255,255,255,.045);font-size:1.55rem;line-height:1;cursor:pointer;transition:background .2s,border-color .2s}
+.monthActions button:hover:not(:disabled){background:rgba(226,187,128,.17);border-color:#d7b579}
+.monthActions button:disabled{opacity:.35;cursor:not-allowed}
+.weekdays,.days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:clamp(.24rem,.65vw,.65rem);text-align:center}
+.weekdays{margin-bottom:.55rem}.weekdays span{font-size:.68rem;font-weight:800;letter-spacing:.1em;color:#b1a99b;padding:.65rem 0}
+.day{position:relative;aspect-ratio:1.15;display:grid;place-content:center;gap:.27rem;border:1px solid transparent;border-radius:clamp(.65rem,1.3vw,1rem);color:#e7e2d9;background:rgba(255,255,255,.035);font:inherit;font-size:clamp(.8rem,1.5vw,1.05rem);cursor:pointer;transition:background .2s,transform .25s,border-color .2s}
+.day i{width:.32rem;height:.32rem;border-radius:50%;background:#b5b0a8;margin:0 auto}
+.day[data-status=available]{border-color:rgba(146,219,185,.16);background:rgba(79,148,116,.09)}
+.day[data-status=available] i{background:#84e0b1}
+.day[data-status=unavailable] i{background:#d08a81}
+.day[data-status=past]{opacity:.25;cursor:not-allowed}
+.day[data-selected=true]{background:linear-gradient(155deg,#ead0a2,#bc8b42);color:#1a1914;box-shadow:0 8px 22px rgba(176,120,46,.22);transform:translateY(-2px)}
+.day[data-selected=true] i{background:#262017}
+.day:hover:not(:disabled){background:rgba(230,201,150,.17);border-color:rgba(230,201,150,.35)}
+.availabilityNotice{min-height:3.4rem;margin:1.35rem 0 0;color:#c5beb0;font-size:.83rem;line-height:1.6}
+.legend{border-top:1px solid rgba(255,255,255,.13);margin-top:.85rem;padding-top:1.2rem;display:flex;flex-wrap:wrap;gap:.8rem 1.15rem;color:#ddd2c3;font-size:.77rem}
+.legend span{display:inline-flex;align-items:center;gap:.45rem}.legend i{width:.5rem;height:.5rem;border-radius:50%;background:#b5b0a8}.legend i[data-dot=available]{background:#84e0b1}.legend i[data-dot=unavailable]{background:#d08a81}
+.inquiryCard{background:linear-gradient(145deg,rgba(244,238,227,.11),rgba(244,238,227,.04));min-width:0}
+.cardTop{display:flex;justify-content:space-between;align-items:center;gap:1rem}.step{font-size:.72rem;color:#c6bda9;letter-spacing:.1em}
+.inquiryCard h2{font-family:Georgia,'Times New Roman',serif;font-size:clamp(2rem,4vw,3.4rem);font-weight:400;line-height:1.06;letter-spacing:-.045em;margin:1rem 0 .6rem}
+.summary{color:#c5beb0;font-size:.93rem;min-height:2rem;margin:0 0 1.15rem}
+.inquiryCard form{display:grid;gap:.88rem}.formRow{display:grid;gap:.2rem;min-width:0}.formRow label{display:grid;gap:.45rem;font-size:.78rem;font-weight:650;color:#ded7cd}
+.formRow input,.formRow select,.formRow textarea{box-sizing:border-box;width:100%;min-height:2.85rem;padding:.77rem .86rem;border:1px solid rgba(255,255,255,.18);border-radius:.7rem;background:rgba(10,11,9,.32);color:#f8f4ed;font-family:inherit;font-size:.95rem;outline:none;transition:border-color .2s,background .2s}
+.formRow input::placeholder,.formRow textarea::placeholder{color:#8f8d88}.formRow textarea{min-height:5.4rem;resize:vertical}
+.formRow select option{color:#1b1c19;background:#fff}
+.formRow input:focus,.formRow select:focus,.formRow textarea:focus{border-color:#e4c28b;background:rgba(10,11,9,.48)}
+.formRow>small,.error{color:#ffb6a9;font-size:.8rem;line-height:1.4}.formTwo{display:grid;grid-template-columns:1fr 1fr;gap:.8rem}
+.consent{display:flex;align-items:flex-start;gap:.7rem;font-size:.77rem;line-height:1.5;color:#cfc8bc}.consent input{accent-color:#e1b86f;margin-top:.25rem;width:1rem;height:1rem;flex-shrink:0}
+.primary{display:flex;justify-content:space-between;align-items:center;width:100%;min-height:3.3rem;margin-top:.2rem;padding:.9rem 1.15rem;border:1px solid #dfb674;border-radius:.8rem;background:linear-gradient(115deg,#e8c995,#c99b50);color:#171813;font-size:.92rem;font-weight:800;cursor:pointer;transition:transform .2s,filter .2s,box-shadow .2s}
+.primary:hover:not(:disabled){filter:brightness(1.06);transform:translateY(-1px);box-shadow:0 12px 30px rgba(209,160,82,.18)}.primary:disabled{opacity:.45;cursor:not-allowed}
+.secondary{text-align:center;padding:.66rem;color:#ead1aa;font-size:.88rem;text-decoration:underline;text-underline-offset:.2rem}.privacy,.subtle{color:#a9a399;font-size:.72rem;line-height:1.5;text-align:center}.privacy{margin:0}.honeypot{position:absolute;left:-99999px;width:1px;height:1px;overflow:hidden}
+.success{border:1px solid rgba(132,224,177,.35);border-radius:1rem;padding:1.5rem;background:rgba(31,111,76,.17)}.success strong{color:#9fe6c3}.success p{color:#dedacf;line-height:1.6}.success small{color:#b4ac9b;overflow-wrap:anywhere}
+.day:focus-visible,.monthActions button:focus-visible,.primary:focus-visible,.secondary:focus-visible{outline:3px solid #e8c995;outline-offset:3px}
+@media(max-width:960px){.heading{grid-template-columns:1fr}.heading>p{max-width:45rem}.columns{grid-template-columns:1fr}.calendarCard,.inquiryCard{max-width:45rem;width:100%;margin:auto}}
+@media(max-width:560px){.stage{padding-top:7rem}.heading{gap:1rem;margin-bottom:1.7rem}.columns{gap:1rem}.formTwo{grid-template-columns:1fr}.calendarCard,.inquiryCard{padding:1.1rem}.days,.weekdays{gap:.2rem}.day{border-radius:.65rem;font-size:.86rem}.day i{width:.28rem;height:.28rem}.calendarHeader{margin-bottom:1rem}.legend{gap:.65rem}.heading h1{font-size:clamp(2.65rem,11vw,3.9rem)}}
+@media(prefers-reduced-motion:reduce){.day,.monthActions button,.primary,.formRow input,.formRow select,.formRow textarea{transition:none!important}.day[data-selected=true]{transform:none}}
+@supports not (backdrop-filter:blur(1px)){.calendarCard,.inquiryCard{background:#25251f}}
