@@ -7,9 +7,15 @@ import { isPromotionActive, type Promotion } from "../app/lib/commercial/promoti
 
 test("external video allowlist supports official players and rejects injection", () => {
   assert.equal(parseExternalVideoUrl("https://www.tiktok.com/@crisdal/video/7345678901234567890")?.embedUrl, "https://www.tiktok.com/player/v1/7345678901234567890?controls=1&autoplay=0&rel=0");
-  assert.equal(parseExternalVideoUrl("https://facebook.com/watch/?v=123")?.embedUrl, null);
+  assert.match(parseExternalVideoUrl("https://facebook.com/watch/?v=123")?.embedUrl || "", /^https:\/\/www\.facebook\.com\/plugins\/video\.php\?/);
   assert.equal(parseExternalVideoUrl("javascript:alert(1)"), null);
   assert.equal(parseExternalVideoUrl("https://youtube.com.evil.test/watch?v=abc1234"), null);
+});
+
+test("social card does not inject provider HTML or load an iframe before explicit action", () => {
+  const source = readFileSync("app/portafolio/external-video-card.tsx", "utf8");
+  assert.doesNotMatch(source, /dangerouslySetInnerHTML|srcDoc=/);
+  assert.match(source, /authorized&&canEmbed\?<div[^>]*><iframe/);
 });
 
 test("promotions honor page, state and UTC boundaries", () => {

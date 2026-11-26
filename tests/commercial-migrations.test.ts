@@ -29,3 +29,11 @@ test("portfolio storage is image-only and publication evidence is separate", () 
   assert.match(sql, /create table if not exists public\.publication_consents/);
   assert.match(sql, /evidence_reference text not null/);
 });
+
+test("social portfolio extends media safely without storing provider HTML", () => {
+  const sql = migration("20261126190000_crisdal_social_portfolio.sql").toLowerCase();
+  assert.match(sql, /external_provider[\s\S]*instagram/);
+  assert.match(sql, /external_content_type[\s\S]*reel[\s\S]*video/);
+  assert.match(sql, /kind in \('image', 'video', 'social'\)/);
+  assert.doesNotMatch(sql, /embed_html|remote_html|script_html/);
+});

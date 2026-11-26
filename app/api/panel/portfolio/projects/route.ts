@@ -13,7 +13,7 @@ const mutationSchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("reorder"), id: z.string().uuid(), mediaIds: z.array(z.string().uuid()).max(100) }),
   z.object({ action: z.literal("unlink"), id: z.string().uuid(), mediaId: z.string().uuid() }),
   z.object({ action: z.literal("categories"), updates: z.array(z.object({ id: z.string().uuid(), visible: z.boolean(), sortOrder: z.number().int().nonnegative() })).min(1).max(30) }),
-  z.object({ action: z.literal("video"), id: z.string().uuid(), url: z.string().url(), posterUrl: z.string().url().nullable().optional(), alt: z.string().min(3).max(240), title:z.string().min(2).max(180),provider:z.enum(["youtube","vimeo","tiktok","facebook"]),embedMode:z.enum(["embed","external"]), orientation: z.enum(["portrait", "landscape", "square"]) }),
+  z.object({ action: z.literal("video"), id: z.string().uuid(), url: z.string().url(), posterUrl: z.string().url().nullable().optional(), alt: z.string().min(3).max(240), title:z.string().min(2).max(180),provider:z.enum(["youtube","vimeo","tiktok","facebook","instagram"]),embedMode:z.enum(["embed","external"]), orientation: z.enum(["portrait", "landscape", "square"]) }),
 ]);
 
 async function audit(request: Request, session: { userId: string }, action: string, entityId?: string) {

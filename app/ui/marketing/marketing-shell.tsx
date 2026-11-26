@@ -25,9 +25,9 @@ export function MarketingShell({ children }: { children: ReactNode }) {
         <div className={styles.headerInner}>
           <Link className={styles.logo} href="/" aria-label="Crisdal Agency, inicio">
             <Image
-              src="/brand/crisdal-imagotipo.png"
-              width={46}
-              height={54}
+              src="/brand/crisdal-icon.png"
+              width={42}
+              height={40}
               alt=""
               priority
             />
@@ -64,6 +64,16 @@ export function MarketingShell({ children }: { children: ReactNode }) {
         </nav>
         <small>© 2026 Crisdal Agency. Los alcances y fechas se confirman antes de contratar.</small>
       </footer>
+      <WhatsAppLink
+        placement="sticky"
+        eventName="click_whatsapp_floating_public"
+        phone={publicSite.brand.whatsapp}
+        message={publicSite.messages.general}
+        className={styles.floatingWhatsApp}
+      >
+        <Image src="/brand/whatsapp-official.png" alt="" width={30} height={30} aria-hidden="true" />
+        <span>WhatsApp</span>
+      </WhatsAppLink>
     </div>
   );
 }
@@ -117,10 +127,9 @@ export function EmptyPortfolio() {
     <section className={styles.portfolioEmpty} aria-labelledby="portfolio-empty-title">
       <div>
         <p className={styles.eyebrow}>Archivo en preparación</p>
-        <h2 id="portfolio-empty-title">Solo publicaremos trabajos con autorización.</h2>
+        <h2 id="portfolio-empty-title">¿Quieres ver un trabajo parecido a lo que buscas?</h2>
         <p>
-          La estructura del portafolio ya está preparada para fotografías y videos reales.
-          Mientras seleccionamos el material autorizado, puedes conversar directamente con el equipo.
+          Estamos preparando esta selección. Cuéntanos qué tipo de evento tienes en mente y conversemos sobre el estilo de cobertura.
         </p>
       </div>
       <WhatsAppLink

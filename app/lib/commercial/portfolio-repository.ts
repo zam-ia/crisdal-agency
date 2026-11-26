@@ -22,7 +22,7 @@ export interface PortfolioRepository {
   findAdminById(id: string): Promise<PortfolioProject | null>;
   saveDraft(input: PortfolioDraftInput, actorUserId: string): Promise<PortfolioProject>;
   setStatus(id: string, status: PortfolioStatus, actorUserId: string): Promise<PortfolioProject>;
-  addExternalVideo(projectId: string, input: { url: string; posterUrl?: string | null; alt: string; orientation: PortfolioMedia["orientation"]; provider?: PortfolioMedia["provider"]; embedMode?: PortfolioMedia["embedMode"]; title?: string }, actorUserId: string): Promise<PortfolioMedia>;
+  addExternalVideo(projectId: string, input: { url: string; posterUrl?: string | null; alt: string; orientation: PortfolioMedia["orientation"]; provider?: PortfolioMedia["provider"]; embedMode?: PortfolioMedia["embedMode"]; contentType?: PortfolioMedia["contentType"]; kind?: "video"|"social"; title?: string }, actorUserId: string): Promise<PortfolioMedia>;
   addUploadedImage(projectId: string, input: { bytes: Uint8Array; mimeType: string; extension: string; alt: string; orientation: PortfolioMedia["orientation"] }, actorUserId: string): Promise<PortfolioMedia>;
   reorderMedia(projectId: string, mediaIds: string[], actorUserId: string): Promise<void>;
   unlinkMedia(projectId: string, mediaId: string, actorUserId: string): Promise<void>;
@@ -46,7 +46,7 @@ export class SupabasePortfolioRepository implements PortfolioRepository {
     if (!rows.length) return [];
     const ids = rows.map((row) => row.id);
     const [{ data: links, error: linksError }, { data: consents, error: consentError }] = await Promise.all([
-      this.db.from("portfolio_media").select("project_id,sort_order,media_assets(id,kind,public_url,poster_url,alt_text,orientation,mime_type,width,height,external_provider,embed_mode,title,private_storage_path,thumbnail_storage_path)").in("project_id", ids).order("sort_order"),
+      this.db.from("portfolio_media").select("project_id,sort_order,media_assets(id,kind,public_url,poster_url,alt_text,orientation,mime_type,width,height,external_provider,external_content_type,embed_mode,title,private_storage_path,thumbnail_storage_path)").in("project_id", ids).order("sort_order"),
       this.db.from("publication_consents").select("project_id,status,scope,evidence_reference,authorized_at").in("project_id", ids),
     ]);
     if (linksError) throw linksError;
@@ -67,7 +67,7 @@ export class SupabasePortfolioRepository implements PortfolioRepository {
           const { data } = await this.db.storage.from("crisdal-private-media").createSignedUrl(raw.thumbnail_storage_path, 900);
           if (data?.signedUrl) posterUrl = data.signedUrl;
         }
-        return { id: raw.id, kind: raw.kind, url, posterUrl, alt: raw.alt_text, orientation: raw.orientation, sortOrder: item.sort_order, mimeType: raw.mime_type, width: raw.width, height: raw.height, provider: raw.external_provider||undefined, embedMode: raw.embed_mode||undefined, title: raw.title||undefined } as PortfolioMedia;
+        return { id: raw.id, kind: raw.kind, url, posterUrl, alt: raw.alt_text, orientation: raw.orientation, sortOrder: item.sort_order, mimeType: raw.mime_type, width: raw.width, height: raw.height, provider: raw.external_provider||undefined, embedMode: raw.embed_mode||undefined, contentType: raw.external_content_type||undefined, title: raw.title||undefined } as PortfolioMedia;
       }));
       return {
         id: row.id, slug: row.slug, title: row.title, categoryId: row.category_id,
@@ -177,16 +177,16 @@ export class SupabasePortfolioRepository implements PortfolioRepository {
     return project;
   }
 
-  async addExternalVideo(projectId: string, input: { url: string; posterUrl?: string | null; alt: string; orientation: PortfolioMedia["orientation"]; provider?: PortfolioMedia["provider"]; embedMode?: PortfolioMedia["embedMode"]; title?: string }, actorUserId: string): Promise<PortfolioMedia> {
+  async addExternalVideo(projectId: string, input: { url: string; posterUrl?: string | null; alt: string; orientation: PortfolioMedia["orientation"]; provider?: PortfolioMedia["provider"]; embedMode?: PortfolioMedia["embedMode"]; contentType?: PortfolioMedia["contentType"]; kind?: "video"|"social"; title?: string }, actorUserId: string): Promise<PortfolioMedia> {
     const id = randomUUID();
     const { data: countRows, error: countError } = await this.db.from("portfolio_media").select("id").eq("project_id", projectId);
     if (countError) throw countError;
-    const { error } = await this.db.from("media_assets").insert({ id, kind: "video", provider: "external", external_provider: input.provider, embed_mode: input.embedMode||"embed", title: input.title||input.alt, public_url: input.url, poster_url: input.posterUrl || null, alt_text: input.alt, orientation: input.orientation, mime_type: "text/uri-list", created_by: actorUserId, publication_authorized: false });
+    const { error } = await this.db.from("media_assets").insert({ id, kind: input.kind||"video", provider: "external", external_provider: input.provider, external_content_type: input.contentType||"video", embed_mode: input.embedMode||"embed", title: input.title||input.alt, public_url: input.url, poster_url: input.posterUrl || null, alt_text: input.alt, orientation: input.orientation, mime_type: "text/uri-list", created_by: actorUserId, publication_authorized: false });
     if (error) throw error;
     const sortOrder = countRows?.length || 0;
     const { error: linkError } = await this.db.from("portfolio_media").insert({ project_id: projectId, media_asset_id: id, sort_order: sortOrder });
     if (linkError) throw linkError;
-    return { id, kind: "video", url: input.url, posterUrl: input.posterUrl || null, alt: input.alt, orientation: input.orientation, sortOrder, mimeType: "text/uri-list", width: null, height: null, provider: input.provider, embedMode: input.embedMode||"embed", title: input.title||input.alt };
+    return { id, kind: input.kind||"video", url: input.url, posterUrl: input.posterUrl || null, alt: input.alt, orientation: input.orientation, sortOrder, mimeType: "text/uri-list", width: null, height: null, provider: input.provider, embedMode: input.embedMode||"embed", contentType: input.contentType||"video", title: input.title||input.alt };
   }
 
   async addUploadedImage(projectId: string, input: { bytes: Uint8Array; mimeType: string; extension: string; alt: string; orientation: PortfolioMedia["orientation"] }, actorUserId: string): Promise<PortfolioMedia> {

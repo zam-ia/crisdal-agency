@@ -21,8 +21,8 @@ export async function changePortfolioStatus(repository: PortfolioRepository, id:
 }
 
 export async function addPortfolioVideo(repository: PortfolioRepository, projectId: string, input: { url: string; posterUrl?: string | null; alt: string; orientation: PortfolioMedia["orientation"]; provider?: PortfolioMedia["provider"]; embedMode?: PortfolioMedia["embedMode"]; title?: string }, actorUserId: string) {
-  const parsed=parseExternalVideoUrl(input.url);if(!parsed)throw new Error("Proveedor de video no aprobado.");if(input.provider&&input.provider!==parsed.provider)throw new Error("La URL no corresponde al proveedor seleccionado.");if(parsed.provider==="facebook"&&input.embedMode==="embed")throw new Error("Facebook se publica como enlace externo porque su plugin oficial fue discontinuado.");
-  return repository.addExternalVideo(projectId,{...input,provider:parsed.provider,embedMode:parsed.provider==="facebook"?"external":input.embedMode||"embed"},actorUserId);
+  const parsed=parseExternalVideoUrl(input.url);if(!parsed)throw new Error("Proveedor o ruta no aprobado.");if(input.provider&&input.provider!==parsed.provider)throw new Error("La URL no corresponde al proveedor seleccionado.");
+  return repository.addExternalVideo(projectId,{...input,url:parsed.canonicalUrl,provider:parsed.provider,embedMode:parsed.embedUrl&&input.embedMode!=="external"?"embed":"external",kind:parsed.kind,contentType:parsed.contentType},actorUserId);
 }
 
 export async function reorderPortfolioMedia(repository: PortfolioRepository, projectId: string, mediaIds: string[], actorUserId: string) {
