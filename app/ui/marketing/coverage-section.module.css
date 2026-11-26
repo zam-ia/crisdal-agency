@@ -19,3 +19,5 @@
 @media(max-width:64rem){.intro{grid-template-columns:minmax(0,1fr)}.intro h2{max-width:28ch}.cards{gap:.75rem}.card{padding:1rem}.card h3{font-size:clamp(1.65rem,4vw,2.7rem)}}
 @media(max-width:42rem){.cards{grid-template-columns:minmax(0,1fr)}.card{gap:.75rem;padding:1.15rem}.card h3{font-size:2rem}.action{margin-top:.5rem}.bottom{align-items:flex-start;flex-direction:column}.intro h2{font-size:clamp(2rem,8.5vw,3rem)}}
 @media(hover:hover) and (pointer:fine) and (prefers-reduced-motion:no-preference){.card{transition:border-color .2s ease,transform .2s ease}.card:hover{border-color:rgb(250 183 19 / 55%);transform:translateY(-2px)}.action{transition:background .18s ease,color .18s ease}.action:hover{background:#fab713;color:#111210}}
+
+.card .action+.action{margin-top:0}.card .action:first-of-type{background:#fab713;color:#111210;border-color:#fab713}.card .action:first-of-type:hover{background:#ffca48;color:#111210}
