@@ -35,7 +35,7 @@ Este documento prepara el trabajo del administrador; **no es una publicación au
 
 ## Borrador editorial OPCIONAL (revisar antes de publicar)
 
-**Título interno sugerido:** `Boda · Cobertura fotográfica` (reemplazar por título editorial propio).  
+**Título interno sugerido:** `Boda · Cobertura fotográfica` (reemplazar por título editorial propio).
 **Resumen:** `Entre preparativos, miradas y palabras compartidas, nuestra cobertura reúne momentos de la ceremonia y retratos de una celebración que la pareja podrá volver a recordar.`
 
 No atribuir ciudad, identidad, número de invitados ni servicios no observados. No se debe presentar como una ficha pública terminada hasta aprobar el material.
@@ -60,3 +60,4 @@ No atribuir ciudad, identidad, número de invitados ni servicios no observados. 
 - [ ] Fotografías originales web aportadas y optimizadas.
 - [ ] Enlace real de publicación social añadido y reproducido/proporcionado con fallback.
 - [ ] Home y ficha pública revisadas 390px y 1440px.
+
