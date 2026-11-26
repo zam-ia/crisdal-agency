@@ -10,7 +10,7 @@ const navigation = [
   { href: "/contenido", label: "Contenido" },
   { href: "/eventos", label: "Eventos" },
   { href: "/portafolio", label: "Portafolio" },
-  { href: "/planes", label: "Planes" },
+  { href: "/paquetes", label: "Paquetes" },
 ];
 
 export function MarketingShell({ children }: { children: ReactNode }) {
@@ -63,6 +63,7 @@ export function MarketingShell({ children }: { children: ReactNode }) {
         <nav aria-label="Navegación del pie">
           {navigation.map((item) => <Link href={item.href} key={item.href}>{item.label}</Link>)}
           <Link href="/contacto">Contacto</Link>
+          <Link href="/planes">Planes y condiciones</Link>
           <Link href="/ruta-crisdal">Ruta Crisdal</Link>
         </nav>
         <small>© 2026 Crisdal Agency. Los alcances y fechas se confirman antes de contratar.</small>
