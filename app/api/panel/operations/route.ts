@@ -1,7 +1,8 @@
 import {z} from "zod";
 import {authorizePanelApi} from "../../../lib/commercial/api-auth";
 import {getSupabaseAdmin} from "../../../lib/supabase-admin";
-import {fingerprint} from "../../../lib/os/security";
+import {fingerprint,isTrustedOrigin} from "../../../lib/os/security";
+import {getPanelSession} from "../../../lib/os/dal";
 import type {Capability} from "../../../lib/os/capabilities";
 import {priceQuote} from "../../../lib/os/quotes/pricing";
 import {FINANCE_LIMIT,limaDate} from "../../../lib/os/finance/operations";
@@ -31,7 +32,7 @@ const schema=z.discriminatedUnion("action",[
 ]);
 const viewCaps={clients:"clients.read",quotes:"quotes.manage",production:"projects.read",insights:"finance.read"} as const satisfies Record<string,Capability>;
 const actionCaps:Record<z.infer<typeof schema>["action"],Capability>={client:"clients.write",client_update:"clients.write",link_inquiry:"clients.write",quote:"quotes.manage",quote_send:"quotes.manage",quote_reject:"quotes.manage",quote_accept:"quotes.manage",project_update:"projects.write",task:"projects.write",task_done:"projects.write"};
-function check<T extends {error:unknown}>(...rows:T[]){if(rows.some(r=>r.error))throw new Error("Database unavailable");}
+function check(...rows:{error:unknown}[]){if(rows.some(r=>r.error))throw new Error("Database unavailable");}
 export async function GET(request:Request){
  const q=new URL(request.url).searchParams;
  const view=q.get("view") as keyof typeof viewCaps;
@@ -79,10 +80,8 @@ export async function GET(request:Request){
  }catch{return respond({error:"Módulo pendiente de activación o temporalmente no disponible. No se muestran datos ficticios."},503);}
 }
 export async function POST(request:Request){
- // Resolve session and trusted origin before processing writes.
- const initial=await authorizePanelApi(request,"clients.read",true);
- // Production-only roles lack clients.read: use a separate authorized check below.
- if("response" in initial && initial.response.status!==403)return initial.response;
+ if(!isTrustedOrigin({origin:request.headers.get("origin"),host:request.headers.get("host"),forwardedHost:request.headers.get("x-forwarded-host")}))return respond({error:"Origen inválido."},403);
+ if(!await getPanelSession())return respond({error:"Sesión requerida."},401);
  if(!request.headers.get("content-type")?.startsWith("application/json"))return respond({error:"Formato inválido."},415);
  if(Number(request.headers.get("content-length")||0)>32000)return respond({error:"Solicitud demasiado grande."},413);
  let raw:unknown;try{const s=await request.text();if(s.length>32000)return respond({error:"Solicitud demasiado grande."},413);raw=JSON.parse(s);}catch{return respond({error:"Datos inválidos."},400);}
