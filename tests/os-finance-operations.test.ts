@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { estimateBreakEven, limaDate, normalizeVoucher, parseMoney } from "../app/lib/os/finance/operations";
+import { estimateBreakEven, limaDate, normalizeVoucher, parseMoney, validateVoucherDetail } from "../app/lib/os/finance/operations";
 
 test("monetary input is exact in cents, accepts decimal comma, rejects ambiguous formats",()=>{
  assert.equal(parseMoney("1190.10"),119010);
@@ -28,4 +28,16 @@ test("unprofitable or zero-price scenarios have no finite break-even",()=>{
  assert.equal(estimateBreakEven({fixedMinor:150000,averageSaleMinor:0,variableMinor:0}).events,null);
  assert.equal(estimateBreakEven({fixedMinor:0,averageSaleMinor:100,variableMinor:0}).events,0);
  assert.throws(()=>estimateBreakEven({fixedMinor:-1,averageSaleMinor:100,variableMinor:0}));
+});
+
+test("voucher service detail records amounts without recalculating tax or cash",()=>{
+ const item={quantity:1,description:" Cobertura de prueba ",unitMinor:50000,lineMinor:50000};
+ assert.deepEqual(validateVoucherDetail([item],0),[{...item,description:"Cobertura de prueba"}]);
+ assert.deepEqual(validateVoucherDetail([],null),[]);
+ assert.throws(()=>validateVoucherDetail([{...item,quantity:0}],0));
+ assert.throws(()=>validateVoucherDetail([{...item,unitMinor:-1}],0));
+ assert.throws(()=>validateVoucherDetail([item],-1));
+ assert.throws(()=>validateVoucherDetail(Array.from({length:21},()=>item),0));
+ // The source may show an explicit rounded or tax-inclusive line amount.
+ assert.equal(validateVoucherDetail([{...item,quantity:2,lineMinor:99999}],null)[0].lineMinor,99999);
 });
