@@ -2,7 +2,7 @@ import { z } from "zod";
 import { authorizePanelApi } from "../../../lib/commercial/api-auth";
 import { getSupabaseAdmin } from "../../../lib/supabase-admin";
 import { fingerprint } from "../../../lib/os/security";
-import { CURRENCIES, EXPENSE_CLASSES, FINANCE_LIMIT, PAYMENT_METHODS, limaDate, normalizeVoucher } from "../../../lib/os/finance/operations";
+import { CURRENCIES, EXPENSE_CLASSES, FINANCE_LIMIT, PAYMENT_METHODS, limaDate, normalizeVoucher, VOUCHER_SOURCES, validateVoucherDetail } from "../../../lib/os/finance/operations";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -22,6 +22,9 @@ const voucher = {
   series:z.string().min(1).max(8), number:z.string().min(1).max(16),
   date, currency:z.enum(CURRENCIES), amountMinor:amount,
   igvMinor:z.number().int().nonnegative().max(FINANCE_LIMIT).nullable().optional(),
+  discountMinor:z.number().int().nonnegative().max(FINANCE_LIMIT).nullable().optional(),
+  sourceKind:z.enum(VOUCHER_SOURCES).default("manual_reference"),
+  items:z.array(z.object({quantity:z.number().int().min(1).max(10000),description:z.string().trim().min(1).max(240),unitMinor:z.number().int().nonnegative().max(FINANCE_LIMIT),lineMinor:z.number().int().nonnegative().max(FINANCE_LIMIT)})).max(20).default([]),
   customer:z.string().trim().max(160),
   documentType:z.enum(["DNI","RUC","CE","PASSPORT","OTHER"]).nullable().optional(),
   documentNumber:z.string().trim().min(1).max(30).nullable().optional(),
@@ -54,6 +57,7 @@ const errorMessages:Record<string,string>={
   FINANCE_CURRENCY:"La moneda debe coincidir con la del evento.",
   FINANCE_ACCOUNT_REQUIRED:"Selecciona una cuenta por cobrar.",
   FINANCE_VOID:"El registro ya está anulado o falta una explicación.",
+  FINANCE_VOUCHER_DETAIL:"Revisa el detalle del comprobante.",
   FINANCE_VOUCHER_LINK:"El pago seleccionado no corresponde a este evento o no está vigente.",
   FINANCE_VOUCHER_CORRECTION:"No se puede corregir ese registro. Revisa su estado y motivo.",
   FINANCE_IDEMPOTENCY:"Esta operación ya fue utilizada con otros datos. Revisa antes de repetirla.",
@@ -76,9 +80,9 @@ export async function POST(request:Request) {
   const auth=await authorizePanelApi(request,"finance.write",true);
   if("response" in auth)return auth.response;
   if(!request.headers.get("content-type")?.startsWith("application/json"))return responseError("Formato inválido.",415);
-  if(Number(request.headers.get("content-length")||0)>10000)return responseError("Solicitud demasiado grande.",413);
+  if(Number(request.headers.get("content-length")||0)>24000)return responseError("Solicitud demasiado grande.",413);
   let body:unknown;
-  try{const raw=await request.text();if(raw.length>10000)return responseError("Solicitud demasiado grande.",413);body=JSON.parse(raw);}catch{return responseError("Solicitud inválida.",400);}
+  try{const raw=await request.text();if(raw.length>24000)return responseError("Solicitud demasiado grande.",413);body=JSON.parse(raw);}catch{return responseError("Solicitud inválida.",400);}
   const parsed=inputSchema.safeParse(body);
   if(!parsed.success)return responseError("Revisa los datos: importe, fecha, identificadores y campos obligatorios.",422);
   const {requestId,action,...payload}=parsed.data;
@@ -91,7 +95,7 @@ export async function POST(request:Request) {
   }
   if(parsed.data.action==="voucher"||parsed.data.action==="correct_voucher"){
     const x=parsed.data;
-    try{normalized={...payload,...normalizeVoucher(x.series,x.number)};}catch{return responseError("Serie o correlativo de boleta inválidos.",422);}
+    try{normalized={...payload,...normalizeVoucher(x.series,x.number),items:validateVoucherDetail(x.items,x.discountMinor??null)};}catch{return responseError("Revisa serie, correlativo y detalle de la boleta.",422);}
     if((x.igvMinor??0)>x.amountMinor||Boolean(x.documentType)!==Boolean(x.documentNumber)||(x.receiptId&&!x.accountId))return responseError("Revisa el IGV, identificación del cliente y vínculo del pago.",422);
   }
   try{
