@@ -16,11 +16,17 @@ export function PanelShell({
 }) {
   const navigation: OsNavigationItem[] = [
     { href: "/panel", label: "Inicio", active: currentPath === "/panel" },
+    ...(hasCapability(session.capabilities, "calendar.read")
+      ? [{ href: "/panel/agenda", label: "Agenda", active: currentPath === "/panel/agenda" }]
+      : []),
     ...(hasCapability(session.capabilities, "portfolio.manage")
       ? [{ href: "/panel/portafolio", label: "Portafolio", active: currentPath === "/panel/portafolio" }]
       : []),
     ...(hasCapability(session.capabilities, "packages.read")
       ? [{ href: "/panel/paquetes", label: "Paquetes", active: currentPath === "/panel/paquetes" }]
+      : []),
+    ...(hasCapability(session.capabilities, "promotions.manage")
+      ? [{ href: "/panel/promociones", label: "Promociones", active: currentPath === "/panel/promociones" }]
       : []),
     ...(hasCapability(session.capabilities, "users.manage")
       ? [{ href: "/panel/usuarios", label: "Usuarios", active: currentPath === "/panel/usuarios" }]

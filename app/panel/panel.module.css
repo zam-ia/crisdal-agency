@@ -15,6 +15,7 @@
 .error { padding: 0.8rem 1rem; border: 1px solid color-mix(in srgb, var(--os-danger) 30%, white); border-radius: var(--os-radius-sm); background: #fff2f2; color: var(--os-danger); }
 .heading { max-width: 52rem; margin-bottom: var(--os-space-6); }
 .sectionGap { margin-top: var(--os-space-6); }
+.quickLinks{margin-bottom:1rem;padding:1.25rem;border:1px solid var(--os-border);border-radius:var(--os-radius-md);background:white}.quickLinks h2{margin-top:0}.quickLinks div{display:flex;flex-wrap:wrap;gap:.65rem}.quickLinks a{padding:.7rem 1rem;border-radius:999px;background:var(--os-surface-muted);color:inherit;font-weight:750;text-decoration:none}
 .details { display: grid; gap: 1px; overflow: hidden; border: 1px solid var(--os-border); border-radius: var(--os-radius-md); background: var(--os-border); }
 .details div { display: grid; gap: 0.3rem; padding: 1rem; background: var(--os-surface); }
 .details dt { color: var(--os-text-muted); font-size: 0.76rem; font-weight: 750; text-transform: uppercase; }
