@@ -7,7 +7,7 @@ Fecha: 26 de noviembre de 2026 (America/Lima).
 - Repositorio: `zam-ia/crisdal-agency`
 - Pull request: [#15 — Integración final Crisdal Agency y Crisdal OS](https://github.com/zam-ia/crisdal-agency/pull/15)
 - `main` anterior: `d15a26dc1ebe6ce948aa2ec164cdd58049112e0a`
-- `main` desplegado: `7131bd534265e860b150cbcdfa655f916624ab3a`
+- Commit funcional desplegado: `7131bd534265e860b150cbcdfa655f916624ab3a` (los commits posteriores solo documentan este release).
 - Rama de recuperación: `recovery/pre-production-2026-11-26`
 - Producción: [https://crisdal-agency.vercel.app/](https://crisdal-agency.vercel.app/)
 - Vercel: build de preview y build de producción finalizados con estado `success`.
