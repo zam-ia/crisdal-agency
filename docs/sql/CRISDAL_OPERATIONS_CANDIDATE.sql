@@ -39,6 +39,8 @@ create table public.crisdal_production_projects (
  notes text not null default '' check(length(notes)<=2000),
  created_at timestamptz not null default now(), updated_at timestamptz not null default now()
 );
+alter table public.crisdal_client_galleries add column project_id uuid references public.crisdal_production_projects(id) on delete restrict;
+create index on public.crisdal_client_galleries(project_id);
 create table public.crisdal_production_tasks (
  id uuid primary key, project_id uuid not null references public.crisdal_production_projects(id) on delete restrict,
  title text not null check(length(trim(title)) between 2 and 180), due_on date,

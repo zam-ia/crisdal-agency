@@ -8,7 +8,7 @@ import {
 } from "./domain";
 
 type GalleryRow = {
-  id: string; title: string; event_type: GalleryRecord["eventType"]; description: string;
+  id: string; project_id: string | null; title: string; event_type: GalleryRecord["eventType"]; description: string;
   status: GalleryRecord["status"]; allow_downloads: boolean;
   expires_at: string | null; published_at: string | null; created_at: string; updated_at: string;
 };
@@ -17,12 +17,12 @@ type AssetRow = {
   original_name: string | null; original_path: string | null; preview_path: string | null;
   thumbnail_path: string | null; external_url: string | null; favorite: boolean; sort_order: number;
 };
-const galleryCols = "id,title,event_type,description,status,allow_downloads,expires_at,published_at,created_at,updated_at";
+const galleryCols = "id,project_id,title,event_type,description,status,allow_downloads,expires_at,published_at,created_at,updated_at";
 const assetCols = "id,gallery_id,kind,title,alt_text,original_name,original_path,preview_path,thumbnail_path,external_url,favorite,sort_order";
 const db = () => getSupabaseAdmin();
 function mapGallery(row: GalleryRow): GalleryRecord {
   return {
-    id: row.id, title: row.title, eventType: row.event_type, description: row.description,
+    id: row.id, projectId: row.project_id, title: row.title, eventType: row.event_type, description: row.description,
     status: row.status, allowDownloads: row.allow_downloads,
     expiresAt: row.expires_at, publishedAt: row.published_at,
     createdAt: row.created_at, updatedAt: row.updated_at,
@@ -56,8 +56,9 @@ export async function saveAdminGallery(input: GalleryInput, actorId: string) {
   if (validated.id) {
     const current = await findAdminGallery(validated.id);
     if (!current) throw new Error("Galería no encontrada.");
+    if (current.status==="published" && (validated.projectId??current.projectId??null)!==(current.projectId??null)) throw new Error("Revoca el enlace antes de cambiar de proyecto.");
     const { error } = await db().from("crisdal_client_galleries").update({
-      title: validated.title, event_type: validated.eventType, description: validated.description,
+      project_id: validated.projectId === undefined ? current.projectId ?? null : validated.projectId, title: validated.title, event_type: validated.eventType, description: validated.description,
       allow_downloads: validated.allowDownloads, updated_by: actorId, updated_at: new Date().toISOString(),
     }).eq("id", current.id);
     if (error) throw error;
@@ -65,7 +66,7 @@ export async function saveAdminGallery(input: GalleryInput, actorId: string) {
   }
   const id = randomUUID();
   const { error } = await db().from("crisdal_client_galleries").insert({
-    id, title: validated.title, event_type: validated.eventType, description: validated.description,
+    id, project_id: validated.projectId??null, title: validated.title, event_type: validated.eventType, description: validated.description,
     allow_downloads: validated.allowDownloads, created_by: actorId, updated_by: actorId,
   });
   if (error) throw error;

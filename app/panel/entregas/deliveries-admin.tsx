@@ -16,6 +16,7 @@ async function api<T>(url: string, data?: unknown): Promise<T> {
 type AdminGalleryAsset = GalleryAsset & { thumbnailUrl?: string | null };
 type GalleryDetails = { gallery: GalleryRecord; assets: AdminGalleryAsset[] };
 export function DeliveriesAdmin() {
+  const [projects,setProjects]=useState<{id:string;title:string}[]>([]);
   const [galleries, setGalleries] = useState<GalleryRecord[]>([]);
   const [editor, setEditor] = useState<GalleryInput | null>(null);
   const [current, setCurrent] = useState<GalleryRecord | null>(null);
@@ -27,13 +28,13 @@ export function DeliveriesAdmin() {
   const [shareUrl, setShareUrl] = useState("");
   const [video, setVideo] = useState({ title: "", url: "" });
   const refresh = async () => {
-    const result = await api<{ galleries: GalleryRecord[] }>("/api/panel/deliveries");
-    setGalleries(result.galleries);
+    const result = await api<{ galleries: GalleryRecord[]; projects:{id:string;title:string}[] }>("/api/panel/deliveries");
+    setGalleries(result.galleries); setProjects(result.projects);
     setError("");
   };
   useEffect(() => {
-    void api<{ galleries: GalleryRecord[] }>("/api/panel/deliveries")
-      .then((data) => setGalleries(data.galleries))
+    void api<{ galleries: GalleryRecord[]; projects:{id:string;title:string}[] }>("/api/panel/deliveries")
+      .then((data) => {setGalleries(data.galleries);setProjects(data.projects);})
       .catch((reason) => setError(reason instanceof Error ? reason.message : "Módulo no activado."));
   }, []);
   async function openGallery(id: string) {
@@ -41,7 +42,7 @@ export function DeliveriesAdmin() {
     try {
       const data = await api<GalleryDetails>(`/api/panel/deliveries?id=${encodeURIComponent(id)}`);
       setCurrent(data.gallery); setAssets(data.assets);
-      setEditor({ id: data.gallery.id, title: data.gallery.title, eventType: data.gallery.eventType, description: data.gallery.description, allowDownloads: data.gallery.allowDownloads });
+      setEditor({ id: data.gallery.id, projectId:data.gallery.projectId??null, title: data.gallery.title, eventType: data.gallery.eventType, description: data.gallery.description, allowDownloads: data.gallery.allowDownloads });
     } catch (reason) { setNotice(reason instanceof Error ? reason.message : "No se pudo abrir."); }
     finally { setBusy(false); }
   }
@@ -165,6 +166,7 @@ export function DeliveriesAdmin() {
       <div className={styles.editorTop}><div><span className={styles.eyebrow}>EDITOR DE ENTREGA</span><h2>{editor.id ? "Editar entrega" : "Crear entrega"}</h2></div><button type="button" className={styles.secondary} onClick={() => setEditor(null)}>Cerrar</button></div>
       <div className={styles.formGrid}>
         <label>Título<input value={editor.title} maxLength={150} placeholder="Ej. Nuestra historia" onChange={(e) => setEditor({ ...editor, title: e.target.value })}/></label>
+        <label>Proyecto asociado (opcional)<select value={editor.projectId??""} disabled={current?.status==="published"} onChange={e=>setEditor({...editor,projectId:e.target.value||null})}><option value="">Sin proyecto asociado</option>{editor.projectId&&!projects.some(p=>p.id===editor.projectId)&&<option value={editor.projectId}>Proyecto asociado anteriormente</option>}{projects.map(p=><option key={p.id} value={p.id}>{p.title}</option>)}</select></label>
         <label>Tipo de evento<select value={editor.eventType} onChange={(e) => setEditor({ ...editor, eventType: e.target.value as GalleryInput["eventType"] })}>{eventTypes.map((event) => <option key={event}>{event}</option>)}</select></label>
         <label className={styles.full}>Mensaje para el cliente<textarea value={editor.description} maxLength={1800} rows={3} onChange={(e) => setEditor({ ...editor, description: e.target.value })}/></label>
         <label className={styles.check}><input type="checkbox" checked={editor.allowDownloads} onChange={(e) => setEditor({ ...editor, allowDownloads: e.target.checked })}/> Permitir descarga individual de fotografías originales</label>

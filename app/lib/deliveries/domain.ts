@@ -7,6 +7,7 @@ export type GalleryStatus = "draft" | "published" | "archived";
 export type GalleryEventType = (typeof EVENT_TYPES)[number];
 export type GalleryInput = {
   id?: string;
+  projectId?: string | null;
   title: string;
   eventType: GalleryEventType;
   description: string;
@@ -14,6 +15,7 @@ export type GalleryInput = {
 };
 export type GalleryRecord = {
   id: string;
+  projectId?: string | null;
   title: string;
   eventType: GalleryEventType;
   description: string;
@@ -68,6 +70,7 @@ export function tokenDigest(token: string) {
 }
 export function validateGalleryInput(input: GalleryInput) {
   if (input.id && !/^[0-9a-f-]{36}$/i.test(input.id)) throw new Error("Identificador de galería inválido.");
+  if (input.projectId && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(input.projectId)) throw new Error("Proyecto inválido.");
   if (!input.title.trim() || input.title.length > 150) throw new Error("Título inválido (máximo 150 caracteres).");
   if (!EVENT_TYPES.includes(input.eventType)) throw new Error("Tipo de evento inválido.");
   if (input.description.length > 1800) throw new Error("Descripción demasiado larga.");

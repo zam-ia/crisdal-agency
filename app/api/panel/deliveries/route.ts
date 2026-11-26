@@ -13,7 +13,7 @@ export const runtime = "nodejs";
 const NO_CACHE = { "Cache-Control": "no-store" };
 const uuid = z.string().uuid();
 const galleryInput = z.object({
-  id: uuid.optional(), title: z.string().min(1).max(150),
+  id: uuid.optional(), projectId: uuid.nullable().optional(), title: z.string().min(1).max(150),
   eventType: z.enum(EVENT_TYPES), description: z.string().max(1800),
   allowDownloads: z.boolean(),
 });
@@ -58,7 +58,10 @@ export async function GET(request: Request) {
         ...asset, thumbnailUrl: asset.thumbPath ? thumbnails.get(asset.thumbPath) || null : null,
       })) }, { headers: NO_CACHE });
     }
-    return Response.json({ galleries: await listAdminGalleries() }, { headers: NO_CACHE });
+    const {getSupabaseAdmin}=await import("../../../lib/supabase-admin");
+    const {data:projects,error:projectError}=await getSupabaseAdmin().from("crisdal_production_projects").select("id,title").order("created_at",{ascending:false}).limit(200);
+    if(projectError)throw projectError;
+    return Response.json({ galleries: await listAdminGalleries(), projects:projects??[] }, { headers: NO_CACHE });
   } catch {
     return Response.json({ error: "No se pudo acceder a las galerías. Verifica la activación de la base." }, { status: 503, headers: NO_CACHE });
   }
