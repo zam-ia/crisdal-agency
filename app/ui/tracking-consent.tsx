@@ -28,7 +28,7 @@ export function TrackingConsent() {
     window.dispatchEvent(new Event(MARKETING_CONSENT_EVENT));
   }
 
-  if (pathname.startsWith("/admin") || pathname.startsWith("/panel")) return null;
+  if (pathname.startsWith("/admin") || pathname.startsWith("/panel") || pathname.startsWith("/entregas")) return null;
 
   return (
     <>
