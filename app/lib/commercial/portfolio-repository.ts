@@ -139,8 +139,12 @@ export class SupabasePortfolioRepository implements PortfolioRepository {
   }
 
   async setStatus(id: string, status: PortfolioStatus, actorUserId: string) {
-    const { error } = await this.db.from("portfolio_projects").update({ status, published_at: status === "published" ? new Date().toISOString() : null, updated_by: actorUserId }).eq("id", id);
-    if (error) throw error;
+    // Hide first on withdrawal; expose only after preparing all approved public assets.
+    const updateStatus = async () => {
+      const {error} = await this.db.from("portfolio_projects").update({status,published_at:status === "published" ? new Date().toISOString() : null,updated_by:actorUserId}).eq("id",id);
+      if(error) throw error;
+    };
+    if(status !== "published") await updateStatus();
     {
       const { data: links, error: linksError } = await this.db.from("portfolio_media").select("media_asset_id,media_assets(id,private_storage_path,storage_bucket,storage_path,mime_type)").eq("project_id", id);
       if (linksError) throw linksError;
@@ -175,6 +179,7 @@ export class SupabasePortfolioRepository implements PortfolioRepository {
         if (assetError) throw assetError;
       }
     }
+    if(status === "published") await updateStatus();
     const project = await this.findAdminById(id);
     if (!project) throw new Error("Proyecto no encontrado.");
     return project;
