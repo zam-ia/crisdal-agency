@@ -5,33 +5,27 @@ import { usePathname } from "next/navigation";
 import { GoogleTagManager } from "./google-tag-manager";
 import { MetaPixel } from "./meta-pixel";
 
-const CONSENT_KEY = "crisdal:marketing-consent";
-const CONSENT_EVENT = "crisdal-marketing-consent";
-type Consent = "accepted" | "rejected" | null;
-
-function readConsent(): Consent {
-  const stored = localStorage.getItem(CONSENT_KEY);
-  return stored === "accepted" || stored === "rejected" ? stored : null;
-}
+import { MARKETING_CONSENT_EVENT, MARKETING_CONSENT_KEY, readMarketingConsent, writeMarketingCookie, type MarketingConsent } from "../lib/marketing-consent";
 
 function subscribe(callback: () => void) {
   const listener = () => callback();
   window.addEventListener("storage", listener);
-  window.addEventListener(CONSENT_EVENT, listener);
+  window.addEventListener(MARKETING_CONSENT_EVENT, listener);
   return () => {
     window.removeEventListener("storage", listener);
-    window.removeEventListener(CONSENT_EVENT, listener);
+    window.removeEventListener(MARKETING_CONSENT_EVENT, listener);
   };
 }
 
 export function TrackingConsent() {
   const pathname = usePathname();
-  const consent = useSyncExternalStore(subscribe, readConsent, () => null);
+  const consent = useSyncExternalStore(subscribe, readMarketingConsent, () => null);
   const ready = useSyncExternalStore(() => () => {}, () => true, () => false);
 
-  function choose(value: Exclude<Consent, null>) {
-    localStorage.setItem(CONSENT_KEY, value);
-    window.dispatchEvent(new Event(CONSENT_EVENT));
+  function choose(value: Exclude<MarketingConsent, null>) {
+    try { localStorage.setItem(MARKETING_CONSENT_KEY, value); } catch { /* Fail closed if preference cannot be stored. */ }
+    writeMarketingCookie(value);
+    window.dispatchEvent(new Event(MARKETING_CONSENT_EVENT));
   }
 
   if (pathname.startsWith("/admin") || pathname.startsWith("/panel")) return null;

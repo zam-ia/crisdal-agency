@@ -3,7 +3,11 @@
 .gallery > [data-orientation="portrait"] { grid-column:span 4; }
 .gallery img, .videoCard iframe { width:100%; height:100%; min-height:28rem; border:0; object-fit:cover; }
 .gallery > button span { position:absolute; right:1rem; bottom:1rem; padding:.55rem .7rem; border-radius:999px; background:rgb(17 18 16/82%); color:#fff; font-size:.75rem; }
-.videoPoster { position:absolute; inset:0; display:grid; place-items:center; background:radial-gradient(circle,rgb(250 183 19/26%),transparent 32%),#1b1b18; color:#fab713; font-family:Georgia,serif; font-size:2rem; }
+.videoPoster { position:absolute; inset:0; display:grid; place-content:center; gap:.5rem; text-align:center; background:radial-gradient(circle,rgb(250 183 19/26%),transparent 32%),#1b1b18; color:#fab713; font-family:Georgia,serif; font-size:2rem; }
+.videoPoster small { color:rgb(255 255 255/65%); font-family:Arial,sans-serif; font-size:.68rem; font-weight:800; letter-spacing:.14em; text-transform:uppercase; }
+.embedFrame { position:absolute; inset:0; display:grid; grid-template-rows:minmax(0,1fr) auto; background:#0d0e0c; }
+.embedFrame iframe { min-height:0; }
+.embedFrame a { padding:.7rem 1rem; color:#fab713; font-size:.78rem; font-weight:800; text-align:center; text-decoration:none; }
 .videoOverlay { position:absolute; inset:auto 0 0; display:grid; gap:.6rem; padding:7rem 1.2rem 1.2rem; background:linear-gradient(transparent,rgb(0 0 0/96%)); }
 .videoOverlay p { color:rgb(255 255 255/72%); font-size:.85rem; }
 .videoOverlay button, .videoOverlay a, .externalFallback { justify-self:start; padding:.65rem .8rem; border:1px solid rgb(250 183 19/50%); border-radius:999px; background:#fab713; color:#111210; font:inherit; font-size:.78rem; font-weight:800; text-decoration:none; }

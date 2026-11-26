@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   description:
     "Creación de contenido, fotografía comercial, video profesional y cobertura audiovisual para negocios y eventos.",
   alternates: { canonical: "/" },
-  icons: { icon: "/brand/crisdal-imagotipo.png" },
+  icons: { icon: { url: "/brand/crisdal-symbol.svg", type: "image/svg+xml" } },
   openGraph: {
     title: "Crisdal Agency | Creación de contenido y producción audiovisual",
     description:

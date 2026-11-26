@@ -1,10 +1,21 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { canPublishPortfolioProject, detectedImageMime, isApprovedExternalVideoUrl, publicationIssues, slugifyPortfolioTitle, type PortfolioProject } from "../app/lib/commercial/portfolio";
+import { canPublishPortfolioProject, detectedImageMime, isApprovedExternalVideoUrl, parseExternalVideoUrl, publicationIssues, slugifyPortfolioTitle, type PortfolioProject } from "../app/lib/commercial/portfolio";
 
 const project = (overrides: Partial<PortfolioProject> = {}): PortfolioProject => ({ id:"10000000-0000-4000-8000-000000000001",slug:"proyecto-real",title:"Proyecto real",categoryId:"20000000-0000-4000-8000-000000000001",categorySlug:"bodas",categoryName:"Bodas",clientName:null,clientDisplayAuthorized:false,year:2026,description:"Descripción sintética suficientemente extensa.",objective:"Objetivo",serviceType:"Fotografía y video",status:"draft",featured:false,coverAssetId:"30000000-0000-4000-8000-000000000001",publishedAt:null,consentStatus:"verified",consentScope:"Web y redes",consentEvidenceReference:"synthetic-contract-1",consentAuthorizedAt:"2026-11-25T12:00:00.000Z",media:[{id:"30000000-0000-4000-8000-000000000001",kind:"image",url:"https://example.test/image.webp",posterUrl:null,alt:"Imagen sintética",orientation:"landscape",sortOrder:0,mimeType:"image/webp",width:1200,height:800}],createdAt:"2026-11-25T12:00:00.000Z",updatedAt:"2026-11-25T12:00:00.000Z",...overrides});
 
 test("publication requires verified evidence, cover and media",()=>{assert.equal(canPublishPortfolioProject(project()),true);assert.equal(canPublishPortfolioProject(project({consentEvidenceReference:""})),false);assert.match(publicationIssues(project({media:[]})).join(" "),/medio/);});
 test("client name cannot publish without explicit display authorization",()=>{assert.equal(canPublishPortfolioProject(project({clientName:"Cliente sintético",clientDisplayAuthorized:false})),false);});
 test("slugs and video providers are constrained",()=>{assert.equal(slugifyPortfolioTitle("Quinceaños Élite 2026"),"quinceanos-elite-2026");assert.equal(isApprovedExternalVideoUrl("https://youtu.be/abc1234"),true);assert.equal(isApprovedExternalVideoUrl("https://evil.example/video"),false);});
+test("social URLs are canonical, allow-listed and classified",()=>{
+  const instagram=parseExternalVideoUrl("https://www.instagram.com/reel/ABC_123/?utm_source=share&igshid=tracking");
+  assert.deepEqual(instagram&&{provider:instagram.provider,canonicalUrl:instagram.canonicalUrl,kind:instagram.kind,contentType:instagram.contentType},{provider:"instagram",canonicalUrl:"https://www.instagram.com/reel/ABC_123/",kind:"social",contentType:"reel"});
+  const facebook=parseExternalVideoUrl("https://www.facebook.com/crisdal/videos/123456789/?fbclid=tracking");
+  assert.equal(facebook?.provider,"facebook");assert.equal(facebook?.contentType,"video");assert.doesNotMatch(facebook?.canonicalUrl||"",/fbclid/);
+  const tiktok=parseExternalVideoUrl("https://www.tiktok.com/@crisdal/video/7123456789012345678?utm_source=share");
+  assert.equal(tiktok?.embedUrl,"https://www.tiktok.com/player/v1/7123456789012345678?controls=1&autoplay=0&rel=0");
+});
+test("spoofed providers, credentials, unsafe schemes and unsupported social paths fail closed",()=>{
+  for(const value of ["http://instagram.com/p/ABC123/","https://instagram.com.evil.test/p/ABC123/","https://user:pass@www.youtube.com/watch?v=abc1234","javascript:alert(1)","https://www.instagram.com/crisdal/","https://www.facebook.com/crisdal"]){assert.equal(parseExternalVideoUrl(value),null,value);}
+});
 test("image signatures are verified instead of trusting the extension",()=>{assert.equal(detectedImageMime(Uint8Array.from([0xff,0xd8,0xff,0,0,0,0,0,0,0,0,0])),"image/jpeg");assert.equal(detectedImageMime(new Uint8Array(12)),null);});

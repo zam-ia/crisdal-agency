@@ -1324,3 +1324,99 @@
     transition: none;
   }
 }
+
+
+/* Crisdal mark: the transparent symbol replaces the square raster artwork. */
+.logo { gap: .55rem; min-width: 0; }
+.logo img {
+  display: block;
+  width: 2.5rem;
+  height: 2.34rem;
+  flex: 0 0 auto;
+  object-fit: contain;
+  filter: drop-shadow(0 1px 9px rgb(250 183 19 / 11%));
+}
+.logo span { white-space: nowrap; }
+
+/* Persistent WhatsApp access on commercial pages only (not the private OS). */
+.floatingWhatsApp {
+  position: fixed;
+  z-index: 70;
+  right: max(1rem, env(safe-area-inset-right));
+  bottom: max(1.2rem, calc(1rem + env(safe-area-inset-bottom)));
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .66rem;
+  min-height: 3.5rem;
+  padding: .82rem 1.2rem;
+  border: 1px solid rgb(197 243 211 / 48%);
+  border-radius: 999px;
+  background: rgb(17 22 18 / 94%);
+  color: #fff;
+  box-shadow: 0 16px 35px rgb(0 0 0 / 35%);
+  font-size: .86rem;
+  font-weight: 800;
+  line-height: 1.2;
+  text-decoration: none;
+  transition: transform .22s ease, box-shadow .22s ease, background .22s ease;
+}
+.floatingWhatsApp img { display: block; flex: 0 0 auto; object-fit: contain; }
+.floatingWhatsApp:hover { transform: translateY(-3px); background: rgb(29 44 33 / 97%); box-shadow: 0 18px 42px rgb(0 0 0 / 40%); }
+.floatingWhatsApp:focus-visible { outline: 3px solid var(--m-gold); outline-offset: 4px; }
+
+/* The consent banner also floats at bottom right. Keep both usable before consent. */
+:global(body:has(.consent-banner)) .floatingWhatsApp { bottom: 12.25rem; }
+
+/* Small editorial microinteractions, no dependency or scroll hijacking. */
+.eventCategoryGrid a,
+.homeProjectGrid a { transition: transform .26s ease, box-shadow .26s ease, background-color .26s ease; }
+.eventCategoryGrid a:hover,
+.eventCategoryGrid a:focus-visible {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px rgb(17 18 16 / 9%);
+  background: #fffaf1;
+}
+.homeProjectGrid a:hover,
+.homeProjectGrid a:focus-visible {
+  transform: translateY(-3px);
+  box-shadow: 0 22px 50px rgb(0 0 0 / 25%);
+}
+.heroFrame img { transition: transform .45s ease; }
+.heroFrame:hover img { transform: scale(1.018); }
+
+@media (max-width: 48rem) {
+  .logo span { display: block; font-size: 1.1rem; }
+  .logo small { font-size: .45rem; }
+  .headerCta { display: none; }
+  .headerInner { padding-right: 4.7rem; gap: .5rem; }
+  .mobileMenu { right: 1.25rem; }
+  .floatingWhatsApp { width: 3.6rem; height: 3.6rem; padding: .7rem; }
+  .floatingWhatsApp span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  :global(body:has(.consent-banner)) .floatingWhatsApp { bottom: 14rem; }
+}
+@media (max-width: 32rem) {
+  .logo img { width: 2.25rem; height: 2.1rem; }
+  .logo span { font-size: 1rem; }
+  .mobileMenu { right: 1.05rem; }
+  .headerInner { padding-right: 4.2rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .floatingWhatsApp,
+  .eventCategoryGrid a,
+  .homeProjectGrid a,
+  .heroFrame img { transition: none !important; }
+  .floatingWhatsApp:hover,
+  .eventCategoryGrid a:hover,
+  .eventCategoryGrid a:focus-visible,
+  .homeProjectGrid a:hover,
+  .homeProjectGrid a:focus-visible,
+  .heroFrame:hover img { transform: none !important; }
+}

@@ -39,6 +39,8 @@ export const PLACEMENTS = [
   "events_section",
   "photography",
   "portfolio_empty",
+  "public_date_fallback",
+  "public_packages_fallback",
   "public_final",
   "plan_impulso",
   "plan_crecimiento",
