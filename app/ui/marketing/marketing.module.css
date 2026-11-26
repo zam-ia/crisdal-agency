@@ -1457,3 +1457,37 @@
 @media(prefers-reduced-motion:reduce){
  .headerCta:hover,.primaryButton:hover,.secondaryButton:hover,.darkButton:hover,.lightLink:hover{transform:none}
 }
+
+/* Commercial rhythm: readable copy, balanced spacing and a floating header without a full-width veil. */
+.header{background:transparent}
+.headerInner{box-shadow:0 .65rem 1.9rem rgb(0 0 0 / 20%);background:rgb(17 18 16 / 96%)}
+@supports(backdrop-filter:blur(16px)){.headerInner{background:rgb(17 18 16 / 88%);backdrop-filter:blur(16px)}}
+.desktopNav a{color:rgb(244 238 227 / 84%);font-size:.85rem}
+.site main section[id]{scroll-margin-top:6rem}
+.site .sectionHeading h2{font-size:clamp(2rem,4.1vw,4.35rem);line-height:1.07}
+.portfolioSection .sectionHeading>p:not(.eyebrow){color:#58534a}
+.lightSection,.faqSection,.eventCategorySection,.contactGrid{padding-block:clamp(2.6rem,6vw,6rem)}
+.processGrid{margin-top:clamp(1.5rem,3vw,2.75rem);padding:0}
+.processGrid li{min-height:12.5rem;gap:.8rem;padding:clamp(1rem,2vw,1.65rem)}
+.processGrid li>span{color:var(--m-bronze);font-size:.9rem;font-weight:700}
+.processGrid h3{margin-top:0;line-height:1.13}
+.processGrid p{margin-top:0;color:#58534a}
+.faqSection{gap:clamp(1.6rem,5vw,5rem)}
+.faqList summary{min-height:4.25rem;line-height:1.4}
+.faqList details p{color:rgb(244 238 227 / 78%);padding-right:1rem}
+.finalCta{background:var(--m-paper);border-block:1px solid #dbd1bd;padding-block:clamp(2.6rem,6vw,5.5rem)}
+.finalCta .eyebrow{color:var(--m-bronze)}
+.finalCta h2{font-size:clamp(2.15rem,4.5vw,4.75rem);line-height:1.05;max-width:58rem}
+.contactGrid article{min-height:16rem;gap:.9rem}
+.contactGrid article>span{color:var(--m-bronze);font-family:Arial,sans-serif;font-size:.75rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
+.contactGrid article h2{margin-top:0}
+.contactGrid article p{color:#58534a}
+.contactGrid article>a{margin-top:auto}
+.portfolioEmpty{min-height:0;margin-top:0;padding:clamp(1.4rem,4vw,3rem);border-style:solid}
+.portfolioEmpty h2{font-size:clamp(1.6rem,3.2vw,2.65rem);line-height:1.14}
+.portfolioEmpty div>p:last-child{margin-top:.7rem;color:#58534a}
+.site .footer p{color:rgb(244 238 227 / 73%)}
+.site button:focus-visible{outline:3px solid var(--m-gold);outline-offset:3px}
+@media(max-width:64rem){.pageHero{grid-template-columns:minmax(0,1fr);min-height:0;gap:0}.pageHeroMark{display:none}}
+@media(max-width:48rem){.processGrid li{min-height:0}.site .sectionHeading h2{font-size:clamp(1.9rem,7vw,3.2rem)}.finalCta h2{font-size:clamp(2rem,8vw,3.5rem)}.contactGrid article{min-height:0}.contactGrid article>a{margin-top:.5rem}.site .footer nav{gap:.4rem 1rem}.site .footer nav a{display:flex;align-items:center;min-height:44px}}
+@media(prefers-reduced-motion:no-preference){.faqList summary span{transition:transform .18s ease}}

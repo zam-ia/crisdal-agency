@@ -41,3 +41,11 @@
 .card:focus-visible,.backLink:focus-visible,.nextStep :is(a,button,input):focus-visible,.archive :is(summary,button):focus-visible{outline:2px solid currentColor;outline-offset:3px;box-shadow:0 0 0 3px #fab713}
 @media(max-width:58rem){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:34rem){.grid{grid-template-columns:minmax(0,1fr)}}
+
+/* Compact project introduction and stable photo framing. */
+.hero,.projectHeader{padding-top:clamp(2.5rem,5vw,5rem)}
+.cardVisual img{object-fit:contain}
+.noCover{max-width:85%;text-align:center;line-height:1.5;color:#f4eee3!important;font-size:.9rem!important;letter-spacing:0!important;text-transform:none!important}
+.cardCopy .openCase{color:#6f4e2f}
+.empty button{min-height:44px;padding:.65rem 1rem;border:1px solid #6f4e2f;border-radius:999px;background:transparent;color:#111210;cursor:pointer}
+@media(max-width:34rem){.hero,.projectHeader{padding-top:2.25rem}.card .cardVisual{aspect-ratio:4/3}}
