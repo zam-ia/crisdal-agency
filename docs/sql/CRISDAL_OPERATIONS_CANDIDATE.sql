@@ -41,6 +41,15 @@ create table public.crisdal_production_projects (
 );
 alter table public.crisdal_client_galleries add column project_id uuid references public.crisdal_production_projects(id) on delete restrict;
 create index on public.crisdal_client_galleries(project_id);
+create function public.crisdal_delivery_project_guard() returns trigger
+language plpgsql security invoker set search_path='' as $
+begin
+ if old.status='published' and new.project_id is distinct from old.project_id then raise exception 'OPS_GALLERY_REVOKE_FIRST'; end if;
+ return new;
+end $;
+revoke all on function public.crisdal_delivery_project_guard() from public,anon,authenticated;
+create trigger crisdal_delivery_project_guard before update of project_id on public.crisdal_client_galleries
+for each row execute function public.crisdal_delivery_project_guard();
 create table public.crisdal_production_tasks (
  id uuid primary key, project_id uuid not null references public.crisdal_production_projects(id) on delete restrict,
  title text not null check(length(trim(title)) between 2 and 180), due_on date,
