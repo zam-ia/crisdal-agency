@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {readFileSync} from "node:fs";
-const sql=readFileSync("docs/sql/CRISDAL_OPERATIONS_CANDIDATE.sql","utf8");
+const sql=readFileSync("supabase/migrations/20261126200100_crisdal_operational_modules.sql","utf8");
 const api=readFileSync("app/api/panel/operations/route.ts","utf8");
 test("canonical contract acceptance creates one receivable and one project",()=>{
  assert.match(sql,/quote_id uuid unique references public\.crisdal_quotes/);
@@ -23,6 +23,11 @@ test("pricing and write authorization are checked on server",()=>{
  assert.match(api,/authorizePanelApi\(request,actionCaps\[parsed.data.action\],true\)/);
  assert.match(api,/priceQuote\(\{currency:x.currency,lines:x.lines/);
  assert.match(api,/auth.session.capabilities.includes\("finance.write"\)/);
+});
+test("draft copies preserve revisions and accepted contract values",()=>{
+ assert.match(sql,/crisdal_quote_revisions\(quote_id,revision,snapshot,replaced_by\)/);
+ assert.match(sql,/v_quote\.status<>'draft' or v_quote\.revision is distinct from/);
+ assert.match(sql,/before update of quote_id,currency,total_minor/);
 });
 test("private delivery routes fail closed",()=>{
  for(const path of ["app/api/panel/deliveries/route.ts","app/api/panel/deliveries/uploads/route.ts","app/api/deliveries/[token]/favorites/route.ts","app/api/deliveries/[token]/download/[assetId]/route.ts","app/entregas/[token]/page.tsx"])assert.ok(readFileSync(path,"utf8").includes('process.env.CRISDAL_PRIVATE_DELIVERIES_ENABLED !== "true"'));

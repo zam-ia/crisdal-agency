@@ -1,7 +1,11 @@
--- CANDIDATE ONLY. Generate a migration with the local CLI after replaying the
--- existing schema and finance migration. Not in the automatic migration path.
--- No production SQL executed. Requires identity, public inquiries and finance.
+-- Requires identity, public inquiries, private deliveries and operational finance.
+-- CLI-generated version ordered after the existing 20261126200000 finance migration.
+-- Production rollout requires reconciliation and rehearsal against a restored backup.
 begin;
+-- Preserve the legacy CMS server access on databases without default Data API grants.
+grant select,insert on public.landing_content_versions to service_role;
+grant usage on sequence public.landing_content_versions_id_seq to service_role;
+
 create table public.crisdal_clients (
  id uuid primary key, name text not null check(length(trim(name)) between 2 and 180),
  phone text not null unique check(phone ~ '^[0-9]{7,15}$'),
@@ -26,10 +30,35 @@ create table public.crisdal_quotes (
  expires_on date not null, status text not null default 'draft' check(status in ('draft','sent','accepted','rejected')),
  acceptance_reference text check(length(acceptance_reference) between 3 and 240),
  accepted_at timestamptz, created_at timestamptz not null default now(),
+ revision integer not null default 1 check(revision>0),
  check ((status='accepted')=(accepted_at is not null and acceptance_reference is not null))
 );
 -- Accepted quote is the canonical contract. One receivable and one production project.
 alter table public.crisdal_finance_accounts add column quote_id uuid unique references public.crisdal_quotes(id) on delete restrict;
+create function public.crisdal_guard_quote_account() returns trigger
+language plpgsql security invoker set search_path='' as $$
+begin
+ if old.quote_id is not null and
+    row(new.quote_id,new.currency,new.total_minor) is distinct from row(old.quote_id,old.currency,old.total_minor)
+ then raise exception 'FINANCE_QUOTE_LOCKED'; end if;
+ return new;
+end $$;
+revoke all on function public.crisdal_guard_quote_account() from public,anon,authenticated;
+create trigger crisdal_quote_account_immutable before update of quote_id,currency,total_minor
+on public.crisdal_finance_accounts for each row execute function public.crisdal_guard_quote_account();
+
+create table public.crisdal_quote_revisions (
+ quote_id uuid not null references public.crisdal_quotes(id) on delete restrict,
+ revision integer not null check(revision>0),
+ snapshot jsonb not null check(jsonb_typeof(snapshot)='object'),
+ replaced_by uuid not null references public.crisdal_os_users(id) on delete restrict,
+ replaced_at timestamptz not null default now(),
+ primary key (quote_id,revision)
+);
+create index on public.crisdal_quote_revisions(replaced_by);
+alter table public.crisdal_quote_revisions enable row level security;
+revoke all on public.crisdal_quote_revisions from public,anon,authenticated;
+grant select,insert on public.crisdal_quote_revisions to service_role;
 create table public.crisdal_production_projects (
  id uuid primary key default gen_random_uuid(), quote_id uuid not null unique references public.crisdal_quotes(id) on delete restrict,
  client_id uuid not null references public.crisdal_clients(id) on delete restrict,
@@ -42,11 +71,11 @@ create table public.crisdal_production_projects (
 alter table public.crisdal_client_galleries add column project_id uuid references public.crisdal_production_projects(id) on delete restrict;
 create index on public.crisdal_client_galleries(project_id);
 create function public.crisdal_delivery_project_guard() returns trigger
-language plpgsql security invoker set search_path='' as $
+language plpgsql security invoker set search_path='' as $$
 begin
  if old.status='published' and new.project_id is distinct from old.project_id then raise exception 'OPS_GALLERY_REVOKE_FIRST'; end if;
  return new;
-end $;
+end $$;
 revoke all on function public.crisdal_delivery_project_guard() from public,anon,authenticated;
 create trigger crisdal_delivery_project_guard before update of project_id on public.crisdal_client_galleries
 for each row execute function public.crisdal_delivery_project_guard();
@@ -57,9 +86,13 @@ create table public.crisdal_production_tasks (
  done boolean not null default false, created_at timestamptz not null default now()
 );
 create index on public.crisdal_clients(stage,next_action_on);
+create index on public.crisdal_client_inquiries(client_id,inquiry_id);
 create index on public.crisdal_quotes(client_id,created_at desc);
 create index on public.crisdal_production_projects(stage,due_on);
+create index on public.crisdal_production_projects(client_id);
+create index on public.crisdal_production_projects(lead_user_id);
 create index on public.crisdal_production_tasks(project_id,done);
+create index on public.crisdal_production_tasks(assigned_to);
 alter table public.crisdal_clients enable row level security;
 alter table public.crisdal_client_inquiries enable row level security;
 alter table public.crisdal_quotes enable row level security;
@@ -83,7 +116,7 @@ declare
  v_cap text; v_stage text; v_user uuid; v_prior public.crisdal_finance_requests%rowtype; v_hash text;
 begin
  v_cap:=case when p_action in ('client','client_update','link_inquiry') then 'clients.write'
-  when p_action in ('quote','quote_send','quote_reject','quote_accept') then 'quotes.manage'
+  when p_action in ('quote','quote_edit','quote_send','quote_reject','quote_accept') then 'quotes.manage'
   when p_action in ('project_update','task','task_done') then 'projects.write' end;
  if v_cap is null or not public.crisdal_ops_can(p_actor,v_cap) then raise exception 'OPS_FORBIDDEN'; end if;
  if p_action='quote_accept' and not public.crisdal_ops_can(p_actor,'finance.write') then raise exception 'OPS_FORBIDDEN'; end if;
@@ -103,12 +136,24 @@ begin
   if exists(select 1 from public.crisdal_client_inquiries where inquiry_id=v_inquiry.id and client_id<>v_client.id) then raise exception 'OPS_INQUIRY_LINKED'; end if;
   insert into public.crisdal_client_inquiries(inquiry_id,client_id) values(v_inquiry.id,v_client.id) on conflict do nothing;
   v_id:=v_client.id;
- elsif p_action='quote' then
+ elsif p_action in ('quote','quote_edit') then
   select * into strict v_client from public.crisdal_clients where id=(p_payload->>'clientId')::uuid;
   if (p_payload->>'expiresOn')::date < (now() at time zone 'America/Lima')::date then raise exception 'OPS_EXPIRED'; end if;
   if (p_payload->'pricing'->>'totalMinor')::bigint <> (p_payload->>'totalMinor')::bigint or p_payload->'pricing'->>'currency' <> p_payload->>'currency' then raise exception 'OPS_TOTAL'; end if;
-  insert into public.crisdal_quotes(id,client_id,title,event_on,currency,lines,pricing,total_minor,terms,expires_on)
-   values(p_request,v_client.id,trim(p_payload->>'title'),nullif(p_payload->>'eventOn','')::date,p_payload->>'currency',p_payload->'lines',p_payload->'pricing',(p_payload->>'totalMinor')::bigint,p_payload->>'terms',(p_payload->>'expiresOn')::date) returning id into v_id;
+  if p_action='quote' then
+   insert into public.crisdal_quotes(id,client_id,title,event_on,currency,lines,pricing,total_minor,terms,expires_on)
+    values(p_request,v_client.id,trim(p_payload->>'title'),nullif(p_payload->>'eventOn','')::date,p_payload->>'currency',p_payload->'lines',p_payload->'pricing',(p_payload->>'totalMinor')::bigint,p_payload->>'terms',(p_payload->>'expiresOn')::date) returning id into v_id;
+  else
+   select * into strict v_quote from public.crisdal_quotes where id=(p_payload->>'id')::uuid for update;
+   if v_quote.status<>'draft' or v_quote.revision is distinct from (p_payload->>'revision')::integer then raise exception 'OPS_QUOTE_STALE'; end if;
+   insert into public.crisdal_quote_revisions(quote_id,revision,snapshot,replaced_by)
+    values(v_quote.id,v_quote.revision,to_jsonb(v_quote),p_actor);
+   update public.crisdal_quotes set client_id=v_client.id,title=trim(p_payload->>'title'),
+    event_on=nullif(p_payload->>'eventOn','')::date,currency=p_payload->>'currency',
+    lines=p_payload->'lines',pricing=p_payload->'pricing',total_minor=(p_payload->>'totalMinor')::bigint,
+    terms=p_payload->>'terms',expires_on=(p_payload->>'expiresOn')::date,revision=revision+1
+    where id=v_quote.id returning id into v_id;
+  end if;
  elsif p_action in ('quote_send','quote_reject','quote_accept') then
   select * into strict v_quote from public.crisdal_quotes where id=(p_payload->>'id')::uuid for update;
   if p_action='quote_accept' then
@@ -121,6 +166,7 @@ begin
    update public.crisdal_clients set stage='active',updated_at=now() where id=v_client.id;
   elsif p_action='quote_send' then
    if v_quote.status<>'draft' or v_quote.expires_on<(now() at time zone 'America/Lima')::date then raise exception 'OPS_TRANSITION'; end if;
+   if v_quote.revision is distinct from (p_payload->>'revision')::integer then raise exception 'OPS_QUOTE_STALE'; end if;
    update public.crisdal_quotes set status='sent' where id=v_quote.id;
   else
    if v_quote.status not in ('draft','sent') then raise exception 'OPS_TRANSITION'; end if;

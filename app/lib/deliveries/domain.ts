@@ -87,8 +87,11 @@ export function expiryForPublication(now = new Date(), days = 30): string {
 }
 export function safeDownloadFilename(name: string | null, fallbackId: string) {
   const fileName = (name || `crisdal-${fallbackId}.jpg`).split(/[\\/]/).filter(Boolean).at(-1) || `crisdal-${fallbackId}.jpg`;
-  const base = fileName.normalize("NFKD").replace(/[\u0300-\u036f]/g, "")
-    .replace(/[<>:"|?*\x00-\x1F]/g, "-").replace(/^\.+/, "").trim().slice(0, 100);
+  const asciiName = Array.from(fileName.normalize("NFKD"), (char) =>
+    char.charCodeAt(0) < 32 || char.charCodeAt(0) === 127 ? "-" : char,
+  ).join("");
+  const base = asciiName.replace(/[\u0300-\u036f]/g, "")
+    .replace(/[<>:"|?*]/g, "-").replace(/^\.+/, "").trim().slice(0, 100);
   return base || `crisdal-${fallbackId}.jpg`;
 }
 export function isApprovedPrivateVideoLink(link: string) {

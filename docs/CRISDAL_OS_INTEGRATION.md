@@ -1,18 +1,32 @@
-# Crisdal OS — integration release candidate
-Base main: bb4bd9955f2121f7aa8c2fbba9a991ae91806856. Draft only, no remote SQL or main changes.
-## Included
-- Files from PR #24 (financial ledger, SUNAT reference records, discount/items, break-even, API, SQL, tests).
-- Files from PR #14 (private gallery admin and token routes), reconciled with current navigation and marketing consent. All delivery public/admin API routes and screens fail closed unless CRISDAL_PRIVATE_DELIVERIES_ENABLED=true. Do not enable before completing security QA.
-- /panel/clientes: client create/update, normalized phone duplicate constraint, next action, recent inquiry linkage. Search is page-local; selection lists capped. No automatic matching by name.
-- /panel/cotizaciones: multiple lines, explicit tax/discount, server-side pricing.ts, frozen draft snapshot, manually marked sent/rejected, accepted after proof and finance permission. Acceptance creates a unique receivable and project transactionally and never records cash or changes public availability.
-- /panel/produccion: project lifecycle, lead staff, due date, tasks/checklist and notes; optional link from private gallery to project. Project association cannot change while gallery is published.
-- /panel/indicadores: monthly cash/expense/receivable/voucher totals and six-month trends from finance snapshot; proposal-cohort acceptance rate, open projects and overdue deliveries. Cash != accounting profit.
-- Legacy accounts can still be added manually in Finance; new quotes produce accounts automatically.
-## Schema and activation
-Candidate schema lives at docs/sql/CRISDAL_OPERATIONS_CANDIDATE.sql deliberately outside supabase/migrations because CLI/local database was unavailable. It depends on identity, public inquiries, finance and private-delivery migrations. Generate the versioned migration via local CLI AFTER isolated replay and schema comparison. Do not apply candidate directly to production.
-Read-only recheck: CRISDAL LANDING emdheaugznkzskrgkyaw ACTIVE_HEALTHY, 11 legacy public tables, remote migration list empty. Connector metadata is not a recoverable backup. Supabase Free plan, CLI in Codex authenticated to a different project; no paid branch approved. Follow docs/CRISDAL_OPERATIONAL_ACTIVATION.md; authenticate CLI to the intended project via secure flow, dump roles/schema/data and Storage objects separately, restore locally, reconcile, replay with SQL/RLS tests. No remote database mutation in this delivery.
-## Validation and limitations
-Readback/structural checks only. Local git clone failed DNS; no Docker/Postgres/Supabase CLI in this environment; full lint, typecheck, npm test, build, screenshot QA and SQL replay pending. tests/os-operations-integration-contract.test.ts checks source invariants, not live SQL. docs/sql/CRISDAL_OPERATIONS_ISOLATED_QA.sql is a rollback-only synthetic integration fixture for the isolated environment after the candidate is installed. Never execute on production.
-- Remaining: full search/pagination for linked inquiries, client selector, staff/tasks and galleries; quote draft editing/versioning, PDF/share, contract and payment schedule, cancellation/amendment lifecycle, automatic calendar integration with resource conflicts, financial attachment/conciliation, committed costs and economic profit, role-level delivery permission/rate limiting, gallery cleanup/expiration, navigation from public pages with already-loaded trackers, and real portfolio publishing after owner/Storage activation. Do not expose gallery tokens to marketing analytics. Test all routes with role-specific sessions and anonymous requests.
-- Review existing delivery code for signed URL residual lifetime, rate limits, atomic publication/revocation and upload concurrency before enabling. No customer data or actual voucher PDF stored in Git.
-- Preserve public web release, /admin and /ruta-crisdal. Merge only after all gates. PR #24/#14 code staged here, do not separately merge without diff review. Verify current main and integration branch before taking action.
+# Crisdal OS — Integración operativa
+
+Revisión del 26 de noviembre de 2026. La base comercial es `bb4bd9955f2121f7aa8c2fbba9a991ae91806856`. La rama `codex/crisdal-os-integration` conserva el trabajo de `parallel/crisdal-os-integrated` en `23ad34b2e85f2b0c1fcb20f4bd22c4c2dc28d8e0` ([PR #26](https://github.com/zam-ia/crisdal-agency/pull/26)). Incluye sus aportes de finanzas y entregas de los PR #24 y #14.
+
+## Estado por módulo
+
+| Módulo | Implementado en la rama | Validación pendiente |
+| --- | --- | --- |
+| CRM | Alta, edición, normalización de teléfono en servidor, control de duplicados, búsqueda global paginada por nombre, teléfono o correo, seguimiento e historial paginado de consultas vinculadas. | Ensayo con datos restaurados, selector de clientes e historial comercial más allá de consultas. |
+| Cotizaciones | Cálculo con `pricing.ts`, tributo explícito, edición de borradores con historial de versiones y detección de edición simultánea. Al aceptar se crea una cuenta por cobrar y un proyecto único. El monto vinculado queda protegido de correcciones manuales. | Selección de paquetes, PDF y enlace compartible, archivo de evidencia, cronograma, modificaciones y cancelaciones contractuales. |
+| Finanzas | Alta de contratos anteriores, cobros, devoluciones, gastos, registro interno de boletas externas y punto de equilibrio. Se verificó que el alta no exige un contrato previo. | Búsqueda de comprobantes, PDF/XML privado, vencimientos, conciliación, costos comprometidos y exportación. |
+| Producción | Etapas, responsable, fecha límite, tareas, notas y asociación opcional de entregas. | Personal y recursos por evento, horarios, entregables, costos y conflictos contra agenda. |
+| Indicadores | Cobros, gastos, saldos, boletas, tendencias, propuestas aceptadas y proyectos abiertos o vencidos. Selector PEN/USD. | Rentabilidad por servicio/evento, cartera vencida, metas, proyecciones, comparaciones y exportación. |
+| Entregas privadas | Módulo incorporado con activación explícita, enlace con hash, firma de medios y visor con diálogo nativo y navegación por teclado. | Activación bloqueada hasta ensayar Storage real, expiración y revocación, límites de acceso, carga concurrente, limpieza de huérfanos y aislamiento de campañas de tracking. Las firmas ya emitidas tienen vigencia residual. |
+
+La aceptación se probó sin contabilizar dinero, sin modificar la disponibilidad y sin crear una reserva. El registro de una boleta tampoco afecta la caja.
+
+## Base de datos y respaldo
+
+Se confirmó OAuth para el MCP de Codex con el proyecto `emdheaugznkzskrgkyaw`, incluidos `feedback` y `notebooks`. La inspección en solo lectura confirmó PostgreSQL 17.6, 11 tablas públicas heredadas, una cuenta Auth, cero migraciones registradas y 21 objetos de Storage en siete buckets, incluido uno en un bucket privado. Se cotejaron las columnas, las restricciones, los índices, RLS y el bucket del CMS heredado.
+
+El servidor PostgreSQL 17.12 aislado corrió en loopback. Auth y Storage se representaron con tablas mínimas y fixtures sintéticos. El candidato tenía un delimitador SQL inválido, corregido antes de ejecutar las pruebas. La CLI generó la migración que ahora se versiona como `20261126200100_crisdal_operational_modules.sql`, después de `20261126200000_crisdal_operational_finance.sql`. Se ensayó la secuencia completa en una base limpia, incluido el archivo de integración con rollback `docs/sql/CRISDAL_OPERATIONS_ISOLATED_QA.sql`.
+
+El OAuth de MCP habilita las herramientas de administración, que en esta sesión no exponen un export recuperable de PostgreSQL ni una copia de los blobs privados. El ensayo aislado con fixtures no sustituye restaurar la base real. Quedan pendientes el acceso directo al proyecto para el dump, la copia separada de Storage y la restauración de ambos con sus permisos. El historial remoto sigue intacto. No hay migraciones de esta entrega aplicadas en producción, alta de propietario ni publicación de un proyecto real.
+
+## QA ejecutado
+
+- `npm ci`, lint, TypeScript, `npm test` (114 pruebas) y compilación de Next.js.
+- Reejecución de las 11 migraciones en PostgreSQL 17.12. La prueba con `service_role` comprobó revisiones, rechazo de versiones obsoletas, aceptación idempotente, cuenta y proyecto únicos, importe protegido y registro de tareas.
+- Sesiones PostgreSQL independientes comprobaron aceptaciones simultáneas, cobros simultáneos de importe superior al saldo combinado, rechazo de otra moneda, unicidad de boleta y separación entre boleta y caja. Los roles `anon` y `authenticated` quedaron sin acceso directo a las tablas y RPC comprobadas. El rol de producción no pudo aceptar cotizaciones ni crear cuentas financieras.
+- En navegador local se usó una sesión nominal sintética y un servicio HTTP de prueba. Se comprobó inicio y cierre de sesión, búsqueda, historial, formulario de cotización, alta manual financiera y menú móvil. Clientes, Cotizaciones, Producción, Finanzas e Indicadores se revisaron a 320, 390, 768, 1280 y 1440 px sin desbordamiento. Se capturaron pantallas de directorio, menú móvil, cotización e indicadores durante el QA.
+- El release comercial de `main` respondió HTTP 200. La revisión de integración se envía a Preview, con entregas privadas deshabilitadas. La aceptación de la revisión y su despliegue productivo quedan condicionados a los ensayos sobre la restauración real y a los controles pendientes del módulo que se quiera activar.

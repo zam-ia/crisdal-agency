@@ -52,8 +52,21 @@ function numericIntegrity(value:unknown):boolean {
   if (value && typeof value==="object") return Object.values(value).every(numericIntegrity);
   return true;
 }
+const periodShape=z.object({
+  month:z.string(),
+  received_minor:z.number().int(),refunded_minor:z.number().int(),expenses_minor:z.number().int(),
+  fixed_minor:z.number().int(),direct_minor:z.number().int(),other_minor:z.number().int(),
+  documented_minor:z.number().int(),voucher_count:z.number().int(),
+});
+const snapshotShape=z.object({
+  totals:periodShape,trend:z.array(periodShape),
+  open_balance_minor:z.number().int(),accounts_count:z.number().int(),
+  movements_count:z.number().int(),vouchers_count:z.number().int(),
+  accounts:z.array(z.unknown()),movements:z.array(z.unknown()),vouchers:z.array(z.unknown()),
+});
 const errorMessages:Record<string,string>={
   FINANCE_BALANCE:"El cambio dejaría un saldo inválido. Revisa cobros y devoluciones.",
+  FINANCE_QUOTE_LOCKED:"El importe de una cotización aceptada se conserva en su contrato.",
   FINANCE_CURRENCY:"La moneda debe coincidir con la del evento.",
   FINANCE_ACCOUNT_REQUIRED:"Selecciona una cuenta por cobrar.",
   FINANCE_VOID:"El registro ya está anulado o falta una explicación.",
@@ -72,7 +85,7 @@ export async function GET(request:Request) {
   try {
     const f=parsed.data;
     const {data,error}=await getSupabaseAdmin().rpc("crisdal_finance_snapshot",{p_actor:auth.session.userId,p_currency:f.currency,p_month:f.month+"-01",p_account_offset:f.accountOffset,p_movement_offset:f.movementOffset,p_voucher_offset:f.voucherOffset});
-    if(error||!data||!numericIntegrity(data))return responseError("Finanzas no está disponible. Verifica la activación y los permisos.",503);
+    if(error||!snapshotShape.safeParse(data).success||!numericIntegrity(data))return responseError("Finanzas no está disponible. Verifica la activación y los permisos.",503);
     return Response.json(data,{headers:HEADERS});
   }catch{return responseError("Finanzas no está disponible.",503);}
 }

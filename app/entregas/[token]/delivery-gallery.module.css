@@ -9,3 +9,17 @@
 @media(max-width:37rem){.tools{align-items:start;flex-direction:column}.grid{gap:.65rem}.photoCard,.photoCard:nth-child(8n+1),.photoCard:nth-child(8n+5){grid-column:span 6}.openPhoto,.photoCard:nth-child(8n+1) .openPhoto,.photoCard:nth-child(8n+5) .openPhoto{height:clamp(11rem,55vw,18rem)}.cardActions{align-items:start;flex-direction:column}.hero{padding-top:5rem}.private{font-size:.55rem}.lightBottom button{padding:.65rem .7rem;font-size:.8rem}}
 @media(max-width:23rem){.photoCard,.photoCard:nth-child(8n+1),.photoCard:nth-child(8n+5){grid-column:1/-1}.openPhoto,.photoCard:nth-child(8n+1) .openPhoto,.photoCard:nth-child(8n+5) .openPhoto{height:20rem}}
 @media(prefers-reduced-motion:reduce){.openPhoto img{transition:none}.openPhoto:hover img{transform:none}}
+
+.lightbox {
+  width: 100%;
+  height: 100dvh;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  border: 0;
+  color: white;
+}
+
+.lightbox:not([open]) {
+  display: none;
+}

@@ -1,7 +1,9 @@
 # Crisdal OS — Entrega privada de fotografías a clientes
 
-**Rama independiente:** `parallel/crisdal-client-delivery-galleries`  
-**Base:** `1b4f52bf758683515de93b8565eb615e5e4f6b67`  
+**Rama independiente:** `parallel/crisdal-client-delivery-galleries`
+
+**Base:** `1b4f52bf758683515de93b8565eb615e5e4f6b67`
+
 **Contexto:** Codex está integrando PR #10–13 y publicando el sitio principal. **No incorporar esta rama a producción durante ese proceso.**
 
 ## Resultado de esta entrega

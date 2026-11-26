@@ -14,9 +14,9 @@ type AppShellProps = {
   brand?: string;
 };
 
-function Navigation({ items }: { items: OsNavigationItem[] }) {
+function Navigation({ items, label = "Navegación principal de Crisdal OS" }: { items: OsNavigationItem[]; label?: string }) {
   return (
-    <nav aria-label="Navegación principal de Crisdal OS">
+    <nav aria-label={label}>
       {items.map((item) => (
         <Link
           className={styles.navLink}
@@ -36,7 +36,8 @@ export function AppShell({
   navigation,
   brand = "CRISDAL OS",
 }: AppShellProps) {
-  const mobileItems = navigation.slice(0, 5);
+  const mobileItems = navigation.slice(0, 3);
+  const overflowItems = navigation.slice(3);
 
   return (
     <div className={styles.shell}>
@@ -47,6 +48,12 @@ export function AppShell({
       <main className={styles.main}>{children}</main>
       <div className={styles.mobileNav}>
         <Navigation items={mobileItems} />
+        {overflowItems.length > 0 && (
+          <details className={styles.moreNav}>
+            <summary className={styles.navLink}>Más</summary>
+            <Navigation items={overflowItems} label="Más módulos de Crisdal OS" />
+          </details>
+        )}
       </div>
     </div>
   );

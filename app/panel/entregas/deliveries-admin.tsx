@@ -150,7 +150,7 @@ export function DeliveriesAdmin() {
     } catch (reason) { setNotice(reason instanceof Error ? reason.message : "No se pudo ordenar."); }
     finally { setBusy(false); }
   }
-  return <main className={styles.page}>
+  return <div className={styles.page}>
     <header className={styles.header}><div><span className={styles.eyebrow}>CRISDAL OS · EXPERIENCIA DEL CLIENTE</span><h1>Entregas privadas</h1><p>Presenta fotografías y videos, recibe selecciones de favoritos y controla los accesos.</p></div><button type="button" className={styles.primary} onClick={() => { setEditor(initial()); setCurrent(null); setAssets([]); setShareUrl(""); setNotice(""); }}>Nueva entrega</button></header>
     {error ? <div className={styles.alert} role="alert"><strong>Activación pendiente</strong><p>{error} No se muestra contenido ficticio.</p></div> : null}
     {notice ? <div className={styles.notice} role="status">{notice}</div> : null}
@@ -180,5 +180,5 @@ export function DeliveriesAdmin() {
           {shareUrl ? <div className={styles.share}><input readOnly value={shareUrl} aria-label="Enlace privado de entrega"/><button type="button" onClick={() => void navigator.clipboard.writeText(shareUrl).then(() => setNotice("Enlace copiado.")).catch(() => setNotice("Copia el enlace manualmente."))}>Copiar enlace</button><a href={shareUrl} target="_blank" rel="noopener noreferrer">Abrir vista del cliente</a></div> : null}
         </div></>}
     </section> : null}
-  </main>;
+  </div>;
 }

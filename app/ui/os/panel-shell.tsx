@@ -32,7 +32,7 @@ export function PanelShell({
     ...(hasCapability(session.capabilities, "projects.read")
       ? [{ href: "/panel/produccion", label: "Producción", active: currentPath === "/panel/produccion" }]
       : []),
-    ...(hasCapability(session.capabilities, "projects.write")
+    ...(process.env.CRISDAL_PRIVATE_DELIVERIES_ENABLED === "true" && hasCapability(session.capabilities, "projects.write")
       ? [{ href: "/panel/entregas", label: "Entregas", active: currentPath === "/panel/entregas" }]
       : []),
     ...(hasCapability(session.capabilities, "finance.read")

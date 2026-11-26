@@ -48,6 +48,7 @@ export function estimateBreakEven(input: BreakEvenInput): BreakEvenResult {
 }
 export type FinanceAccount = {
   id:string; title:string; customer:string; event_date:string|null; currency:"PEN"|"USD";
+  quote_id?:string|null;
   total_minor:number; contracted_on:string; reference:string|null;
   received_minor:number; refunded_minor:number; pending_minor:number; direct_cost_minor:number;
 };

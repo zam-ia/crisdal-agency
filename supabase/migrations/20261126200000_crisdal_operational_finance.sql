@@ -244,6 +244,7 @@ begin
    from public.crisdal_finance_movements where currency=p_currency and status='posted' and account_id is not null group by account_id
  ), balances as (
    select a.id,a.title,a.customer,a.event_date,a.contracted_on,a.currency,a.total_minor,a.reference,
+   to_jsonb(a)->>'quote_id' as quote_id,
    coalesce(s.received_minor,0) received_minor,coalesce(s.refunded_minor,0) refunded_minor,
    a.total_minor-coalesce(s.received_minor,0)+coalesce(s.refunded_minor,0) pending_minor,coalesce(s.direct_cost_minor,0) direct_cost_minor
    from public.crisdal_finance_accounts a left join sums s on s.account_id=a.id where a.currency=p_currency

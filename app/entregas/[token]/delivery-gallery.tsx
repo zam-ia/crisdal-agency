@@ -10,32 +10,42 @@ export function DeliveryGallery({ token, gallery }: { token: string; gallery: Pr
   const [activeId, setActiveId] = useState<string | null>(null);
   const [busy, setBusy] = useState<Set<string>>(new Set());
   const [notice, setNotice] = useState("");
-  const closerRef = useRef<HTMLButtonElement>(null);
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const pendingFavorites = useRef(new Set<string>());
   const images = useMemo(() => gallery.assets.filter((item) => item.kind === "image"), [gallery.assets]);
   const videos = useMemo(() => gallery.assets.filter((item) => item.kind === "video"), [gallery.assets]);
   const visible = mode === "favorites" ? images.filter((item) => favorites.has(item.id)) : images;
   const activeIndex = visible.findIndex((item) => item.id === activeId);
   const current = activeIndex >= 0 ? visible[activeIndex] : null;
+  const active = Boolean(current);
 
   useEffect(() => {
-    if (!activeId) return;
-    closerRef.current?.focus();
+    const dialog = dialogRef.current;
+    if (!active || !dialog) return;
+    dialog.showModal();
+    return () => dialog.close();
+  }, [active]);
+
+  useEffect(() => {
+    if (!active) return;
     function onKey(event: KeyboardEvent) {
-      if (event.key === "Escape") setActiveId(null);
       if (event.key === "ArrowRight" && visible.length) setActiveId((value) => visible[(visible.findIndex((x) => x.id === value) + 1) % visible.length]?.id || null);
       if (event.key === "ArrowLeft" && visible.length) setActiveId((value) => visible[(visible.findIndex((x) => x.id === value) - 1 + visible.length) % visible.length]?.id || null);
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [activeId, visible]);
+  }, [active, visible]);
 
   async function setFavorite(assetId: string) {
-    if (busy.has(assetId)) return;
+    if (pendingFavorites.current.has(assetId)) return;
+    pendingFavorites.current.add(assetId);
     const nextValue = !favorites.has(assetId);
-    const prior = new Set(favorites);
-    const optimistic = new Set(prior);
-    if (nextValue) optimistic.add(assetId); else optimistic.delete(assetId);
-    setFavorites(optimistic);
+    setFavorites((currentFavorites) => {
+      const optimistic = new Set(currentFavorites);
+      if (nextValue) optimistic.add(assetId); else optimistic.delete(assetId);
+      return optimistic;
+    });
+    if (!nextValue && mode === "favorites" && activeId === assetId) setActiveId(null);
     setBusy((old) => new Set([...old, assetId]));
     try {
       const response = await fetch(`/api/deliveries/${token}/favorites`, {
@@ -45,15 +55,22 @@ export function DeliveryGallery({ token, gallery }: { token: string; gallery: Pr
       if (!response.ok) throw new Error("No se pudo actualizar el favorito.");
       setNotice(nextValue ? "Fotografía añadida a tu selección." : "Fotografía retirada de tu selección.");
     } catch {
-      setFavorites(prior);
+      setFavorites((currentFavorites) => {
+        const restored = new Set(currentFavorites);
+        if (nextValue) restored.delete(assetId); else restored.add(assetId);
+        return restored;
+      });
       setNotice("No se guardó el cambio. Inténtalo nuevamente.");
     } finally {
+      pendingFavorites.current.delete(assetId);
       setBusy((old) => { const result = new Set(old); result.delete(assetId); return result; });
     }
   }
   const expires = new Intl.DateTimeFormat("es-PE", { dateStyle: "long", timeZone: "America/Lima" }).format(new Date(gallery.expiresAt));
   return <main className={styles.page}>
     <header className={styles.nav}>
+      {/* Keep a full document navigation between private deliveries and marketing. */}
+      {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
       <a href="/" className={styles.brand} rel="noreferrer">CRISDAL <span>AGENCY</span></a>
       <span className={styles.private}>GALERÍA PRIVADA</span>
     </header>
@@ -88,14 +105,14 @@ export function DeliveryGallery({ token, gallery }: { token: string; gallery: Pr
     {videos.length ? <section className={styles.videoSection} aria-label="Videos del evento"><div><p className={styles.eyebrow}>EN MOVIMIENTO</p><h2>Vuelve a vivirlo.</h2></div><div className={styles.videos}>{videos.map((video) => video.externalUrl ?
       <a key={video.id} href={video.externalUrl} target="_blank" rel="noopener noreferrer" className={styles.videoCard}><span>VIDEO</span><strong>{video.title}</strong><small>Reproducir en plataforma original</small></a> : null)}</div></section> : null}
     <footer className={styles.footer}><p>Una entrega de Crisdal Agency. Este enlace es privado: evita reenviarlo a personas no autorizadas.</p><p>Las selecciones se guardan para esta galería y las verán las personas que tengan el enlace.</p><p>Si una imagen deja de cargar después de permanecer abierta mucho tiempo, actualiza la página para renovar el acceso temporal.</p></footer>
-    {current && <div className={styles.lightbox} role="dialog" aria-modal="true" aria-label="Visualizador de fotografía" onMouseDown={(event) => { if (event.target === event.currentTarget) setActiveId(null); }}>
-      <div className={styles.lightTop}><span>{activeIndex + 1} de {visible.length}</span><button ref={closerRef} type="button" onClick={() => setActiveId(null)}>Cerrar ×</button></div>
+    {current && <dialog ref={dialogRef} className={styles.lightbox} aria-label="Visualizador de fotografía" onCancel={(event) => { event.preventDefault(); setActiveId(null); }}>
+      <div className={styles.lightTop}><span>{activeIndex + 1} de {visible.length}</span><button type="button" onClick={() => setActiveId(null)}>Cerrar ×</button></div>
       {current.previewUrl ? <img src={current.previewUrl} alt={current.alt || current.title || "Fotografía ampliada"} referrerPolicy="no-referrer"/> : <p>Imagen no disponible.</p>}
       <div className={styles.lightBottom}>
         <button type="button" onClick={() => setActiveId(visible[(activeIndex - 1 + visible.length) % visible.length]?.id || null)}>← Anterior</button>
         <button type="button" onClick={() => void setFavorite(current.id)} aria-pressed={favorites.has(current.id)}>{favorites.has(current.id) ? "♥ Seleccionada" : "♡ Favorita"}</button>
         <button type="button" onClick={() => setActiveId(visible[(activeIndex + 1) % visible.length]?.id || null)}>Siguiente →</button>
       </div>
-    </div>}
+    </dialog>}
   </main>;
 }

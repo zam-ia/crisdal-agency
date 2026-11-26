@@ -1,5 +1,9 @@
 @import "./os-tokens.css";
 
+:global(body):has(.shell) {
+  min-width: 0;
+}
+
 .shell {
   min-height: 100dvh;
   background: var(--os-bg);
@@ -23,8 +27,8 @@
   bottom: var(--os-space-3);
   left: var(--os-space-3);
   display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
   min-height: var(--os-mobile-nav-height);
   padding: var(--os-space-2);
   border: 1px solid var(--os-border);
@@ -32,6 +36,42 @@
   background: rgb(255 255 255 / 96%);
   box-shadow: var(--os-shadow-md);
   backdrop-filter: blur(14px);
+}
+
+.mobileNav > nav {
+  display: flex;
+  min-width: 0;
+}
+
+.mobileNav > nav > a {
+  flex: 1;
+  min-width: 0;
+  padding-inline: 0.2rem;
+}
+
+.moreNav > summary {
+  cursor: pointer;
+  list-style: none;
+}
+
+.moreNav > summary::-webkit-details-marker {
+  display: none;
+}
+
+.moreNav > nav {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 0.5rem);
+  left: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  max-height: 60dvh;
+  overflow: auto;
+  padding: var(--os-space-2);
+  border: 1px solid var(--os-border);
+  border-radius: var(--os-radius-md);
+  background: var(--os-surface);
+  box-shadow: var(--os-shadow-md);
 }
 
 .navLink {
@@ -175,6 +215,7 @@
   .sidebar nav {
     display: grid;
     gap: var(--os-space-1);
+    overflow: auto;
   }
 
   .navLink {
