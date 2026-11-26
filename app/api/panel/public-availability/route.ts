@@ -1,3 +1,4 @@
+import { readBoundedJson } from "../../../lib/os/bounded-json";
 import { createHmac } from "node:crypto";
 import { authorizePanelApi } from "../../../lib/commercial/api-auth";
 import { peruToday, validDay, withinPublicHorizon } from "../../../lib/availability/public-calendar";
@@ -21,7 +22,7 @@ export async function POST(request: Request) {
   const auth = await authorizePanelApi(request, "calendar.write", true);
   if ("response" in auth) return auth.response;
   if (!request.headers.get("content-type")?.startsWith("application/json")) return Response.json({ error: "Formato inválido." }, { status: 415 });
-  const input = await request.json().catch(() => null);
+  const input = await readBoundedJson(request,120000).catch(() => null);
   if (!input || !validDay(input.day) || input.day < peruToday() || !withinPublicHorizon(input.day.slice(0,7),peruToday()) || !["available","clear"].includes(input.status) || input.acknowledged !== true) {
     return Response.json({ error: "Fecha, estado o confirmación de revisión inválidos." }, { status: 422, headers: NO_CACHE });
   }

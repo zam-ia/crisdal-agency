@@ -1,3 +1,4 @@
+import { readBoundedJson } from "../../../lib/os/bounded-json";
 import { createHmac } from "node:crypto";
 import { authorizePanelApi } from "../../../lib/commercial/api-auth";
 import { listPrivateDateInquiries, updatePrivateDateInquiry } from "../../../lib/availability/repository";
@@ -19,7 +20,7 @@ export async function POST(request: Request) {
   if ("response" in auth) return auth.response;
   if (!sessionCan(auth.session, "clients.read")) return Response.json({ error: "Permiso insuficiente." }, { status: 403, headers: NO_CACHE });
   if (!request.headers.get("content-type")?.startsWith("application/json")) return Response.json({ error: "Formato inválido." }, { status: 415 });
-  const body = await request.json().catch(() => null);
+  const body = await readBoundedJson(request,8000).catch(() => null);
   if (!body || !/^[a-f0-9-]{36}$/i.test(body.id || "") || !["new", "contacted", "closed", "spam"].includes(body.state)) {
     return Response.json({ error: "Datos inválidos." }, { status: 400, headers: NO_CACHE });
   }
