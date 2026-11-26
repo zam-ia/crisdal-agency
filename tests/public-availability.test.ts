@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { makePublicMonth, monthDates, monthShift, peruToday, validDay, withinPublicHorizon } from "../app/lib/availability/public-calendar";
+import { agendaBlockedDays, makePublicMonth, monthDates, monthShift, peruToday, validDay, withinPublicHorizon } from "../app/lib/availability/public-calendar";
 import { inquiryWhatsAppUrl, validateInquiry } from "../app/lib/availability/inquiry";
 const now = new Date("2026-11-26T21:00:00.000Z");
 const today = "2026-11-26";
-const valid = { eventType: "Boda", preferredDay: "2027-01-10", contactName: "Ana", contactPhone: "987 088 359", city: "Huancayo", message: "Cobertura de 6 horas", consent: true };
+const valid = { eventType: "Boda" as const, preferredDay: "2027-01-10", contactName: "Ana", contactPhone: "987 088 359", city: "Huancayo", message: "Cobertura de 6 horas", consent: true };
 
 test("Leap year, month boundaries and timezone Peru", () => {
   assert.equal(monthDates("2028-02").length, 29);
@@ -40,6 +40,15 @@ test("Contradictory entries fail closed", () => {
     { day: "2026-11-28", status: "unavailable", verifiedUntil: "2026-11-27T00:00:00Z" },
   ] });
   assert.equal(month.days.find((d) => d.day === "2026-11-28")?.status, "inquiry");
+});
+
+test("Confirmed agenda ranges block every touched Peru day without exposing private data", () => {
+  const blocked = agendaBlockedDays([
+    { startsAt: "2026-11-28T23:00:00-05:00", endsAt: "2026-11-29T01:00:00-05:00" },
+    { startsAt: "invalid", endsAt: "2026-11-30T10:00:00-05:00" },
+  ], "2026-11");
+  assert.deepEqual(blocked, ["2026-11-28", "2026-11-29"]);
+  assert.equal(JSON.stringify(blocked).includes("cliente"), false);
 });
 
 test("Public horizon is limited to configured upcoming months", () => {

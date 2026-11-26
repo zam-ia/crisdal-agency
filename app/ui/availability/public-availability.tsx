@@ -31,7 +31,6 @@ export function PublicAvailabilityExperience() {
 
   useEffect(() => {
     const abort = new AbortController();
-    setLoading(true); setFailed(false); setLoaded(null); setSelected(null); setResult(null);
     void fetch(`/api/public/availability?month=${encodeURIComponent(month)}`, { signal: abort.signal, cache: "no-store" })
       .then(async (response) => {
         if (!response.ok) throw new Error("No se pudo consultar disponibilidad.");
@@ -55,7 +54,10 @@ export function PublicAvailabilityExperience() {
 
   const changeMonth = (direction: -1 | 1) => {
     const next = monthShift(month, direction);
-    if (withinPublicHorizon(next, today)) setMonth(next);
+    if (withinPublicHorizon(next, today)) {
+      setLoading(true); setFailed(false); setLoaded(null); setSelected(null); setResult(null);
+      setMonth(next);
+    }
   };
   const update = <K extends keyof typeof form>(key: K, value: (typeof form)[K]) => {
     setForm((current) => ({ ...current, [key]: value }));

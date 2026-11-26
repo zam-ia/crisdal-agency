@@ -8,6 +8,7 @@ export type PublicDateStatus = "available" | "unavailable" | "inquiry" | "past";
 export type VerifiedDate = { day: string; status: "available" | "unavailable"; verifiedUntil: string };
 export type PublicDay = { day: string; status: PublicDateStatus };
 export type PublicMonth = { month: string; days: PublicDay[]; asOf: string; source: "verified-projection" | "unavailable" };
+export type AgendaRange = { startsAt: string; endsAt: string };
 export const EVENT_TYPES = ["Boda", "Quinceaños", "Evento corporativo", "Cumpleaños o celebración", "Bautizo", "Pedida de mano", "Sesión fotográfica", "Otro evento"] as const;
 export type EventType = (typeof EVENT_TYPES)[number];
 
@@ -40,6 +41,29 @@ export function monthDates(month: string): string[] {
   const year = Number(month.slice(0, 4)), index = Number(month.slice(5, 7)) - 1;
   const count = new Date(Date.UTC(year, index + 1, 0)).getUTCDate();
   return Array.from({ length: count }, (_, day) => `${month}-${String(day + 1).padStart(2, "0")}`);
+}
+
+function peruDay(value: Date): string {
+  const parts = new Intl.DateTimeFormat("en-US", { timeZone: "America/Lima", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(value);
+  const get = (part: string) => parts.find((item) => item.type === part)?.value ?? "";
+  return `${get("year")}-${get("month")}-${get("day")}`;
+}
+
+export function agendaBlockedDays(ranges: readonly AgendaRange[], month: string): string[] {
+  const allowed = new Set(monthDates(month));
+  const blocked = new Set<string>();
+  for (const range of ranges) {
+    const start = new Date(range.startsAt);
+    const exclusiveEnd = new Date(range.endsAt);
+    if (Number.isNaN(start.getTime()) || Number.isNaN(exclusiveEnd.getTime()) || exclusiveEnd <= start) continue;
+    const lastInstant = new Date(exclusiveEnd.getTime() - 1);
+    const firstDay = peruDay(start);
+    const lastDay = peruDay(lastInstant);
+    for (const day of monthDates(month)) {
+      if (day >= firstDay && day <= lastDay && allowed.has(day)) blocked.add(day);
+    }
+  }
+  return [...blocked].sort();
 }
 
 export function makePublicMonth(input: { month: string; today: string; now: Date; verifiedDates: readonly VerifiedDate[]; sourceAvailable: boolean }): PublicMonth {

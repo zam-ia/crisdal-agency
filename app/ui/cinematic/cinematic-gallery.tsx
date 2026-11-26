@@ -1,7 +1,7 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { safeGalleryItems, type CinematicGalleryItem } from "../../lib/cinematic/gallery";
 import styles from "./cinematic.module.css";
 
@@ -17,7 +17,7 @@ export function CinematicGallery({ items, eyebrow = "TRABAJOS SELECCIONADOS", ti
     setActive(index);
   }
   function dismiss() { setActive(null); }
-  function step(offset: number) { setActive((index) => index === null ? null : (index + offset + entries.length) % entries.length); }
+  const step = useCallback((offset: number) => setActive((index) => index === null ? null : (index + offset + entries.length) % entries.length), [entries.length]);
 
   useEffect(() => {
     const node = dialog.current;
@@ -33,7 +33,7 @@ export function CinematicGallery({ items, eyebrow = "TRABAJOS SELECCIONADOS", ti
     };
     window.addEventListener("keydown", handle);
     return () => window.removeEventListener("keydown", handle);
-  }, [active, entries.length]);
+  }, [active, step]);
 
   return <section className={styles.gallery} aria-labelledby="cinematic-gallery-heading">
     <header className={styles.galleryHeading}><span>{eyebrow}</span><h2 id="cinematic-gallery-heading">{title}</h2><p>{description}</p></header>
@@ -44,7 +44,7 @@ export function CinematicGallery({ items, eyebrow = "TRABAJOS SELECCIONADOS", ti
         <div className={styles.tileCopy}><span>{item.subtitle || (item.category === "events" ? "FOTOGRAFÍA & VIDEO DE EVENTOS" : "PRODUCCIÓN AUDIOVISUAL")}</span><h3>{item.title}</h3><div className={styles.tileActions}><button type="button" className={styles.glassAction} onClick={() => show(index)} aria-label={`Ampliar fotografía: ${item.title}`}>Ampliar <span aria-hidden>↗</span></button><Link href={item.href} className={styles.viewProject}>Ver historia <span aria-hidden>→</span></Link></div></div>
       </article>)}
     </div> : <div className={styles.empty}><h3>Pronto compartiremos nuestras historias.</h3><p>Solo publicamos material audiovisual auténtico y autorizado.</p></div>}
-    <dialog ref={dialog} className={styles.lightbox} aria-label="Vista ampliada de portafolio" onClose={() => { dismiss(); previousFocus.current?.focus(); }} onClick={(event) => { if (event.target === dialog.current) dismiss(); }}>
+    <dialog ref={dialog} className={styles.lightbox} aria-label="Vista ampliada de portafolio" onClose={() => { dismiss(); previousFocus.current?.focus(); }}>
       {current ? <div className={styles.lightboxInterior}>
         <div className={styles.lightboxTop}><span>{active! + 1} / {entries.length} · {current.title}</span><button type="button" onClick={dismiss} aria-label="Cerrar imagen ampliada">Cerrar ×</button></div>
         <img src={current.src} alt={current.alt} loading="eager" />

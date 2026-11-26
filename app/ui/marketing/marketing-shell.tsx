@@ -10,6 +10,7 @@ const navigation = [
   { href: "/eventos", label: "Eventos" },
   { href: "/portafolio", label: "Portafolio" },
   { href: "/paquetes", label: "Paquetes" },
+  { href: "/consultar-fecha", label: "Consultar fecha" },
   { href: "/contacto", label: "Contacto" },
 ];
 

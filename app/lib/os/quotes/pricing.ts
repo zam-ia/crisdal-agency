@@ -48,7 +48,10 @@ export type QuotePricingResult = {
 };
 
 const MAX_SAFE = BigInt(Number.MAX_SAFE_INTEGER);
-const BP = 10_000n;
+const ZERO = BigInt(0);
+const ONE = BigInt(1);
+const TWO = BigInt(2);
+const BP = BigInt(10_000);
 
 function integer(value: number, label: string, allowZero = true): bigint {
   if (!Number.isSafeInteger(value) || value < 0 || (!allowZero && value === 0)) {
@@ -64,33 +67,33 @@ function basisPoints(value: number, label: string): bigint {
 }
 
 function toMinor(value: bigint, label: string): number {
-  if (value < 0n || value > MAX_SAFE) throw new RangeError(`${label}: fuera del rango de céntimos seguro.`);
+  if (value < ZERO || value > MAX_SAFE) throw new RangeError(`${label}: fuera del rango de céntimos seguro.`);
   return Number(value);
 }
 
 function roundDivHalfUp(numerator: bigint, denominator: bigint): bigint {
-  if (denominator <= 0n || numerator < 0n) throw new RangeError("División monetaria inválida.");
-  return (numerator + denominator / 2n) / denominator;
+  if (denominator <= ZERO || numerator < ZERO) throw new RangeError("División monetaria inválida.");
+  return (numerator + denominator / TWO) / denominator;
 }
 
 /** Largest-remainder distribution: exact total, stable tie break by input order. */
 function apportionMinor(amount: bigint, weights: readonly bigint[]): bigint[] {
-  const total = weights.reduce((sum, weight) => sum + weight, 0n);
-  if (amount === 0n) return weights.map(() => 0n);
-  if (total <= 0n || amount > total) throw new RangeError("El descuento supera la base disponible.");
+  const total = weights.reduce((sum, weight) => sum + weight, ZERO);
+  if (amount === ZERO) return weights.map(() => ZERO);
+  if (total <= ZERO || amount > total) throw new RangeError("El descuento supera la base disponible.");
   const quotients = weights.map((weight, index) => ({
     index,
     minor: (amount * weight) / total,
     remainder: (amount * weight) % total,
   }));
-  let remaining = amount - quotients.reduce((sum, q) => sum + q.minor, 0n);
+  let remaining = amount - quotients.reduce((sum, q) => sum + q.minor, ZERO);
   const ranked = [...quotients].sort((a, b) =>
     a.remainder === b.remainder ? a.index - b.index : a.remainder > b.remainder ? -1 : 1,
   );
   for (const q of ranked) {
-    if (remaining === 0n) break;
-    q.minor += 1n;
-    remaining -= 1n;
+    if (remaining === ZERO) break;
+    q.minor += ONE;
+    remaining -= ONE;
   }
   return quotients.map((q) => q.minor);
 }
@@ -122,13 +125,13 @@ export function priceQuote(input: QuotePricingInput): QuotePricingResult {
     return { id: line.id, gross, discount, afterDiscount: gross - discount, taxBps };
   });
 
-  const subtotal = prepared.reduce((sum, x) => sum + x.gross, 0n);
-  const lineDiscounts = prepared.reduce((sum, x) => sum + x.discount, 0n);
+  const subtotal = prepared.reduce((sum, x) => sum + x.gross, ZERO);
+  const lineDiscounts = prepared.reduce((sum, x) => sum + x.discount, ZERO);
   const afterLine = subtotal - lineDiscounts;
   toMinor(subtotal, "Subtotal de cotización");
   toMinor(afterLine, "Base antes de descuento general");
 
-  let global = 0n;
+  let global = ZERO;
   if (input.globalDiscount?.kind === "fixed") {
     global = integer(input.globalDiscount.amountMinor, "Descuento general fijo");
   } else if (input.globalDiscount?.kind === "percent") {
@@ -155,7 +158,7 @@ export function priceQuote(input: QuotePricingInput): QuotePricingResult {
     };
   });
   const netBeforeTax = afterLine - global;
-  const taxMinor = lines.reduce((sum, line) => sum + BigInt(line.taxMinor), 0n);
+  const taxMinor = lines.reduce((sum, line) => sum + BigInt(line.taxMinor), ZERO);
   const total = netBeforeTax + taxMinor;
   // All advertised numbers are checked BEFORE returning to avoid precision loss.
   return {

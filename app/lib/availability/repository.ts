@@ -1,7 +1,7 @@
 import "server-only";
 import { getSupabaseAdmin } from "../supabase-admin";
 import type { PublicInquiryInput, } from "./inquiry";
-import { monthShift, type VerifiedDate } from "./public-calendar";
+import { agendaBlockedDays, monthShift, type VerifiedDate } from "./public-calendar";
 
 export type DateInquiryAdmin = {
   id: string;
@@ -18,11 +18,26 @@ export type DateInquiryAdmin = {
 export async function verifiedPublicDays(month: string): Promise<VerifiedDate[]> {
   const first = `${month}-01`;
   const next = `${monthShift(month, 1)}-01`;
-  const { data, error } = await getSupabaseAdmin().from("crisdal_public_availability_days")
-    .select("day,status,verified_until")
-    .eq("service_key", "events").gte("day", first).lt("day", next).limit(31);
-  if (error) throw error;
-  return (data || []).map((item) => ({ day: item.day, status: item.status, verifiedUntil: item.verified_until }));
+  const db = getSupabaseAdmin();
+  const [projection, agenda] = await Promise.all([
+    db.from("crisdal_public_availability_days")
+      .select("day,status,verified_until")
+      .eq("service_key", "events").gte("day", first).lt("day", next).limit(31),
+    db.from("calendar_activities")
+      .select("starts_at,ends_at")
+      .eq("status", "confirmed")
+      .lt("starts_at", `${next}T00:00:00-05:00`)
+      .gt("ends_at", `${first}T00:00:00-05:00`)
+      .limit(100),
+  ]);
+  if (projection.error) throw projection.error;
+  if (agenda.error) throw agenda.error;
+  const blocked = new Set(agendaBlockedDays((agenda.data || []).map((item) => ({ startsAt: item.starts_at, endsAt: item.ends_at })), month));
+  const verifiedUntil = new Date(Date.now() + 5 * 60_000).toISOString();
+  const projected = (projection.data || [])
+    .filter((item) => !blocked.has(item.day))
+    .map((item) => ({ day: item.day, status: item.status, verifiedUntil: item.verified_until } as VerifiedDate));
+  return [...projected, ...[...blocked].map((day) => ({ day, status: "unavailable" as const, verifiedUntil }))];
 }
 
 export async function savePublicInquiry(input: PublicInquiryInput, ipHash: string): Promise<string> {

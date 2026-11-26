@@ -1,6 +1,7 @@
 import { createHmac } from "node:crypto";
 import { authorizePanelApi } from "../../../lib/commercial/api-auth";
-import { monthShift, peruToday, validDay, withinPublicHorizon } from "../../../lib/availability/public-calendar";
+import { peruToday, validDay, withinPublicHorizon } from "../../../lib/availability/public-calendar";
+import { verifiedPublicDays } from "../../../lib/availability/repository";
 import { getSupabaseAdmin } from "../../../lib/supabase-admin";
 export const runtime = "nodejs";
 const NO_CACHE = { "Cache-Control": "no-store" };
@@ -11,11 +12,8 @@ export async function GET(request: Request) {
   const month = new URL(request.url).searchParams.get("month") || peruToday().slice(0,7);
   if (!withinPublicHorizon(month, peruToday())) return Response.json({ error: "Mes inválido." }, { status: 400, headers: NO_CACHE });
   try {
-    const { data, error } = await getSupabaseAdmin().from("crisdal_public_availability_days")
-      .select("day,status,verified_until,source,verified_at")
-      .eq("service_key", "events").gte("day", `${month}-01`).lt("day", `${monthShift(month,1)}-01`).limit(31);
-    if (error) throw error;
-    return Response.json({ month, days: data || [] }, { headers: NO_CACHE });
+    const days = await verifiedPublicDays(month);
+    return Response.json({ month, days: days.map((item) => ({ day: item.day, status: item.status, verified_until: item.verifiedUntil, source: item.status === "unavailable" ? "agenda" : "verified" })) }, { headers: NO_CACHE });
   } catch { return Response.json({ error: "Calendario administrativo sin activar." }, { status: 503, headers: NO_CACHE }); }
 }
 
@@ -24,7 +22,7 @@ export async function POST(request: Request) {
   if ("response" in auth) return auth.response;
   if (!request.headers.get("content-type")?.startsWith("application/json")) return Response.json({ error: "Formato inválido." }, { status: 415 });
   const input = await request.json().catch(() => null);
-  if (!input || !validDay(input.day) || input.day < peruToday() || !withinPublicHorizon(input.day.slice(0,7),peruToday()) || !["available","unavailable","clear"].includes(input.status) || input.acknowledged !== true) {
+  if (!input || !validDay(input.day) || input.day < peruToday() || !withinPublicHorizon(input.day.slice(0,7),peruToday()) || !["available","clear"].includes(input.status) || input.acknowledged !== true) {
     return Response.json({ error: "Fecha, estado o confirmación de revisión inválidos." }, { status: 422, headers: NO_CACHE });
   }
   const secret = process.env.OS_AUDIT_PEPPER;

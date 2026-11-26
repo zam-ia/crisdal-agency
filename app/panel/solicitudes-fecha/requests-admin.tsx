@@ -17,7 +17,14 @@ export function DateRequestsAdmin({ canWrite }: { canWrite: boolean }) {
     if (!response.ok) throw new Error(data.error || "No se pudieron cargar las solicitudes.");
     setItems(data.items || []);
   }, []);
-  useEffect(() => { let cancelled = false; void load().catch((error) => { if (!cancelled) setFailed(error instanceof Error ? error.message : "Sin conexión."); }); return () => { cancelled = true; }; }, [load]);
+  useEffect(() => {
+    const controller = new AbortController();
+    void fetch("/api/panel/date-requests", { cache: "no-store", signal: controller.signal })
+      .then(async (response) => { const data = await response.json(); if (!response.ok) throw new Error(data.error || "No se pudieron cargar las solicitudes."); return data; })
+      .then((data) => { if (!controller.signal.aborted) setItems(data.items || []); })
+      .catch((error) => { if (!controller.signal.aborted) setFailed(error instanceof Error ? error.message : "Sin conexión."); });
+    return () => controller.abort();
+  }, []);
   async function changeState(id: string, state: DateRequest["state"]) {
     setPending(true); setFailed(""); setNotice("");
     try {
