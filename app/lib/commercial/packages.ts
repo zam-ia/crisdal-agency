@@ -18,12 +18,12 @@ export type CommercialPackageInput = z.infer<typeof packageInputSchema>;
 export type PublicPackage = Omit<CommercialPackage,"internalNotes">;
 
 export const FALLBACK_PUBLIC_PACKAGES: PublicPackage[] = [
-  ["impulso","content","Creación de reels","Impulso","Una entrada profesional para negocios que necesitan empezar a comunicar con una dirección visual clara.",89900,"public",false],
-  ["crecimiento","content","Contenido mensual","Crecimiento","La opción recomendada para marcas que buscan sostener una presencia visual más consistente.",119900,"public",true],
-  ["dominio-digital","content","Producción puntual","Dominio Digital","Una conversación de mayor alcance para negocios que necesitan una producción audiovisual más completa.",159900,"public",false],
   ["momento","events","Eventos sociales","Momento","Una cobertura esencial cuya disponibilidad, duración y entregables se confirman antes de reservar.",null,"consult",false],
   ["historia","events","Eventos sociales","Historia","Una propuesta narrativa para documentar el evento con mayor amplitud. Alcance sujeto a validación.",null,"consult",true],
   ["cinema","events","Eventos sociales","Cinema","Una propuesta audiovisual de mayor producción. El equipo y los entregables se cotizan según el evento.",null,"consult",false],
+  ["impulso","content","Creación de reels","Impulso","Una entrada profesional para negocios que necesitan empezar a comunicar con una dirección visual clara.",89900,"public",false],
+  ["crecimiento","content","Contenido mensual","Crecimiento","La opción recomendada para marcas que buscan sostener una presencia visual más consistente.",119900,"public",true],
+  ["dominio-digital","content","Producción puntual","Dominio Digital","Una conversación de mayor alcance para negocios que necesitan una producción audiovisual más completa.",159900,"public",false],
 ].map(([slug,line,category,name,description,priceMinor,priceVisibility,recommended],index)=>({id:`00000000-0000-4000-8000-${String(index+1).padStart(12,"0")}`,slug,line,category,name,description,imageUrl:null,priceMinor,currency:"PEN",priceVisibility,deliverables:[],deliverablesApproved:false,recommended,status:"published",sortOrder:index*10,createdAt:"2026-11-25T00:00:00.000Z",updatedAt:"2026-11-25T00:00:00.000Z"} as PublicPackage));
 
 export function toPublicPackage(value: CommercialPackage): PublicPackage { const { internalNotes: _internal, ...safe } = value; void _internal; return safe; }

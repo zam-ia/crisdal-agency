@@ -29,6 +29,8 @@ export const publicSite = {
       "Hola, quiero cotizar una producción de fotografía comercial con Crisdal Agency.",
     events:
       "Hola, quiero cotizar fotografía o video profesional para un evento. Quisiera consultar disponibilidad.",
+    eventAvailability:
+      "Hola, vi la página de eventos de Crisdal Agency. Me gustaría consultar disponibilidad para una fecha.\n\nTipo de evento:\nFecha:\nLugar:\nCantidad aproximada de invitados:",
     general:
       "Hola, visité la web de Crisdal Agency y quiero conversar sobre una producción audiovisual.",
   },

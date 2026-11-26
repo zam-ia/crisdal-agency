@@ -1,7 +1,7 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
 import { getSupabaseAdmin } from "../supabase-admin";
-import { FALLBACK_PUBLIC_PACKAGES, hashShareToken, newShareToken, toPublicPackage, type CommercialPackage, type CommercialPackageInput, type PublicPackage } from "./packages";
+import { hashShareToken, newShareToken, toPublicPackage, type CommercialPackage, type CommercialPackageInput, type PublicPackage } from "./packages";
 
 type PackageRow={id:string;slug:string;line:"content"|"events";category:string;name:string;description:string;image_url:string|null;price_minor:number|null;currency:"PEN";price_visibility:"public"|"hidden"|"consult";deliverables:string[];deliverables_approved:boolean;recommended:boolean;status:"draft"|"published"|"archived";sort_order:number;internal_notes:string;created_at:string;updated_at:string};
 function map(row:PackageRow):CommercialPackage{return{id:row.id,slug:row.slug,line:row.line,category:row.category,name:row.name,description:row.description,imageUrl:row.image_url,priceMinor:row.price_minor,currency:row.currency,priceVisibility:row.price_visibility,deliverables:row.deliverables||[],deliverablesApproved:row.deliverables_approved,recommended:row.recommended,status:row.status,sortOrder:row.sort_order,internalNotes:row.internal_notes||"",createdAt:row.created_at,updatedAt:row.updated_at};}
@@ -20,5 +20,9 @@ export class SupabasePackageRepository implements PackageRepository{
   async findShare(token:string){if(!/^[A-Za-z0-9_-]{32}$/.test(token))return null;const{data,error}=await this.db.from("package_share_links").select("campaign_id,package_ids,message,created_at,revoked_at,expires_at").eq("token_hash",hashShareToken(token)).maybeSingle();if(error)throw error;if(!data||data.revoked_at||(data.expires_at&&new Date(data.expires_at)<=new Date()))return null;const all=await this.listPublished();return{token,campaignId:data.campaign_id,message:data.message,packages:all.filter((item)=>data.package_ids.includes(item.id)),createdAt:data.created_at};}
 }
 export function createPackageRepository():PackageRepository{return new SupabasePackageRepository();}
-export async function safePublicPackages(){try{const items=await createPackageRepository().listPublished();return items.length?items:FALLBACK_PUBLIC_PACKAGES;}catch{return FALLBACK_PUBLIC_PACKAGES;}}
+export type PublicPackageState={status:"ready"|"empty"|"unconfigured"|"unavailable";packages:PublicPackage[]};
+export async function safePublicPackages():Promise<PublicPackageState>{
+  if(!process.env.SUPABASE_URL?.trim()||!process.env.SUPABASE_SECRET_KEY?.trim())return{status:"unconfigured",packages:[]};
+  try{const items=await createPackageRepository().listPublished();if(!items.length)return{status:"empty",packages:[]};return{status:"ready",packages:[...items].sort((a,b)=>Number(b.line==="events")-Number(a.line==="events")||a.sortOrder-b.sortOrder)};}catch{return{status:"unavailable",packages:[]};}
+}
 export async function safePackageShare(token:string){try{return await createPackageRepository().findShare(token);}catch{return null;}}

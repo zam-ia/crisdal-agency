@@ -7,10 +7,10 @@ import { WhatsAppLink } from "../whatsapp-link";
 import styles from "./marketing.module.css";
 
 const navigation = [
-  { href: "/contenido", label: "Contenido" },
   { href: "/eventos", label: "Eventos" },
   { href: "/portafolio", label: "Portafolio" },
   { href: "/paquetes", label: "Paquetes" },
+  { href: "/contacto", label: "Contacto" },
 ];
 
 export function MarketingShell({ children }: { children: ReactNode }) {
@@ -47,12 +47,7 @@ export function MarketingShell({ children }: { children: ReactNode }) {
             Hablemos
           </WhatsAppLink>
         </div>
-        <nav className={styles.mobileNav} aria-label="Navegación comercial móvil">
-          {navigation.map((item) => (
-            <Link href={item.href} key={item.href}>{item.label}</Link>
-          ))}
-          <Link href="/contacto">Contacto</Link>
-        </nav>
+        <details className={styles.mobileMenu}><summary>Menú</summary><nav aria-label="Navegación comercial móvil">{navigation.map((item) => <Link href={item.href} key={item.href}>{item.label}</Link>)}<Link href="/contenido">Contenido para negocios</Link><Link href="/planes">Planes</Link></nav></details>
       </header>
       <main id="main-content">{children}</main>
       <footer className={styles.footer}>
@@ -62,7 +57,7 @@ export function MarketingShell({ children }: { children: ReactNode }) {
         </div>
         <nav aria-label="Navegación del pie">
           {navigation.map((item) => <Link href={item.href} key={item.href}>{item.label}</Link>)}
-          <Link href="/contacto">Contacto</Link>
+          <Link href="/contenido">Contenido para negocios</Link>
           <Link href="/planes">Planes y condiciones</Link>
           <Link href="/ruta-crisdal">Ruta Crisdal</Link>
         </nav>

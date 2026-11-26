@@ -10,9 +10,9 @@ export const metadata: Metadata = {
 };
 
 const options = [
+  { title: "Cobertura de evento", text: "Fecha, lugar y tipo de evento para revisar disponibilidad.", placement: "contact_events" as const, message: publicSite.messages.eventAvailability },
   { title: "Contenido para mi negocio", text: "Reels, producción audiovisual o una necesidad de comunicación.", placement: "contact_content" as const, message: publicSite.messages.content },
   { title: "Fotografía comercial", text: "Producto, espacios, retratos o equipo.", placement: "contact_photography" as const, message: publicSite.messages.photography },
-  { title: "Cobertura de evento", text: "Fecha, lugar y tipo de evento para revisar disponibilidad.", placement: "contact_events" as const, message: publicSite.messages.events },
   { title: "Consulta general", text: "Si aún no sabes qué formato necesitas, empezamos por el objetivo.", placement: "contact_general" as const, message: publicSite.messages.general },
 ];
 

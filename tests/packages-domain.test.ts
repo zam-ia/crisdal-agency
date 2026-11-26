@@ -10,10 +10,10 @@ test("public package projection removes internal notes", () => {
 });
 
 test("approved prices and consult visibility stay exact", () => {
-  assert.equal(formatPackagePrice(FALLBACK_PUBLIC_PACKAGES[0]), "S/ 899");
-  assert.equal(formatPackagePrice(FALLBACK_PUBLIC_PACKAGES[1]), "S/ 1,199");
-  assert.equal(formatPackagePrice(FALLBACK_PUBLIC_PACKAGES[2]), "S/ 1,599");
-  assert.equal(formatPackagePrice(FALLBACK_PUBLIC_PACKAGES[3]), "Consultar precio");
+  assert.equal(formatPackagePrice(FALLBACK_PUBLIC_PACKAGES.find((item) => item.slug === "impulso")!), "S/ 899");
+  assert.equal(formatPackagePrice(FALLBACK_PUBLIC_PACKAGES.find((item) => item.slug === "crecimiento")!), "S/ 1,199");
+  assert.equal(formatPackagePrice(FALLBACK_PUBLIC_PACKAGES.find((item) => item.slug === "dominio-digital")!), "S/ 1,599");
+  assert.equal(formatPackagePrice(FALLBACK_PUBLIC_PACKAGES.find((item) => item.slug === "momento")!), "Consultar precio");
   assert.equal(formatPackagePrice({ ...FALLBACK_PUBLIC_PACKAGES[0], priceVisibility: "hidden" }), null);
 });
 
