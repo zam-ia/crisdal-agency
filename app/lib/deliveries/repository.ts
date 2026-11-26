@@ -56,7 +56,7 @@ export async function saveAdminGallery(input: GalleryInput, actorId: string) {
   if (validated.id) {
     const current = await findAdminGallery(validated.id);
     if (!current) throw new Error("Galería no encontrada.");
-    if (current.status==="published" && (validated.projectId??current.projectId??null)!==(current.projectId??null)) throw new Error("Revoca el enlace antes de cambiar de proyecto.");
+    if (current.status==="published" && (validated.projectId===undefined?current.projectId??null:validated.projectId)!==(current.projectId??null)) throw new Error("Revoca el enlace antes de cambiar de proyecto.");
     const { error } = await db().from("crisdal_client_galleries").update({
       project_id: validated.projectId === undefined ? current.projectId ?? null : validated.projectId, title: validated.title, event_type: validated.eventType, description: validated.description,
       allow_downloads: validated.allowDownloads, updated_by: actorId, updated_at: new Date().toISOString(),
