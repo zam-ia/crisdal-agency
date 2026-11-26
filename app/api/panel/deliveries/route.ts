@@ -32,6 +32,7 @@ async function audit(actorUserId: string, action: string, entityId: string) {
   });
 }
 export async function GET(request: Request) {
+  if (process.env.CRISDAL_PRIVATE_DELIVERIES_ENABLED !== "true") return Response.json({ error: "Entregas pendientes de activación." }, { status: 503, headers: { "Cache-Control": "no-store", "Referrer-Policy": "no-referrer" } });
   const auth = await authorizePanelApi(request, "projects.write");
   if ("response" in auth) return auth.response;
   try {
@@ -63,6 +64,7 @@ export async function GET(request: Request) {
   }
 }
 export async function POST(request: Request) {
+  if (process.env.CRISDAL_PRIVATE_DELIVERIES_ENABLED !== "true") return Response.json({ error: "Entregas pendientes de activación." }, { status: 503, headers: { "Cache-Control": "no-store", "Referrer-Policy": "no-referrer" } });
   const auth = await authorizePanelApi(request, "projects.write", true);
   if ("response" in auth) return auth.response;
   if (Number(request.headers.get("content-length") || 0) > 16000) return Response.json({ error: "Petición demasiado grande." }, { status: 413 });

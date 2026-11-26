@@ -5,6 +5,7 @@ export const runtime = "nodejs";
 const HEADERS = { "Cache-Control": "no-store", "Referrer-Policy": "no-referrer" };
 const schema = z.object({ assetId: z.string().uuid(), favorite: z.boolean() });
 export async function POST(request: Request, { params }: { params: Promise<{ token: string }> }) {
+  if (process.env.CRISDAL_PRIVATE_DELIVERIES_ENABLED !== "true") return Response.json({ error: "No disponible." }, { status: 404, headers: { "Cache-Control": "no-store", "Referrer-Policy": "no-referrer" } });
   if (!isTrustedOrigin({ origin: request.headers.get("origin"), host: request.headers.get("host"), forwardedHost: request.headers.get("x-forwarded-host") }))
     return Response.json({ error: "Origen inválido." }, { status: 403, headers: HEADERS });
   if (Number(request.headers.get("content-length") || 0) > 800)

@@ -18,6 +18,7 @@ const schema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("confirm"), galleryId: id, intentId: id, alt: z.string().max(240) }),
 ]);
 export async function POST(request: Request) {
+  if (process.env.CRISDAL_PRIVATE_DELIVERIES_ENABLED !== "true") return Response.json({ error: "Entregas pendientes de activación." }, { status: 503, headers: { "Cache-Control": "no-store", "Referrer-Policy": "no-referrer" } });
   const auth = await authorizePanelApi(request, "projects.write", true);
   if ("response" in auth) return auth.response;
   if (Number(request.headers.get("content-length") || 0) > 4000) return Response.json({ error: "Datos demasiado grandes." }, { status: 413 });
