@@ -2,6 +2,7 @@
 import { useEffect,useRef,useState } from "react";
 import { estimateBreakEven,formatMoney,limaDate,parseMoney, type FinanceAccount,type FinanceMovement,type FinanceSnapshot,type FinanceVoucher } from "../../lib/os/finance/operations";
 import styles from "./finance.module.css";
+import {financeExport} from "../../lib/os/finance/export";
 import { VoucherDetails, readVoucherItems, sourceLabels } from "./voucher-details";
 
 type Currency="PEN"|"USD";
@@ -45,6 +46,7 @@ export function FinanceClient({canWrite}:{canWrite:boolean}){
  const [accountChoice,setAccountChoice]=useState("");
  const [busy,setBusy]=useState(false);
  const retry=useRef<{body:string;id:string}|null>(null);
+ const inFlight=useRef(false);
  const query=new URLSearchParams({currency,month,...Object.fromEntries(Object.entries(offsets).map(([k,v])=>[k,String(v)]))}).toString();
  const [loadedKey,setLoadedKey]=useState("");
  const key=query+":"+revision;
@@ -62,9 +64,9 @@ export function FinanceClient({canWrite}:{canWrite:boolean}){
  },[query,key]);
  function open(next:Draft){if(busy)return;setDraft(next);setExpenseClass("direct");setAccountChoice(next.account?.id||next.voucher?.account_id||"");setNotice("");setFormError("");retry.current=null;}
  function switchFilters(nextCurrency:Currency,nextMonth:string){if(busy)return;setCurrency(nextCurrency);setMonth(nextMonth);setOffsets({accountOffset:0,movementOffset:0,voucherOffset:0});setDraft(null);setNotice("");}
- function page(field:keyof typeof offsets,value:number){setOffsets(old=>({...old,[field]:value}));setDraft(null);}
+ function page(field:keyof typeof offsets,value:number){if(busy)return;setOffsets(old=>({...old,[field]:value}));setDraft(null);}
  async function submit(e:React.FormEvent<HTMLFormElement>){
-   e.preventDefault();if(!draft||busy||!canWrite)return;
+   e.preventDefault();if(!draft||busy||inFlight.current||!canWrite)return;
    const d=new FormData(e.currentTarget),s=(k:string)=>getText(d,k),optional=(k:string)=>s(k)||null;
    let payload:Record<string,unknown>;
    try{
@@ -76,7 +78,7 @@ export function FinanceClient({canWrite}:{canWrite:boolean}){
    }catch(e){setFormError(e instanceof Error?e.message:"Importe inválido.");return;}
    const body=JSON.stringify(payload);
    if(retry.current?.body!==body)retry.current={body,id:crypto.randomUUID()};
-   setBusy(true);setFormError("");
+   inFlight.current=true;setBusy(true);setFormError("");
    try{
      const response=await fetch("/api/panel/finance",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...payload,requestId:retry.current.id})});
      const result=await response.json();
@@ -84,7 +86,18 @@ export function FinanceClient({canWrite}:{canWrite:boolean}){
      setNotice(draft.kind==="voucher"||draft.kind==="correct"?"Boleta registrada internamente. No se ha enviado nada a SUNAT.":"Registro guardado correctamente.");
      setDraft(null);retry.current=null;setRevision(x=>x+1);
    }catch(e){setFormError(e instanceof Error?e.message:"No se pudo confirmar. Reintenta con los mismos datos; si cierras el formulario, revisa los registros antes de repetir la operación.");}
-   finally{setBusy(false);}
+   finally{inFlight.current=false;setBusy(false);}
+ }
+ function download(){
+  if(!current||busy)return;
+  try{
+   const content=financeExport(current,tab);
+   const offset=tab==="accounts"?offsets.accountOffset:tab==="movements"?offsets.movementOffset:tab==="vouchers"?offsets.voucherOffset:0;
+   const scope=tab==="summary"?"resumen":"pagina-"+(Math.floor(offset/50)+1);
+   const url=URL.createObjectURL(new Blob([content],{type:"text/csv;charset=utf-8"}));
+   const link=document.createElement("a");link.href=url;link.download="crisdal-"+tab+"-"+currency+"-"+month+"-"+scope+".csv";document.body.appendChild(link);link.click();link.remove();window.setTimeout(()=>URL.revokeObjectURL(url),1000);
+   setNotice("Se solicitó la descarga del informe. Conserva el archivo en un lugar seguro.");
+  }catch{setNotice("No se pudo preparar el informe. Actualiza los datos y reintenta.");}
  }
  const totals=current?.totals;
  const net=totals?totals.received_minor-totals.refunded_minor:0;
@@ -115,7 +128,8 @@ export function FinanceClient({canWrite}:{canWrite:boolean}){
  {formError&&<p className={styles.error} role="alert">{formError}</p>}
  <div className={styles.formActions}><button type="submit" className={styles.primary} disabled={busy}>{busy?"Guardando…":"Guardar registro"}</button><button type="button" disabled={busy} onClick={()=>setDraft(null)}>Cancelar</button></div>
  </form></section>}
- <nav className={styles.tabs} aria-label="Secciones de finanzas">{([["summary","Resumen"],["accounts","Contratos y saldos"],["movements","Cobros y gastos"],["vouchers","Boletas SUNAT"]] as const).map(([v,l])=><button key={v} type="button" aria-pressed={tab===v} onClick={()=>setTab(v)}>{l}</button>)}</nav>
+ <nav className={styles.tabs} aria-label="Secciones de finanzas">{([["summary","Resumen"],["accounts","Contratos y saldos"],["movements","Cobros y gastos"],["vouchers","Boletas SUNAT"]] as const).map(([v,l])=><button key={v} type="button" aria-pressed={tab===v} disabled={busy} onClick={()=>setTab(v)}>{l}</button>)}</nav>
+ <div className={styles.exportBar}><div><strong>{tab==="summary"?"Informe del mes seleccionado":"Exportación de la página actual"}</strong><p>{tab==="summary"?"Incluye totales reales y saldo global por cobrar en la moneda elegida.":"Incluye únicamente los registros de esta página. No incluye DNI, RUC ni nombres de clientes como campos separados."}</p></div><button type="button" disabled={busy} onClick={download}>{tab==="summary"?"Descargar resumen CSV":"Descargar esta página CSV"}</button></div>
  {tab==="summary"&&totals&&<>
  <div className={styles.metrics}>{[
  ["Dinero que entró",money(net),"Cobros menos devoluciones"],
