@@ -47,6 +47,9 @@ create table public.crisdal_finance_vouchers (
  currency text not null check (currency in ('PEN','USD')),
  total_minor bigint not null check (total_minor between 1 and 1000000000000),
  igv_minor bigint check (igv_minor between 0 and total_minor),
+ discount_minor bigint check (discount_minor between 0 and 1000000000000),
+ source_kind text not null default 'manual_reference' check (source_kind in ('sunat_original','commercial_summary','manual_reference')),
+ items jsonb not null default '[]'::jsonb check (jsonb_typeof(items)='array' and jsonb_array_length(items)<=20),
  customer text not null default '' check (char_length(customer)<=160),
  document_type text check (document_type in ('DNI','RUC','CE','PASSPORT','OTHER')),
  document_number text check (char_length(document_number) between 1 and 30),
@@ -99,6 +102,8 @@ declare
  today_value date := (now() at time zone 'America/Lima')::date;
  reason_value text;
  before_value jsonb := '{}'::jsonb;
+ voucher_items jsonb;
+ voucher_item jsonb;
 begin
  if not exists(select 1 from public.crisdal_os_users u join public.crisdal_os_role_capabilities rc on rc.role_code=u.role_code where u.id=p_actor and u.active and rc.capability_code='finance.write') then raise exception 'FINANCE_FORBIDDEN'; end if;
  if p_action not in ('account','adjust_account','movement','void_movement','voucher','correct_voucher','external_void_voucher') then raise exception 'FINANCE_ACTION'; end if;
@@ -167,14 +172,29 @@ begin
      select * into strict m from public.crisdal_finance_movements where id=movement_id_value;
      if m.kind<>'receipt' or m.status<>'posted' or m.account_id is distinct from account_id_value or m.currency<>currency_value then raise exception 'FINANCE_VOUCHER_LINK'; end if;
    end if;
+   voucher_items:=coalesce(p_payload->'items','[]'::jsonb);
+   if jsonb_typeof(voucher_items)<>'array' then raise exception 'FINANCE_VOUCHER_DETAIL'; end if;
+   if jsonb_array_length(voucher_items)>20 then raise exception 'FINANCE_VOUCHER_DETAIL'; end if;
+   for voucher_item in select value from jsonb_array_elements(voucher_items) loop
+     if jsonb_typeof(voucher_item)<>'object' or coalesce(jsonb_typeof(voucher_item->'quantity'),'')<>'number'
+       or coalesce(jsonb_typeof(voucher_item->'unitMinor'),'')<>'number' or coalesce(jsonb_typeof(voucher_item->'lineMinor'),'')<>'number'
+       or coalesce(jsonb_typeof(voucher_item->'description'),'')<>'string'
+       or coalesce(voucher_item->>'quantity','') !~ '^[1-9][0-9]{0,4}$'
+       or (voucher_item->>'quantity')::numeric>10000
+       or char_length(trim(voucher_item->>'description')) not between 1 and 240
+       or coalesce(voucher_item->>'unitMinor','') !~ '^[0-9]{1,13}$'
+       or coalesce(voucher_item->>'lineMinor','') !~ '^[0-9]{1,13}$'
+       or (voucher_item->>'unitMinor')::numeric>1000000000000
+       or (voucher_item->>'lineMinor')::numeric>1000000000000 then raise exception 'FINANCE_VOUCHER_DETAIL'; end if;
+   end loop;
    if p_action='voucher' then
-     insert into public.crisdal_finance_vouchers(account_id,receipt_id,issuer_ruc,series,number,issued_on,currency,total_minor,igv_minor,customer,document_type,document_number,description,created_by)
-     values(account_id_value,movement_id_value,p_payload->>'issuerRuc',p_payload->>'series',p_payload->>'number',day_value,currency_value,amount_value,nullif(p_payload->>'igvMinor','')::bigint,coalesce(p_payload->>'customer',''),nullif(p_payload->>'documentType',''),nullif(p_payload->>'documentNumber',''),trim(p_payload->>'description'),p_actor) returning id into result_value;
+     insert into public.crisdal_finance_vouchers(account_id,receipt_id,issuer_ruc,series,number,issued_on,currency,total_minor,igv_minor,discount_minor,source_kind,items,customer,document_type,document_number,description,created_by)
+     values(account_id_value,movement_id_value,p_payload->>'issuerRuc',p_payload->>'series',p_payload->>'number',day_value,currency_value,amount_value,nullif(p_payload->>'igvMinor','')::bigint,nullif(p_payload->>'discountMinor','')::bigint,coalesce(p_payload->>'sourceKind','manual_reference'),voucher_items,coalesce(p_payload->>'customer',''),nullif(p_payload->>'documentType',''),nullif(p_payload->>'documentNumber',''),trim(p_payload->>'description'),p_actor) returning id into result_value;
    else
      select * into strict v from public.crisdal_finance_vouchers where id=(p_payload->>'id')::uuid for update;
      if v.status='external_void' or reason_value is null or char_length(reason_value)<3 then raise exception 'FINANCE_VOUCHER_CORRECTION'; end if;
      before_value:=jsonb_build_object('previous_series',v.series,'previous_number',v.number,'previous_total_minor',v.total_minor,'previous_issued_on',v.issued_on,'reason',reason_value);
-     update public.crisdal_finance_vouchers set account_id=account_id_value,receipt_id=movement_id_value,issuer_ruc=p_payload->>'issuerRuc',series=p_payload->>'series',number=p_payload->>'number',issued_on=day_value,currency=currency_value,total_minor=amount_value,igv_minor=nullif(p_payload->>'igvMinor','')::bigint,customer=coalesce(p_payload->>'customer',''),document_type=nullif(p_payload->>'documentType',''),document_number=nullif(p_payload->>'documentNumber',''),description=trim(p_payload->>'description'),status='corrected',correction_reason=reason_value where id=v.id returning id into result_value;
+     update public.crisdal_finance_vouchers set account_id=account_id_value,receipt_id=movement_id_value,issuer_ruc=p_payload->>'issuerRuc',series=p_payload->>'series',number=p_payload->>'number',issued_on=day_value,currency=currency_value,total_minor=amount_value,igv_minor=nullif(p_payload->>'igvMinor','')::bigint,discount_minor=nullif(p_payload->>'discountMinor','')::bigint,source_kind=coalesce(p_payload->>'sourceKind','manual_reference'),items=voucher_items,customer=coalesce(p_payload->>'customer',''),document_type=nullif(p_payload->>'documentType',''),document_number=nullif(p_payload->>'documentNumber',''),description=trim(p_payload->>'description'),status='corrected',correction_reason=reason_value where id=v.id returning id into result_value;
    end if;
  else
    if reason_value is null or char_length(reason_value)<3 then raise exception 'FINANCE_VOID'; end if;
@@ -231,7 +251,7 @@ begin
    select id,account_id,kind,currency,amount_minor,occurred_on,method,expense_class,description,reference,status,void_reason
    from public.crisdal_finance_movements where currency=p_currency and occurred_on>=p_month and occurred_on<p_month+interval '1 month'
  ), month_vouchers as (
-   select id,account_id,receipt_id,issuer_ruc,series,number,issued_on,currency,total_minor,igv_minor,customer,document_type,document_number,description,status,correction_reason
+   select id,account_id,receipt_id,issuer_ruc,series,number,issued_on,currency,total_minor,igv_minor,discount_minor,source_kind,items,customer,document_type,document_number,description,status,correction_reason
    from public.crisdal_finance_vouchers where currency=p_currency and issued_on>=p_month and issued_on<p_month+interval '1 month'
  )
  select jsonb_build_object('currency',p_currency,'month',to_char(p_month,'YYYY-MM'),
