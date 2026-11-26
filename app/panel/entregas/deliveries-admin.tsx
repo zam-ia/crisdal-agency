@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 import { createClient } from "@supabase/supabase-js";
 import { useEffect, useState } from "react";
@@ -12,12 +13,13 @@ async function api<T>(url: string, data?: unknown): Promise<T> {
   if (!response.ok) throw new Error(result.error || "No se pudo completar la acción.");
   return result as T;
 }
-type GalleryDetails = { gallery: GalleryRecord; assets: GalleryAsset[] };
+type AdminGalleryAsset = GalleryAsset & { thumbnailUrl?: string | null };
+type GalleryDetails = { gallery: GalleryRecord; assets: AdminGalleryAsset[] };
 export function DeliveriesAdmin() {
   const [galleries, setGalleries] = useState<GalleryRecord[]>([]);
   const [editor, setEditor] = useState<GalleryInput | null>(null);
   const [current, setCurrent] = useState<GalleryRecord | null>(null);
-  const [assets, setAssets] = useState<GalleryAsset[]>([]);
+  const [assets, setAssets] = useState<AdminGalleryAsset[]>([]);
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -170,7 +172,7 @@ export function DeliveriesAdmin() {
       <div className={styles.toolbar}><button type="button" className={styles.primary} disabled={busy || !editor.title.trim()} onClick={() => void save()}>{busy ? "Procesando..." : "Guardar entrega"}</button></div>
       {current && <><div className={styles.step}><div><h3>Fotografías</h3><p>Selecciona varios archivos JPG, PNG, WebP o AVIF. Máximo 12 MB cada uno. Los originales permanecen privados.</p></div><label className={styles.upload}>Elegir fotografías<input type="file" multiple accept="image/jpeg,image/png,image/webp,image/avif" disabled={busy} onChange={(e) => { void upload(e.target.files); e.target.value = ""; }}/></label></div>
         {uploadState ? <p role="status" className={styles.uploadStatus}>{uploadState}</p> : null}
-        <div className={styles.assetGrid}>{assets.map((asset, index) => <article key={asset.id}><span className={styles.meta}>{asset.kind === "image" ? "FOTO" : "VIDEO"} · {asset.favorite ? "Favorita del cliente" : "Sin selección"}</span><h4>{asset.title || asset.originalName || "Medio"}</h4><div className={styles.assetActions}><button type="button" disabled={busy || index === 0} onClick={() => void moveAsset(index, -1)}>↑</button><button type="button" disabled={busy || index === assets.length - 1} onClick={() => void moveAsset(index, 1)}>↓</button><button type="button" disabled={busy} onClick={() => void removeAsset(asset.id)}>Quitar</button></div></article>)}</div>
+        <div className={styles.assetGrid}>{assets.map((asset, index) => <article key={asset.id}>{asset.kind === "image" && asset.thumbnailUrl ? <img className={styles.assetPreview} src={asset.thumbnailUrl} alt={asset.alt || asset.title || "Vista previa privada"} referrerPolicy="no-referrer"/> : null}<span className={styles.meta}>{asset.kind === "image" ? "FOTO" : "VIDEO"} · {asset.favorite ? "Favorita del cliente" : "Sin selección"}</span><h4>{asset.title || asset.originalName || "Medio"}</h4><div className={styles.assetActions}><button type="button" disabled={busy || index === 0} onClick={() => void moveAsset(index, -1)}>↑</button><button type="button" disabled={busy || index === assets.length - 1} onClick={() => void moveAsset(index, 1)}>↓</button><button type="button" disabled={busy} onClick={() => void removeAsset(asset.id)}>Quitar</button></div></article>)}</div>
         <div className={styles.step}><div><h3>Video relacionado</h3><p>Pega un enlace autorizado de YouTube o Vimeo. El reproductor se abre en la plataforma original.</p></div><div className={styles.videoForm}><label>Título<input value={video.title} onChange={(e) => setVideo({ ...video, title: e.target.value })}/></label><label>URL<input type="url" placeholder="https://vimeo.com/..." value={video.url} onChange={(e) => setVideo({ ...video, url: e.target.value })}/></label><button type="button" disabled={busy || !video.title || !video.url} onClick={() => void addVideo()}>Añadir video</button></div></div>
         <div className={styles.publication}><div><h3>Compartir entrega</h3><p>El enlace privado dura 30 días. El anterior se revoca al generar uno nuevo. No se publicará en buscadores.</p></div><div className={styles.toolbar}><button type="button" disabled={busy || !assets.length} className={styles.primary} onClick={() => void publication(true)}>{current.status === "published" ? "Regenerar enlace" : "Publicar y generar enlace"}</button>{current.status === "published" ? <button type="button" disabled={busy} onClick={() => void publication(false)}>Revocar enlace</button> : null}</div>
           {shareUrl ? <div className={styles.share}><input readOnly value={shareUrl} aria-label="Enlace privado de entrega"/><button type="button" onClick={() => void navigator.clipboard.writeText(shareUrl).then(() => setNotice("Enlace copiado.")).catch(() => setNotice("Copia el enlace manualmente."))}>Copiar enlace</button><a href={shareUrl} target="_blank" rel="noopener noreferrer">Abrir vista del cliente</a></div> : null}
