@@ -107,8 +107,10 @@ export function DeliveriesAdmin() {
       }
     }
     setUploadState("");
+    const partialMessage = completed < all.length ? "Algunos archivos no se pudieron cargar. Puedes reintentar únicamente los pendientes." : "";
     await openGallery(current.id);
     if (completed === all.length) setNotice(`${completed} fotografía(s) cargada(s) en almacenamiento privado.`);
+    else setNotice(`${completed} de ${all.length} fotografías cargadas. ${partialMessage}`);
     setBusy(false);
   }
   async function addVideo() {
