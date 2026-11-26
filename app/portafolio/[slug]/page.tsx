@@ -15,7 +15,12 @@ function narrative(category:string){const normalized=category.normalize("NFD").r
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params; const project = await safePublicPortfolioProject(slug);
-  return project ? { title: `${project.title} | Portafolio Crisdal`, description: project.description.slice(0, 155), alternates: { canonical: `/portafolio/${slug}` } } : { title: "Proyecto no disponible | Crisdal Agency", robots: { index: false, follow: false } };
+  if(!project)return {title:"Proyecto no disponible | Crisdal Agency",robots:{index:false,follow:false}};
+  const cover=portfolioCover(project),image=cover?.kind==="image"?cover.url:cover?.posterUrl;
+  const title=project.title+" | Portafolio Crisdal",description=project.description.slice(0,155);
+  const url="/portafolio/"+project.slug;
+  return {title,description,alternates:{canonical:url},openGraph:{title,description,url,type:"website",locale:"es_PE",images:image&&image.startsWith("https://")&&!image.includes("/sign/")?[{url:image,alt:cover?.alt||project.title}]:[{url:"/brand/os-icon-512.png",alt:"Crisdal Agency"}]}};
+
 }
 
 export default async function PortfolioProjectPage({ params }: { params: Promise<{ slug: string }> }) {

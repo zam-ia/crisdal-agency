@@ -47,6 +47,7 @@ export function MarketingShell({ children }: { children: ReactNode }) {
             phone={publicSite.brand.whatsapp}
             message={publicSite.messages.general}
             className={styles.headerCta}
+            redirectAfterClick={false}
           >
             Hablemos
           </WhatsAppLink>
@@ -73,6 +74,7 @@ export function MarketingShell({ children }: { children: ReactNode }) {
         phone={publicSite.brand.whatsapp}
         message={publicSite.messages.general}
         className={styles.floatingWhatsApp}
+        redirectAfterClick={false}
       >
         <Image src="/brand/whatsapp-official.png" alt="" width={30} height={30} aria-hidden="true" />
         <span>WhatsApp</span>

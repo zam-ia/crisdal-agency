@@ -13,25 +13,25 @@ const displayFont = localFont({
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Crisdal Agency | Producción audiovisual",
+    default: "Crisdal Agency | Fotografía y video de eventos",
     template: "%s",
   },
   description:
-    "Creación de contenido, fotografía comercial, video profesional y cobertura audiovisual para negocios y eventos.",
+    "Fotografía y video profesional de bodas, quinceaños, celebraciones y eventos corporativos en Huancayo.",
   alternates: { canonical: "/" },
   icons: { icon: { url: "/brand/crisdal-symbol.svg", type: "image/svg+xml" } },
   openGraph: {
-    title: "Crisdal Agency | Creación de contenido y producción audiovisual",
+    title: "Crisdal Agency | Fotografía y video de eventos",
     description:
-      "Reels, fotografía comercial, video profesional y cobertura de eventos.",
+      "Coberturas audiovisuales para bodas, quinceaños y eventos corporativos.",
     url: SITE_URL,
     type: "website",
     locale: "es_PE",
     images: [
       {
-        url: "/brand/asesora-impulso.webp",
-        width: 1000,
-        height: 1250,
+        url: "/brand/os-icon-512.png",
+        width: 512,
+        height: 512,
         alt: "Crisdal Agency",
       },
     ],
@@ -40,8 +40,8 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Crisdal Agency | Producción audiovisual",
     description:
-      "Contenido visual profesional para negocios y eventos.",
-    images: ["/brand/asesora-impulso.webp"],
+      "Fotografía y video profesional para eventos.",
+    images: ["/brand/os-icon-512.png"],
   },
 };
 export const viewport: Viewport = {

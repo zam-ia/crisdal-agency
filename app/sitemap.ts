@@ -1,7 +1,9 @@
 import type { MetadataRoute } from "next";
+import {safePublicPortfolio} from "./lib/commercial/portfolio-repository";
 import { SITE_URL } from "./lib/config";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export const dynamic="force-dynamic";
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const routes = [
     { path: "", priority: 1 },
     { path: "/eventos", priority: 0.95 },
@@ -14,9 +16,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: "/ruta-crisdal", priority: 0.7 },
   ];
 
-  return routes.map(({ path, priority }) => ({
+  const published=await safePublicPortfolio();
+  const base:MetadataRoute.Sitemap=routes.map(({ path, priority }) => ({
     url: `${SITE_URL}${path}`,
     changeFrequency: "weekly",
     priority,
   }));
+  return [...base,...published.filter(p=>/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(p.slug)).map(p=>({url:new URL("/portafolio/"+p.slug,SITE_URL).href,changeFrequency:"monthly" as const,priority:.8}))];
 }
