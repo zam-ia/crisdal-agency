@@ -7,7 +7,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ tok
   try {
     const signedUrl = await createPrivateGalleryDownload(token, assetId);
     if (!signedUrl) return new Response("Archivo no disponible.", { status: 404, headers: { "Cache-Control": "no-store" } });
-    return Response.redirect(signedUrl, 302);
+    return new Response(null, { status: 302, headers: { Location: signedUrl, "Cache-Control": "no-store", "Referrer-Policy": "no-referrer" } });
   } catch {
     return new Response("No se pudo preparar la descarga.", { status: 503, headers: { "Cache-Control": "no-store" } });
   }
