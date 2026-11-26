@@ -41,7 +41,21 @@ export async function GET(request: Request) {
       if (!uuid.safeParse(id).success) return Response.json({ error: "Identificador inválido." }, { status: 400, headers: NO_CACHE });
       const gallery = await findAdminGallery(id);
       if (!gallery) return Response.json({ error: "Galería no encontrada." }, { status: 404, headers: NO_CACHE });
-      return Response.json({ gallery, assets: await listAdminGalleryAssets(id) }, { headers: NO_CACHE });
+      const assets = await listAdminGalleryAssets(id);
+      const { getSupabaseAdmin } = await import("../../../lib/supabase-admin");
+      const { DELIVERY_BUCKET } = await import("../../../lib/deliveries/domain");
+      const thumbnailPaths = assets.filter((asset) => asset.kind === "image")
+        .map((asset) => asset.thumbPath).filter((path): path is string => Boolean(path));
+      const thumbnails = new Map<string, string>();
+      if (thumbnailPaths.length) {
+        const { data: signed, error: signError } = await getSupabaseAdmin().storage
+          .from(DELIVERY_BUCKET).createSignedUrls(thumbnailPaths, 300);
+        if (signError || !signed) throw signError || new Error("No se pudo firmar la vista previa.");
+        for (const item of signed) if (item.path && item.signedUrl) thumbnails.set(item.path, item.signedUrl);
+      }
+      return Response.json({ gallery, assets: assets.map((asset) => ({
+        ...asset, thumbnailUrl: asset.thumbPath ? thumbnails.get(asset.thumbPath) || null : null,
+      })) }, { headers: NO_CACHE });
     }
     return Response.json({ galleries: await listAdminGalleries() }, { headers: NO_CACHE });
   } catch {
