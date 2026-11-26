@@ -1,1 +1,8 @@
 .state{min-height:28rem;display:grid;place-content:center;gap:1rem;padding:3rem 1rem;text-align:center;background:#f4eee3;color:#111210}.state p{color:#6f4e2f;font-size:.75rem;font-weight:850;letter-spacing:.14em;text-transform:uppercase}.state h2{max-width:48rem;font-family:Georgia,serif;font-size:clamp(2rem,5vw,4rem);font-weight:400}.state a{justify-self:center;padding:.85rem 1.1rem;border-radius:999px;background:#111210;color:#f4eee3;font-weight:800;text-decoration:none}
+
+.state{min-height:0;padding:clamp(2rem,6vw,5rem) 1rem}
+.state > span{max-width:38rem;line-height:1.6;color:#5f5c55;margin:0 auto}
+.actions{display:flex;flex-wrap:wrap;justify-content:center;gap:.7rem}
+.actions a{min-height:2.75rem;padding:.7rem 1rem;text-decoration:none}
+.actions a + a{background:transparent;color:#111210;border:1px solid #78643e}
+@media(max-width:34rem){.actions{display:grid}}

@@ -9,6 +9,7 @@ import {
   eventDataForPath,
   type Placement,
 } from "../lib/config";
+import { canMeasureMarketing, MARKETING_CONSENT_EVENT, readMarketingConsent, writeMarketingCookie } from "../lib/marketing-consent";
 import { trackMarketingEvent } from "./site-events";
 
 const ATTRIBUTION_KEY = "crisdal:attribution";
@@ -16,6 +17,7 @@ const LEAD_KEY = "crisdal:lead";
 let sentInMemory = false;
 
 function readAttribution(): Record<string, string> {
+  if (!canMeasureMarketing(readMarketingConsent())) return {};
   const params = new URLSearchParams(window.location.search);
   const current: Record<string, string> = {};
   for (const key of UTM_KEYS) {
@@ -45,6 +47,8 @@ function cookie(name: string) {
 }
 
 function trackLead(placement: Placement, eventName: string) {
+  if (!canMeasureMarketing(readMarketingConsent())) return;
+  writeMarketingCookie("accepted");
   const attribution = readAttribution();
   trackMarketingEvent(eventName, { placement, ...attribution });
   if (sentInMemory) return;
@@ -54,7 +58,8 @@ function trackLead(placement: Placement, eventName: string) {
     /* Storage is optional. */
   }
   sentInMemory = true;
-  const eventId = crypto.randomUUID();
+  const eventId = globalThis.crypto?.randomUUID?.();
+  if (!eventId) return;
   const details = {
     ...eventDataForPath(window.location.pathname),
     content_category: "whatsapp_click",
@@ -67,6 +72,7 @@ function trackLead(placement: Placement, eventName: string) {
     let attempts = 0;
     const timer = window.setInterval(() => {
       attempts += 1;
+      if (!canMeasureMarketing(readMarketingConsent())) { window.clearInterval(timer); return; }
       if (window.fbq) {
         window.fbq("track", "Lead", details, { eventID: eventId });
         window.clearInterval(timer);
@@ -101,6 +107,8 @@ export function WhatsAppLink({
   phone = WHATSAPP_NUMBER,
   message = WHATSAPP_MESSAGE,
   eventName = `click_whatsapp_${placement}`,
+  customHref,
+  redirectAfterClick = true,
 }: {
   children: ReactNode;
   placement: Placement;
@@ -108,17 +116,22 @@ export function WhatsAppLink({
   phone?: string;
   message?: string;
   eventName?: string;
+  customHref?: string;
+  redirectAfterClick?: boolean;
 }) {
   const router = useRouter();
-  const href = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+  const href = customHref ?? `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
   useEffect(() => {
     readAttribution();
+    const capture = () => { readAttribution(); };
+    window.addEventListener(MARKETING_CONSENT_EVENT, capture);
+    return () => window.removeEventListener(MARKETING_CONSENT_EVENT, capture);
   }, []);
   function onClick(event: MouseEvent<HTMLAnchorElement>) {
     // Keep native links: mobile app routing, new-tab gestures and no-JS fallback work.
     trackLead(placement, eventName);
     if (
-      placement !== "thanks" &&
+      redirectAfterClick && placement !== "thanks" &&
       !event.ctrlKey &&
       !event.metaKey &&
       !event.shiftKey &&

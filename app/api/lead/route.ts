@@ -1,6 +1,8 @@
 import { NextRequest } from "next/server";
 import { eventDataForPath, PIXEL_ID, PLACEMENTS, SITE_URL, UTM_KEYS } from "../../lib/config";
 
+import { canMeasureMarketing, isLeadTrackingPath, MARKETING_CONSENT_COOKIE } from "../../lib/marketing-consent";
+
 export const runtime = "nodejs";
 
 export async function POST(request: NextRequest) {
@@ -31,18 +33,11 @@ export async function POST(request: NextRequest) {
     typeof data !== "object" ||
     !/^[a-f0-9-]{36}$/i.test(data.eventId || "") ||
     !PLACEMENTS.includes(data.placement) ||
-    ![
-      "/",
-      "/contenido",
-      "/eventos",
-      "/portafolio",
-      "/planes",
-      "/contacto",
-      "/ruta-crisdal",
-      "/gracias",
-    ].includes(data.path)
+    !isLeadTrackingPath(data.path)
   )
     return Response.json({ error: "Invalid event" }, { status: 400 });
+  if (!canMeasureMarketing(request.cookies.get(MARKETING_CONSENT_COOKIE)?.value))
+    return Response.json({ status: "consent_required" }, { status: 403 });
   const token = process.env.META_CAPI_ACCESS_TOKEN;
   // The browser pixel works independently. No pretend success for an unconfigured CAPI.
   if (!token)

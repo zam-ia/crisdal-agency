@@ -6,6 +6,7 @@ import {
   type EventType, type PublicDateStatus, type PublicMonth,
 } from "../../lib/availability/public-calendar";
 import { inquiryWhatsAppUrl, validateInquiry } from "../../lib/availability/inquiry";
+import { WhatsAppLink } from "../whatsapp-link";
 import styles from "./public-availability.module.css";
 
 const WEEKDAYS = ["L", "M", "M", "J", "V", "S", "D"];
@@ -133,7 +134,7 @@ export function PublicAvailabilityExperience() {
           <label className={styles.honeypot} aria-hidden="true">Dejar vacío<input tabIndex={-1} autoComplete="off" value={form.website} onChange={(event)=>update("website",event.target.value)} /></label>
           {requestError ? <p className={styles.error} role="alert">{requestError} No se ha registrado tu solicitud.</p> : null}
           <button type="submit" className={styles.primary} disabled={sending || !validForm}>{sending ? "Registrando solicitud…" : "Solicitar esta fecha"}<span aria-hidden="true">↗</span></button>
-          {waUrl ? <a className={styles.secondary} href={waUrl} target="_blank" rel="noopener noreferrer">Prefiero consultar por WhatsApp</a> : <p className={styles.subtle}>Primero selecciona una fecha para continuar.</p>}
+          {waUrl ? <WhatsAppLink className={styles.secondary} placement="public_date_fallback" customHref={waUrl} redirectAfterClick={false}>Prefiero consultar por WhatsApp</WhatsAppLink> : <p className={styles.subtle}>Primero selecciona una fecha para continuar.</p>}
           <p className={styles.privacy}>Sin pagos ni reserva automática. Te contactamos para confirmar disponibilidad, cobertura y condiciones.</p>
         </form>}
       </div>
