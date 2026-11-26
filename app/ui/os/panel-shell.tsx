@@ -19,6 +19,9 @@ export function PanelShell({
     ...(hasCapability(session.capabilities, "calendar.read")
       ? [{ href: "/panel/agenda", label: "Agenda", active: currentPath === "/panel/agenda" }]
       : []),
+    ...(hasCapability(session.capabilities, "projects.write")
+      ? [{ href: "/panel/entregas", label: "Entregas", active: currentPath === "/panel/entregas" }]
+      : []),
     ...(hasCapability(session.capabilities, "portfolio.manage")
       ? [{ href: "/panel/portafolio", label: "Portafolio", active: currentPath === "/panel/portafolio" }]
       : []),
