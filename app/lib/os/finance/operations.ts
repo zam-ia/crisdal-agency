@@ -56,11 +56,34 @@ export type FinanceMovement = {
   currency:"PEN"|"USD"; amount_minor:number; occurred_on:string; method:string;
   expense_class:string|null; description:string; reference:string|null; status:"posted"|"voided"; void_reason:string|null;
 };
+
+export const VOUCHER_SOURCES = ["sunat_original", "commercial_summary", "manual_reference"] as const;
+export type VoucherSource = (typeof VOUCHER_SOURCES)[number];
+export type VoucherItem = { quantity: number; description: string; unitMinor: number; lineMinor: number };
+/** Transcribe the document, not a tax computation. Never infer a tax rate or proof of payment. */
+export function validateVoucherDetail(items: readonly VoucherItem[], discountMinor: number | null) {
+  if (!Array.isArray(items) || items.length > 20) throw new Error("Máximo 20 conceptos por comprobante.");
+  if (discountMinor !== null) {
+    assertMinorUnits(discountMinor);
+    if (discountMinor > FINANCE_LIMIT) throw new Error("Descuento fuera de rango.");
+  }
+  for (const item of items) {
+    if (!Number.isSafeInteger(item.quantity) || item.quantity < 1 || item.quantity > 10000 ||
+        !item.description.trim() || item.description.length > 240) throw new Error("Revisa la cantidad y descripción del servicio.");
+    for (const amount of [item.unitMinor, item.lineMinor]) {
+      assertMinorUnits(amount);
+      if (amount > FINANCE_LIMIT) throw new Error("Importe fuera de rango.");
+    }
+  }
+  return items.map(item => ({ ...item, description: item.description.trim() }));
+}
+
 export type FinanceVoucher = {
   id:string; account_id:string|null; receipt_id:string|null; issuer_ruc:string; series:string; number:string;
   issued_on:string; currency:"PEN"|"USD"; total_minor:number; igv_minor:number|null; customer:string;
   document_type:string|null; document_number:string|null; description:string; status:"recorded"|"corrected"|"external_void";
   correction_reason:string|null;
+  source_kind:VoucherSource; discount_minor:number|null; items:VoucherItem[];
 };
 export type FinancePeriod = { month:string; received_minor:number; refunded_minor:number; expenses_minor:number; fixed_minor:number; direct_minor:number; other_minor:number; documented_minor:number; voucher_count:number };
 export type FinanceSnapshot = {
