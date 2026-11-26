@@ -17,7 +17,7 @@ Rama: `parallel/crisdal-finance-operational`. Base: `ee5b044c2f7f7ef3cd2f2d1f67c
 
 Un contrato de S/1190 con anticipo S/300 y gasto directo S/100 tiene S/890 por cobrar y S/200 de flujo neto asociado a estos movimientos. Registrar una boleta de S/300 no suma un segundo ingreso. El flujo mensual no representa saldo bancario ni utilidad contable; los comprobantes no sustituyen contabilidad tributaria. IGV se transcribe si figura; no se infiere tasa ni régimen. El usuario emite y consulta sus comprobantes exclusivamente en SUNAT.
 
-El documento de ejemplo mencionado por el propietario aún no llegó como archivo adjunto al chat. Los campos actuales son una propuesta de registro interno, no un esquema fiscal exhaustivo. Ajustarlos contra la boleta real antes de congelar el diseño. No introducir DNI, RUC, nombres, PDFs ni boletas reales en Git ni datos de prueba. Para adjuntos PDF/XML futuros usar bucket privado, autorización, límite de tamaño, URL firmada y política de retención; no publicar documentos.
+Se revisó la página 1 del resumen comercial de una boleta aportado por el propietario. Es un documento de acompañamiento, no el comprobante original ni evidencia de cobro. Se añadieron origen del documento (original SUNAT, resumen comercial o referencia manual), descuento consignado y detalle opcional de hasta 20 líneas con cantidad entera, descripción, valor unitario e importe copiados literalmente. No se infiere régimen, IGV, suma tributaria ni importe en letras; el importe total se transcribe. La cantidad entera responde a los servicios del ejemplo; ampliar si aparecen cantidades fraccionarias. La diferencia entre sumas de líneas y total no se corrige automáticamente por posibles bases o redondeos distintos; revisar contra el original. No introducir DNI, RUC, nombres, PDFs ni boletas reales en Git ni datos de prueba. Para adjuntos PDF/XML futuros usar bucket privado, autorización, límite de tamaño, URL firmada y política de retención; no publicar documentos.
 
 ## Integración con Codex
 
@@ -38,3 +38,7 @@ El documento de ejemplo mencionado por el propietario aún no llegó como archiv
 - Añadir costos comprometidos/estimados, impuestos y gastos generales asignados para rentabilidad económica real. No etiquetar la contribución estimada como beneficio neto. El punto de equilibrio utiliza entradas manuales y es una planificación, no un pronóstico automático.
 - Evitar falsa confirmación si falla la respuesta después de guardar: reusar ID en reintentos y revisar registro antes de repetir si se cerró formulario.
 - No se ha desplegado ni aplicado la migración en producción.
+
+## Revisión posterior al PR
+
+Se corrigió una corrupción detectada en la migración (duplicación del final y restricción de hash truncada). Se verificaron por lectura remota un solo COMMIT, una definición de cada RPC y la columna result_id. Se añadieron pruebas de regresión para evitar este problema. No se ejecutó SQL ni la suite de Next.js. No integrar la migración si ya fue aplicada con una versión distinta; comprobar el historial real. El origen de los comprobantes no equivale a validación SUNAT. No incluir datos del comprobante real, DNI, RUC ni su PDF en Git. 
