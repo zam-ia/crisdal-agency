@@ -23,6 +23,21 @@ export function PanelShell({
           { href: "/panel/disponibilidad-publica", label: "Disponibilidad", active: currentPath === "/panel/disponibilidad-publica" },
         ]
       : []),
+    ...(hasCapability(session.capabilities, "clients.read")
+      ? [{ href: "/panel/clientes", label: "Clientes", active: currentPath === "/panel/clientes" }]
+      : []),
+    ...(hasCapability(session.capabilities, "quotes.manage")
+      ? [{ href: "/panel/cotizaciones", label: "Cotizaciones", active: currentPath === "/panel/cotizaciones" }]
+      : []),
+    ...(hasCapability(session.capabilities, "projects.read")
+      ? [{ href: "/panel/produccion", label: "Producción", active: currentPath === "/panel/produccion" }]
+      : []),
+    ...(process.env.CRISDAL_PRIVATE_DELIVERIES_ENABLED === "true" && hasCapability(session.capabilities, "projects.write")
+      ? [{ href: "/panel/entregas", label: "Entregas", active: currentPath === "/panel/entregas" }]
+      : []),
+    ...(hasCapability(session.capabilities, "finance.read")
+      ? [{ href: "/panel/finanzas", label: "Finanzas", active: currentPath === "/panel/finanzas" },{ href: "/panel/indicadores", label: "Indicadores", active: currentPath === "/panel/indicadores" }]
+      : []),
     ...(hasCapability(session.capabilities, "portfolio.manage")
       ? [{ href: "/panel/portafolio", label: "Portafolio", active: currentPath === "/panel/portafolio" }]
       : []),

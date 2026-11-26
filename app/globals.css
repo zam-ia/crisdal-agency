@@ -17,7 +17,7 @@
 html { scroll-behavior: smooth; scroll-padding-top: 88px; }
 body {
   margin: 0;
-  min-width: 320px;
+  min-width: 0;
   overflow-x: clip;
   background: var(--ink);
   color: var(--text);
@@ -1258,3 +1258,10 @@ body {
   .faq-item summary { min-height: 70px; padding: 0 18px; }
   .faq-item > p { padding: 0 42px 22px 18px; }
 }
+
+/* Legible consent actions without changing consent semantics. */
+.consent-banner p{font-size:.8rem;line-height:1.5}
+.consent-banner button{min-height:44px;font-size:.75rem;white-space:normal}
+.consent-banner button:focus-visible{outline:3px solid #fab713;outline-offset:2px}
+.consent-banner{bottom:max(10px,env(safe-area-inset-bottom,0px))}
+@media(max-height:420px){.consent-banner{max-height:48dvh;overflow:auto}}

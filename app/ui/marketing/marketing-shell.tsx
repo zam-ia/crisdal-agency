@@ -5,6 +5,8 @@ import { publicSite } from "../../lib/public-site-content";
 import { SiteTracking } from "../site-tracking";
 import { WhatsAppLink } from "../whatsapp-link";
 import styles from "./marketing.module.css";
+import { DisclosureNav } from "../disclosure-nav";
+import { FloatingContact } from "./floating-contact";
 
 const navigation = [
   { href: "/eventos", label: "Eventos" },
@@ -38,6 +40,7 @@ export function MarketingShell({ children }: { children: ReactNode }) {
               <Link href={item.href} key={item.href}>{item.label}</Link>
             ))}
           </nav>
+          <DisclosureNav className={styles.mobileMenu} label="Menú" navLabel="Navegación comercial móvil">{navigation.map((item) => <Link href={item.href} key={item.href}>{item.label}</Link>)}<Link href="/contenido">Contenido para negocios</Link><Link href="/planes">Planes</Link></DisclosureNav>
           <WhatsAppLink
             placement="public_header"
             eventName="click_whatsapp_public_header"
@@ -48,9 +51,8 @@ export function MarketingShell({ children }: { children: ReactNode }) {
             Hablemos
           </WhatsAppLink>
         </div>
-        <details className={styles.mobileMenu}><summary>Menú</summary><nav aria-label="Navegación comercial móvil">{navigation.map((item) => <Link href={item.href} key={item.href}>{item.label}</Link>)}<Link href="/contenido">Contenido para negocios</Link><Link href="/planes">Planes</Link></nav></details>
       </header>
-      <main id="main-content">{children}</main>
+      <main id="main-content" tabIndex={-1}>{children}</main>
       <footer className={styles.footer}>
         <div>
           <Link className={styles.footerBrand} href="/">Crisdal Agency</Link>
@@ -64,6 +66,7 @@ export function MarketingShell({ children }: { children: ReactNode }) {
         </nav>
         <small>© 2026 Crisdal Agency. Los alcances y fechas se confirman antes de contratar.</small>
       </footer>
+      <FloatingContact>
       <WhatsAppLink
         placement="sticky"
         eventName="click_whatsapp_floating_public"
@@ -74,6 +77,7 @@ export function MarketingShell({ children }: { children: ReactNode }) {
         <Image src="/brand/whatsapp-official.png" alt="" width={30} height={30} aria-hidden="true" />
         <span>WhatsApp</span>
       </WhatsAppLink>
+      </FloatingContact>
     </div>
   );
 }

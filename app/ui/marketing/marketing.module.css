@@ -1420,3 +1420,40 @@
   .homeProjectGrid a:focus-visible,
   .heroFrame:hover img { transform: none !important; }
 }
+
+/* Native disclosure, compact editorial hero and actual consent clearance. */
+.site{min-width:0}
+.headerInner{gap:clamp(.5rem,2vw,1.5rem)}
+.headerInner .logo{flex-shrink:0}
+.desktopNav a{padding:.6rem .15rem}
+.pageHero{min-height:clamp(24rem,42vw,34rem);padding-block:clamp(3.5rem,7vw,6rem)}
+.pageHero h1{font-size:clamp(2.75rem,5.5vw,5.8rem);line-height:1.02;overflow-wrap:anywhere}
+.pageHeroMark{min-height:18rem}
+.floatingWhatsApp{bottom:calc(max(1.2rem,1rem + env(safe-area-inset-bottom,0px)) + var(--crisdal-contact-clearance,0px))}
+:global(body:has(.consent-banner)) .floatingWhatsApp{bottom:calc(var(--crisdal-contact-clearance,13rem) + 1.2rem)}
+.footer>small{color:rgb(244 238 227 / 65%)}
+@media(max-width:64rem){
+ .mobileMenu{display:block;position:relative;inset:auto;flex-shrink:0}
+ .mobileMenu summary{min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;padding:.6rem .85rem}
+ .mobileMenu nav{top:calc(100% + .8rem);right:0;width:min(21rem,calc(100vw - 2rem));max-height:65dvh;overflow:auto;overscroll-behavior:contain}
+ .mobileMenu nav a{min-height:44px;display:flex;align-items:center}
+ .headerInner{padding-right:.65rem}
+}
+@media(max-width:48rem){
+ .headerInner{padding:.5rem .65rem;gap:.45rem}
+ .headerInner .logo{min-width:0;flex-shrink:1}
+ .logo span{font-size:1.08rem}
+ .pageHero{padding-block:2.75rem;min-height:0;gap:0}
+ .pageHeroMark{display:none}
+ .pageHero h1{font-size:clamp(2.35rem,8.5vw,4rem)}
+ .footer{padding-bottom:6rem}
+ :global(body:has(.consent-banner)) .floatingWhatsApp{bottom:calc(var(--crisdal-contact-clearance,14rem) + .8rem)}
+}
+@media(max-width:24rem){.logo span{font-size:1rem}.headerInner .logo{gap:.4rem}.headerInner .logo img{width:2rem;height:1.9rem}.mobileMenu summary{padding-inline:.65rem}}
+@media(prefers-reduced-motion:no-preference){
+ .mobileMenu[open] nav{animation:crisdal-menu-in .18s ease-out}
+ @keyframes crisdal-menu-in{from{opacity:.7;transform:translateY(-4px)}to{opacity:1;transform:none}}
+}
+@media(prefers-reduced-motion:reduce){
+ .headerCta:hover,.primaryButton:hover,.secondaryButton:hover,.darkButton:hover,.lightLink:hover{transform:none}
+}

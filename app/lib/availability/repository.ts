@@ -1,7 +1,7 @@
 import "server-only";
 import { getSupabaseAdmin } from "../supabase-admin";
 import type { PublicInquiryInput, } from "./inquiry";
-import { agendaBlockedDays, monthShift, type VerifiedDate } from "./public-calendar";
+import { monthShift, validDay, type VerifiedDate } from "./public-calendar";
 
 export type DateInquiryAdmin = {
   id: string;
@@ -23,16 +23,16 @@ export async function verifiedPublicDays(month: string): Promise<VerifiedDate[]>
     db.from("crisdal_public_availability_days")
       .select("day,status,verified_until")
       .eq("service_key", "events").gte("day", first).lt("day", next).limit(31),
-    db.from("calendar_activities")
-      .select("starts_at,ends_at")
-      .eq("status", "confirmed")
-      .lt("starts_at", `${next}T00:00:00-05:00`)
-      .gt("ends_at", `${first}T00:00:00-05:00`)
-      .limit(100),
+    db.rpc("crisdal_public_agenda_blocked_days", { p_first: first }),
   ]);
   if (projection.error) throw projection.error;
   if (agenda.error) throw agenda.error;
-  const blocked = new Set(agendaBlockedDays((agenda.data || []).map((item) => ({ startsAt: item.starts_at, endsAt: item.ends_at })), month));
+  const blockedDays = agenda.data;
+  if (!Array.isArray(blockedDays) || blockedDays.some((item) =>
+    typeof item?.day !== "string" || !item.day.startsWith(`${month}-`) || !validDay(item.day))) {
+    throw new Error("La agenda no devolvió fechas válidas.");
+  }
+  const blocked = new Set<string>(blockedDays.map((item) => item.day));
   const verifiedUntil = new Date(Date.now() + 5 * 60_000).toISOString();
   const projected = (projection.data || [])
     .filter((item) => !blocked.has(item.day))

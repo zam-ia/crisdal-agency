@@ -27,3 +27,18 @@
   .lightboxInterior { padding:.5rem; }
 }
 @media (prefers-reduced-motion:reduce) { .lightbox { scroll-behavior:auto; } }
+
+/* Real photos retain their full frame; vertical social players get portrait space. */
+.gallery>button{display:grid;place-items:center;aspect-ratio:4/3;min-height:0}
+.gallery>button[data-orientation="portrait"]{aspect-ratio:3/4}
+.gallery>button img{height:100%;width:100%;min-height:0;object-fit:contain}
+.videoCard{aspect-ratio:16/10;min-height:0}
+.videoCard[data-orientation="portrait"],.videoCard[data-provider="tiktok"]{grid-column:span 4;aspect-ratio:9/16}
+.videoCard>img{min-height:0;height:100%;object-fit:cover}
+.embedFrame iframe{width:100%;height:100%;min-height:0;object-fit:contain}
+.videoOverlay{padding:2rem 1rem 1rem;max-height:100%;overflow:auto}
+.videoOverlay button,.videoOverlay a,.lightbox button,.embedFrame a{min-height:44px;display:inline-flex;align-items:center;justify-content:center}
+.externalUnavailable{grid-column:span 6;padding:1rem;color:#f4eee3;border:1px solid rgb(244 238 227/25%);border-radius:.9rem;background:#1b1b18}
+.lightboxInterior{padding:max(.8rem,env(safe-area-inset-top,0px)) max(.8rem,env(safe-area-inset-right,0px)) max(.8rem,env(safe-area-inset-bottom,0px)) max(.8rem,env(safe-area-inset-left,0px))}
+@media(max-width:48rem){.videoCard[data-orientation="portrait"],.videoCard[data-provider="tiktok"],.externalUnavailable{grid-column:1/-1}.videoCard{aspect-ratio:4/3}.videoCard[data-orientation="portrait"],.videoCard[data-provider="tiktok"]{aspect-ratio:9/16;max-width:29rem;width:100%;justify-self:center}.gallery>button,.gallery>button[data-orientation="portrait"]{min-height:0}.videoOverlay{padding:1rem .8rem .8rem}}
+@media(prefers-reduced-motion:no-preference) and (hover:hover) and (pointer:fine){.gallery>button{transition:box-shadow .2s ease}.gallery>button:hover{box-shadow:0 0 0 2px rgb(250 183 19/60%)}}
