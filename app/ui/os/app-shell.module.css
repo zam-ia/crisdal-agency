@@ -239,3 +239,19 @@
   }
 }
 
+
+/* Shared disclosure and accessible mobile shortcuts, retaining the tested two-column More menu. */
+.skipLink{position:fixed;z-index:100;top:-5rem;left:1rem;padding:.75rem 1rem;border-radius:.75rem;background:var(--os-accent-strong);color:#fff}
+.skipLink:focus{top:1rem}
+.main{padding-bottom:calc(var(--os-mobile-nav-height) + 1.75rem + env(safe-area-inset-bottom,0px));overflow-wrap:anywhere}
+.mobileNav{bottom:calc(.75rem + env(safe-area-inset-bottom,0px))}
+.mobileNav>nav>a{overflow-wrap:anywhere}
+.moreNav>summary{display:grid;place-items:center;min-width:44px;min-height:44px;padding:.4rem .65rem;border:1px solid var(--os-border);border-radius:.75rem;color:var(--os-accent-strong);font-size:.78rem;font-weight:800}
+.moreNav[open]>summary{background:#e2f2ec}
+.moreNav>nav{overscroll-behavior:contain}
+.moreNav summary:focus-visible,.skipLink:focus-visible{outline:3px solid var(--os-focus);outline-offset:3px}
+.metricValue{overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.navLink{transition:background-color .16s ease,color .16s ease}
+@media(hover:hover) and (pointer:fine){.navLink:hover{background:var(--os-surface-muted);color:var(--os-accent-strong)}}
+@media(min-width:64rem){.main{padding:var(--os-space-6)}}
+@media(prefers-reduced-motion:reduce){.navLink{transition:none}}
