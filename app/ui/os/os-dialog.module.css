@@ -1,7 +1,9 @@
 .dialog {
   position: fixed;
+  inset: 0;
+  margin: auto;
   box-sizing: border-box;
-  width: min(100% - 2rem, 42rem);
+  width: min(calc(100% - 2rem), 42rem);
   max-width: 100%;
   max-height: calc(100dvh - 2rem);
   overflow: auto;
@@ -31,6 +33,6 @@
 :global(body):has(.dialog[open]) { overflow: hidden; }
 @keyframes arrive { from { opacity: 0; transform: translateY(.55rem); } }
 @media (max-width: 42rem) {
-  .dialog { margin: auto 0 0; width: 100%; border-radius: var(--os-radius-lg) var(--os-radius-lg) 0 0; padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px)); }
+  .dialog { inset: auto 0 0; margin: 0; width: 100%; border-radius: var(--os-radius-lg) var(--os-radius-lg) 0 0; padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px)); }
 }
 @media (prefers-reduced-motion: reduce) { .dialog[open] { animation: none; } }
