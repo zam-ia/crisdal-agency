@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { estimateBreakEven, limaDate, normalizeVoucher, parseMoney, validateVoucherDetail } from "../app/lib/os/finance/operations";
+import { estimateBreakEven, limaDate, normalizeVoucher, parseMoney, receiptReference, parseVoucherNumber, validateVoucherDetail } from "../app/lib/os/finance/operations";
 
 test("monetary input is exact in cents, accepts decimal comma, rejects ambiguous formats",()=>{
  assert.equal(parseMoney("1190.10"),119010);
@@ -40,4 +40,22 @@ test("voucher service detail records amounts without recalculating tax or cash",
  assert.throws(()=>validateVoucherDetail(Array.from({length:21},()=>item),0));
  // The source may show an explicit rounded or tax-inclusive line amount.
  assert.equal(validateVoucherDetail([{...item,quantity:2,lineMinor:99999}],null)[0].lineMinor,99999);
+});
+
+test("receipt keeps its SUNAT reference or generates a stable cash code from the request", () => {
+ const requestId = "11111111-1111-4111-8111-111111111111";
+ const cashCode = "EF-11111111111141118111111111111111";
+ assert.equal(receiptReference("EB01-0027", "cash", requestId), "EB01-0027");
+ assert.equal(receiptReference(null, "cash", requestId), cashCode);
+ assert.equal(receiptReference(null, "cash", requestId), cashCode);
+ assert.notEqual(receiptReference(null, "cash", "22222222-2222-4222-8222-222222222222"), cashCode);
+ assert.equal(receiptReference(null, "transfer", requestId), null);
+});
+
+test("voucher prefill preserves the supplied correlativo and rejects invalid input", () => {
+ assert.deepEqual(parseVoucherNumber(" eb01 - 0027 "), {series:"EB01",number:"0027"});
+ assert.equal(parseVoucherNumber("EF-11111111111141118111111111111111"), null);
+ assert.equal(parseVoucherNumber("EB01-0"), null);
+ assert.equal(parseVoucherNumber("Refer. 33"), null);
+ assert.equal(parseVoucherNumber(""), null);
 });

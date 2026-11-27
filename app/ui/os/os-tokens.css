@@ -1,17 +1,20 @@
 .crisdal-os-theme {
   --os-primary: #fab713;
+  --os-chart-income: #267d68;
+  --os-chart-expense: #a66c58;
   --os-primary-hover: #e7a50b;
   --os-charcoal: #111210;
   --os-bg: #f6f5f1;
   --os-surface: #fff;
   --os-surface-muted: #eeede8;
   --os-text: #171816;
-  --os-text-muted: #61645e;
+  --os-text-muted: #53564f;
   --os-accent: var(--os-primary);
   --os-accent-strong: #725006;
   --os-highlight: #fff3d0;
   --os-border: #e5e5df;
   --os-control-border: #9d9e95;
+  --os-scroll-thumb: #75786f;
   --os-focus: #785603;
   --os-success: #197451;
   --os-success-bg: #e9f5ed;
@@ -43,12 +46,15 @@
 
   .crisdal-os-theme[data-os-theme="dark"] {
     --os-bg: #111210;
+    --os-chart-income: #8dd6b7;
+    --os-chart-expense: #e6a491;
     --os-surface: #20211e;
     --os-surface-muted: #292a26;
     --os-text: #f4eee3;
-    --os-text-muted: #b6b8b1;
-    --os-border: #3f4039;
-    --os-control-border: #777970;
+    --os-text-muted: #c0c1b7;
+    --os-border: #4b4d43;
+    --os-control-border: #808278;
+    --os-scroll-thumb: #97998d;
     --os-accent-strong: #f4c455;
     --os-focus: #fab713;
     --os-highlight: #3b3017;
@@ -68,12 +74,15 @@
 @media (prefers-color-scheme: dark) {
   .crisdal-os-theme[data-os-theme="system"] {
     --os-bg: #111210;
+    --os-chart-income: #8dd6b7;
+    --os-chart-expense: #e6a491;
     --os-surface: #20211e;
     --os-surface-muted: #292a26;
     --os-text: #f4eee3;
-    --os-text-muted: #b6b8b1;
-    --os-border: #3f4039;
-    --os-control-border: #777970;
+    --os-text-muted: #c0c1b7;
+    --os-border: #4b4d43;
+    --os-control-border: #808278;
+    --os-scroll-thumb: #97998d;
     --os-accent-strong: #f4c455;
     --os-focus: #fab713;
     --os-highlight: #3b3017;
@@ -117,3 +126,6 @@
 .crisdal-os-install h2 { margin-top:0; font: 620 1.25rem/1.2 var(--os-font); }
 .crisdal-os-install p { color: var(--os-text-muted); line-height:1.6; }
 .crisdal-os-install button { min-height:44px;padding:.55rem 1rem;border:0;border-radius:.8rem;background:var(--os-primary);color:var(--os-charcoal);cursor:pointer; }
+
+.crisdal-os-theme :is(input, textarea)::placeholder { color: var(--os-text-muted); opacity: 1; }
+.crisdal-os-theme :is(input[type="checkbox"], input[type="radio"], progress) { accent-color: var(--os-primary); }

@@ -13,6 +13,8 @@ const paths = {
   layers: "M12 3 3 8l9 5 9-5z M3 12l9 5 9-5 M3 16l9 5 9-5",
   chart: "M4 4v16h16 M8 15v-3 M12 15V8 M16 15v-6 M20 15V5",
   settings: "M5 5h14v14H5z M9 8v8 M15 8v8 M7 11h4 M13 14h4",
+  sidebarCollapse: "M3 5h18v14H3z M9 5v14 M16 9l-3 3 3 3",
+  sidebarExpand: "M3 5h18v14H3z M9 5v14 M13 9l3 3-3 3",
   close: "m6 6 12 12M18 6 6 18",
 } as const;
 

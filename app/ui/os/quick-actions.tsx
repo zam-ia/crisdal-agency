@@ -8,11 +8,11 @@ import styles from "./app-shell.module.css";
 
 export type OsQuickAction = { href: string; label: string; icon: OsIconName };
 
-export function QuickActions({ actions, className }: { actions: readonly OsQuickAction[]; className?: string }) {
+export function QuickActions({ actions, className, sidebar = false }: { actions: readonly OsQuickAction[]; className?: string; sidebar?: boolean }) {
   const [open, setOpen] = useState(false);
   if (!actions.length) return null;
   return <>
-    <button className={className} type="button" aria-haspopup="dialog" aria-expanded={open} onClick={() => setOpen(true)}>
+    <button className={className} type="button" aria-label="Crear" data-sidebar-tooltip={sidebar ? "Crear" : undefined} aria-haspopup="dialog" aria-expanded={open} onClick={() => setOpen(true)}>
       <OsIcon name="plus" /><span>Crear</span>
     </button>
     <OsDialog open={open} onClose={() => setOpen(false)} title="Crear en Crisdal">

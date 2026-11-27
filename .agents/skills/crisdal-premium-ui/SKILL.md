@@ -40,7 +40,9 @@ Aplicar **selectivamente**, sobre navegación, selector, visor de imágenes o pe
 ## Reglas no negociables
 
 - Mobile-first funcional: acciones táctiles de aproximadamente 44×44 CSS px o más, hit areas generosas, no overflow horizontal.
-- Contrast AA, `:focus-visible`, `aria-label` donde haga falta, navegación teclado, ESC y restauración de foco en modales, `prefers-reduced-motion`.
+- Contraste WCAG AA (4.5:1 para texto normal) en ambos temas, `:focus-visible`, `aria-label` donde haga falta, navegación teclado, ESC y restauración de foco en modales, `prefers-reduced-motion`.
+- En el panel, prueba el sidebar y los formularios con poca altura y con zoom al 100 %, 125 % y 150 %. Revisa el acceso a los módulos inferiores, la visibilidad del scroll y los solapamientos con los controles fijos.
+- Usa el símbolo oficial transparente de la marca. En la barra expandida acompáñalo con «Crisdal OS». En la contraída conserva el símbolo y los nombres accesibles de los iconos.
 - Imágenes proporcionadas con dimensiones o aspect-ratio; usar `next/image` cuando el origen/config lo permita, srcset/sizes apropiado; no cargar iframes sociales hasta interacción/consentimiento.
 - Fecha pública solo con estado comprobable; desconocido = **Consultar**, no `Disponible` inventado.
 - En formularios: validación inline, errores accionables, carga, confirmación solo tras persistir, controles anti-spam donde proceda.

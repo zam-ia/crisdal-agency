@@ -4,8 +4,8 @@
   align-items: center;
   justify-content: space-between;
   gap: .8rem;
-  margin-bottom: clamp(1.15rem, 3vw, 2rem);
-  padding: .8rem 1rem;
+  margin-bottom: clamp(1rem, 2.2vw, 1.55rem);
+  padding: .45rem 0 .7rem;
   border-bottom: 1px solid var(--os-border);
 }
 .user { display: grid; min-width: 0; gap: .15rem; overflow-wrap: anywhere; }
@@ -25,4 +25,3 @@
   cursor: pointer;
 }
 .topbar button:hover { background: var(--os-surface-muted); }
-@media (max-width: 30rem) { .topbar { padding-inline: 0; } }
