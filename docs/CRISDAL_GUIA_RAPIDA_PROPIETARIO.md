@@ -8,11 +8,12 @@
 
 ## Publica tu primer trabajo
 
-1. En **Portafolio → Nuevo proyecto**, elige la categoría y agrega el título, la descripción y los datos comprobados. Pulsa **Guardar avance** para continuar después.
-2. En **Fotografías**, selecciona varias fotos o arrástralas al recuadro. Admite JPG, PNG, WebP y AVIF de hasta 12 MB por archivo. Escribe una descripción breve de cada foto y pulsa **Subir seleccionadas**. Reintenta las que indiquen un error. La cola muestra cuáles quedaron guardadas.
-3. En **Enlaces sociales**, pega la URL pública original de Instagram, Facebook, TikTok, YouTube o Vimeo. Escribe título y descripción. Selecciona **Solo enlace externo** si el proveedor no admite reproducción integrada.
-4. En **Portada**, elige una imagen y ordena los medios con **Subir** y **Bajar**. En **Autorización**, registra el alcance, la fecha y la referencia documental de la divulgación web. Incluye nombres solo cuando el permiso los cubra.
-5. En **Publicar**, revisa el resumen y publica. Abre la **Vista pública** en una nueva ventana, comprueba que las imágenes cargan y usa **Copiar enlace**. Luego puedes pegarlo en WhatsApp. Usa **Despublicar** para retirar la ficha.
+1. En **Portafolio → Nuevo trabajo**, selecciona la categoría, escribe un nombre y describe el servicio. Todo se edita en la misma pantalla; no hay ventana de siete pasos.
+2. En **Fotografías**, selecciona o arrastra imágenes JPG, PNG, WebP o AVIF de hasta 12 MB. Pulsa **Subir seleccionadas**. Reintenta errores; los archivos pendientes se conservan mientras editas.
+3. En **Enlaces de redes sociales**, pega la URL pública original y pulsa **Añadir enlace**. La red se reconoce automáticamente si el formato es compatible. Puedes añadir varios enlaces uno por uno. Título y descripción opcionales se sugieren desde el proyecto; verifica que sean apropiados. Si la reproducción integrada no es compatible, se ofrece abrir el original.
+4. En **Contenido y portada**, elige **Usar como portada** en un medio guardado. Puedes ordenar o quitar medios. No necesitas subir fotos si cuentas con un enlace social válido.
+5. En **Permiso para publicar**, registra fecha, alcance y referencia del respaldo real. Si todavía no lo tienes, guarda un borrador. En **Revisión y publicación**, revisa los requisitos y pulsa **Publicar**. Comprueba **Vista pública** y copia el enlace para WhatsApp.
+6. **Guardar borrador** guarda los datos del trabajo. Usa **Subir seleccionadas** y **Añadir enlace** para incorporar el material pendiente. Las categorías generales se ordenan o se ocultan desde **Administrar categorías del portafolio**, fuera del editor.
 
 ## Prepara paquetes y consultas
 

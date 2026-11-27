@@ -1,7 +1,9 @@
 .dialog {
   position: fixed;
+  inset: 0;
+  margin: auto;
   box-sizing: border-box;
-  width: min(100% - 2rem, 42rem);
+  width: min(calc(100% - 2rem), 42rem);
   max-width: 100%;
   max-height: calc(100dvh - 2rem);
   overflow: auto;
@@ -16,7 +18,7 @@
 .dialog::backdrop { background: rgb(17 18 16 / 65%); }
 .dialog[open] { animation: arrive .24s ease-out; }
 .head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; }
-.head h2 { margin: 0; font: 620 clamp(1.25rem, 4vw, 1.6rem)/1.2 var(--os-font); }
+.head h2 { min-width: 0; margin: 0; overflow-wrap: anywhere; font: 620 clamp(1.25rem, 4vw, 1.6rem)/1.2 var(--os-font); }
 .close {
   flex: 0 0 44px;
   height: 44px;
@@ -31,6 +33,6 @@
 :global(body):has(.dialog[open]) { overflow: hidden; }
 @keyframes arrive { from { opacity: 0; transform: translateY(.55rem); } }
 @media (max-width: 42rem) {
-  .dialog { margin: auto 0 0; width: 100%; border-radius: var(--os-radius-lg) var(--os-radius-lg) 0 0; padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px)); }
+  .dialog { inset: auto 0 0; margin: 0; width: 100%; border-radius: var(--os-radius-lg) var(--os-radius-lg) 0 0; padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px)); }
 }
 @media (prefers-reduced-motion: reduce) { .dialog[open] { animation: none; } }

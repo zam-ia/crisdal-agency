@@ -5,7 +5,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { PortfolioDraftInput, PortfolioMedia, PortfolioProject, PortfolioStatus } from "../../lib/commercial/portfolio";
 import { parseExternalVideoUrl, slugifyPortfolioTitle, portfolioDraftInputSchema, publicationIssues } from "../../lib/commercial/portfolio";
 import type { PortfolioCategory } from "../../lib/commercial/portfolio-repository";
-import { OsDialog } from "../../ui/os/os-dialog";
 import { useUnsavedNavigation } from "../../ui/os/use-unsaved-navigation";
 import {limaDateTimeInput,limaDateTimeToIso} from "../../lib/os/form-safeguards";
 import styles from "./portfolio-admin.module.css";
@@ -14,7 +13,6 @@ type LoadResult = { projects: PortfolioProject[]; categories: PortfolioCategory[
 type UploadItem = { id: string; file: File; alt: string; orientation: "portrait"|"landscape"|"square"; progress: number; intentId?: string; state: "pending"|"uploading"|"done"|"error"; error?: string };
 const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/avif"];
 const maxImageBytes = 12 * 1024 * 1024;
-const steps = ["Tipo de evento", "Datos del trabajo", "Fotografías", "Enlaces sociales", "Portada", "Autorización", "Publicar"];
 const empty = (categoryId = ""): PortfolioDraftInput => ({ slug: "", title: "", categoryId, clientName: null, clientDisplayAuthorized: false, year: null, description: "", objective: "", serviceType: "Cobertura de evento", featured: false, coverAssetId: null, consentStatus: "missing", consentScope: "", consentEvidenceReference: "", consentAuthorizedAt: null });
 
 async function api(body?: unknown) { const response = await fetch("/api/panel/portfolio/projects", body ? { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) } : undefined); const result = await response.json(); if (!response.ok) throw new Error(result.error || "No se pudo completar la operación."); return result; }
@@ -69,7 +67,7 @@ export function PortfolioAdmin({ startCreating = false }: { startCreating?: bool
   const [editor, setEditor] = useState<PortfolioDraftInput | null>(() => startCreating ? empty() : null);
   const [media, setMedia] = useState<PortfolioMedia[]>([]);
   const [uploads, setUploads] = useState<UploadItem[]>([]);
-  const [step, setStep] = useState(0); const [dirty, setDirty] = useState(false); const [notice, setNotice] = useState(""); const [busy, setBusy] = useState(false);
+  const [dirty, setDirty] = useState(false); const [notice, setNotice] = useState(""); const [busy, setBusy] = useState(false);
   const [video, setVideo] = useState({ url: "", posterUrl: "", alt: "", title: "", provider: "youtube" as "youtube"|"vimeo"|"tiktok"|"facebook"|"instagram", embedMode: "embed" as "embed"|"external", orientation: "landscape" as "landscape"|"portrait"|"square" });
   const load = useCallback(async () => { try { setData(await api()); } catch (error) { setData({ projects: [], categories: [], error: error instanceof Error ? error.message : "Módulo no disponible." }); } }, []);
   useEffect(() => {
@@ -79,6 +77,15 @@ export function PortfolioAdmin({ startCreating = false }: { startCreating?: bool
     return () => { active = false; };
   }, []);
   const [attempted, setAttempted] = useState(false);
+  const editing = Boolean(editor);
+  const pageTitle = useRef<HTMLHeadingElement>(null);
+  const returningToList = useRef(false);
+  useEffect(() => {
+    if (!editing && !returningToList.current) return;
+    returningToList.current = false;
+    pageTitle.current?.focus({ preventScroll: true });
+    pageTitle.current?.scrollIntoView({ block: "start", behavior: "auto" });
+  }, [editing]);
   const writing = useRef(false);
   const hasPending = uploads.some((item) => item.state !== "done");
   const pendingVideo = Boolean(video.url || video.title || video.alt || video.posterUrl);
@@ -102,34 +109,24 @@ export function PortfolioAdmin({ startCreating = false }: { startCreating?: bool
     setMedia(project?.media ?? []);
     setUploads([]);
     setVideo((current) => ({ ...current, url: "", title: "", alt: "", posterUrl: "" }));
-    setStep(0);
     setAttempted(false);
     setDirty(false);
     setNotice("");
   }
 
-  function goTo(target: number) {
-    if (writing.current || target < 0 || target >= steps.length) return;
-    if (target >= 1 && !editor?.categoryId) {
-      setNotice("Selecciona el tipo de evento para continuar.");
-      setStep(0);
-      return;
-    }
-    if (target > 1 && editor && !validInformation(editor)) {
-      setAttempted(true);
-      setNotice("Revisa los campos señalados antes de continuar.");
-      setStep(1);
-      return;
-    }
-    setNotice("");
-    setStep(target);
+  function focusSection(id:string){ const el=document.getElementById(id);el?.focus({preventScroll:true});el?.scrollIntoView({block:"start",behavior:"auto"}); }
+
+  function closeEditor(){
+    if(writing.current || (unsaved && !window.confirm("Hay cambios o archivos sin guardar. ¿Salir del proyecto?")))return;
+    returningToList.current = true;
+    setEditor(null);setUploads([]);setDirty(false);setAttempted(false);setVideo(current=>({...current,url:"",title:"",alt:"",posterUrl:""}));
   }
 
   async function persist() {
     if (!editor) return null;
     if (!validInformation(editor)) {
       setAttempted(true);
-      setStep(editor.categoryId ? 1 : 0);
+      focusSection("portfolio-information");
       throw new Error("Revisa los campos señalados antes de guardar.");
     }
     const { project } = await api({ action: "save", project: editor }) as { project: PortfolioProject };
@@ -159,12 +156,12 @@ export function PortfolioAdmin({ startCreating = false }: { startCreating?: bool
   async function changeStatus(status: PortfolioStatus) {
     if (!editor || writing.current) return;
     if (status === "published" && hasPending) {
-      setStep(2);
+      focusSection("portfolio-photos");
       setNotice("Completa o retira las cargas pendientes antes de publicar.");
       return;
     }
     if (status === "published" && pendingVideo) {
-      setStep(3);
+      focusSection("portfolio-social");
       setNotice("Añade el enlace social pendiente o borra sus campos antes de publicar.");
       return;
     }
@@ -262,11 +259,11 @@ export function PortfolioAdmin({ startCreating = false }: { startCreating?: bool
       if(!parsed)throw new Error("Usa una URL HTTPS compatible de Instagram, Facebook, TikTok, YouTube o Vimeo.");
       const projectId=editor.id&&!dirty?editor.id:(await persist())?.id;
       if(!projectId)return;
-      const payload={...video,url:parsed.canonicalUrl,provider:parsed.provider,embedMode:parsed.embedUrl?video.embedMode:"external"};
+      const payload={...video,title:video.title.trim()||("Publicación de "+editor.title).slice(0,180),alt:video.alt.trim()||("Contenido de "+editor.title).slice(0,240),url:parsed.canonicalUrl,provider:parsed.provider,embedMode:parsed.embedUrl?video.embedMode:"external"};
       const result=await api({action:"video",id:projectId,...payload,posterUrl:video.posterUrl||null});
       setMedia(current=>current.some(item=>item.id===result.media.id)?current:[...current,result.media]);
       setVideo({url:"",posterUrl:"",alt:"",title:"",provider:"youtube",embedMode:"embed",orientation:"landscape"});
-      setNotice("Publicación añadida con URL canónica y proveedor verificado.");await load();
+      setNotice("Enlace guardado. Comprueba su reproducción en la vista pública después de publicar.");await load();
     },"No se pudo añadir la publicación.");
   }
   async function move(id:string,direction:-1|1){
@@ -290,24 +287,27 @@ export function PortfolioAdmin({ startCreating = false }: { startCreating?: bool
   }
   const preview = useMemo(() => media.find((item) => item.id === editor?.coverAssetId), [media, editor?.coverAssetId]);
 
-  return <div className={styles.page}><header className={styles.header}><div><p>CRISDAL OS · CONTENIDO</p><h1>Portafolio</h1><span>Asistente guiado, medios privados y publicación con autorización.</span></div><button type="button" disabled={busy || Boolean(data.error)} onClick={() => switchProject()}>Nuevo proyecto</button></header>
-    {data.error ? <div className={styles.warning}><strong>Activación pendiente</strong><p>{data.error} No se simula persistencia.</p></div> : null}{notice && !editor ? <p className={styles.notice} role="status">{notice}</p> : null}
-    <section className={styles.projects}>{data.projects.map((project) => <button type="button" disabled={busy} onClick={() => switchProject(project)} key={project.id}><span data-status={project.status}>{project.status}</span><h2>{project.title}</h2><p>{project.categoryName} · {project.media.length} medios</p></button>)}{!data.error && !data.projects.length ? <div className={styles.emptyState}><h2>Sin proyectos todavía</h2><p>Crea el primero cuando tengas material real y autorización respaldada.</p></div> : null}</section>
-    <OsDialog open={Boolean(editor)} locked={busy} title={editor?.title || "Nuevo proyecto"} onClose={() => {
-      if (unsaved && !window.confirm("Hay cambios o archivos sin guardar. ¿Cerrar el proyecto?")) return;
-      setEditor(null); setUploads([]); setDirty(false); setAttempted(false); setVideo((current) => ({ ...current, url: "", title: "", alt: "", posterUrl: "" }));
-    }}>
-      {editor && <section className={styles.editor} aria-label="Asistente de proyecto" aria-busy={busy}>
-      {notice && <p className={styles.notice} role="status">{notice}</p>}
-        <div className={styles.editorHead}><div><p>Paso {step + 1} de {steps.length}</p><h3>{steps[step]}</h3></div></div>
-      <ol className={styles.stepper}>{steps.map((name, index) => <li key={name} data-active={index === step} data-complete={index < step}><button type="button" disabled={busy} aria-current={index === step ? "step" : undefined} aria-label={name} onClick={() => goTo(index)}>{index + 1}<span>{name}</span></button></li>)}</ol>
+  const parsedSocial=parseExternalVideoUrl(video.url);
+  const photosCount=media.filter(item=>item.kind==="image").length;
+  const socialCount=media.length-photosCount;
+  const categoryOptions=[...data.categories].sort((a,b)=>Number(/comercial|producto|empresarial|reels|contenido|behind/i.test(a.name))-Number(/comercial|producto|empresarial|reels|contenido|behind/i.test(b.name)));
+  return <div className={styles.page}>
+    <header className={styles.header}><div><p>CRISDAL OS · PORTAFOLIO</p><h1 ref={pageTitle} tabIndex={-1}>{editor?(editor.id?"Editar trabajo":"Nuevo trabajo"):"Portafolio"}</h1><span>{editor?"Añade fotos y enlaces sociales desde una sola pantalla.":"Organiza y publica los trabajos que tus clientes podrán ver."}</span></div>{editor?<button type="button" className={styles.secondary} disabled={busy} onClick={closeEditor}>Volver al portafolio</button>:<button type="button" disabled={busy||Boolean(data.error)||!data.categories.length} onClick={()=>switchProject()}>+ Nuevo trabajo</button>}</header>
+    {data.error&&<div className={styles.warning} role="alert"><strong>No se pudo cargar el portafolio</strong><p>{data.error}</p><button type="button" className={styles.secondary} onClick={()=>void load()}>Reintentar</button></div>}
+    {notice&&!editor&&<p className={styles.notice} role="status">{notice}</p>}
+    {!editor?<><section className={styles.projects}>{data.projects.map(project=><button type="button" disabled={busy} onClick={()=>switchProject(project)} key={project.id}><span data-status={project.status}>{({draft:"Borrador",published:"Publicado",archived:"Archivado"})[project.status]}</span><h2>{project.title}</h2><p>{project.categoryName} · {project.media.length} medios</p></button>)}{!data.error&&!data.projects.length&&<div className={styles.emptyState}><h2>Aún no tienes trabajos</h2><p>Sube tus fotografías o pega enlaces de redes sociales. Puedes guardar un borrador antes de publicar.</p><button className={styles.primary} type="button" disabled={!data.categories.length} onClick={()=>switchProject()}>Crear mi primer trabajo</button></div>}</section>
+      <details className={styles.categorySettings}><summary>Administrar categorías del portafolio</summary><p>Estos ajustes cambian el orden y visibilidad de las categorías en todo el sitio, no solo en un trabajo.</p><fieldset disabled={busy} className={styles.stepFields}><div className={styles.choiceGrid}>{data.categories.map((category, index) => <article key={category.id} data-selected={false} data-hidden={category.visible === false}><div className={styles.categoryLabel}><strong>{category.name}</strong><span>{category.visible === false ? "Oculta en el sitio" : "Visible en el sitio"}</span></div><div><button type="button" disabled={index === 0} onClick={() => { const next=[...data.categories];[next[index-1],next[index]]=[next[index],next[index-1]];void saveCategories(next); }} aria-label={"Mover arriba "+category.name}>↑</button><button type="button" disabled={index === data.categories.length-1} onClick={() => { const next=[...data.categories];[next[index+1],next[index]]=[next[index],next[index+1]];void saveCategories(next); }} aria-label={"Mover abajo "+category.name}>↓</button><button type="button" onClick={() => void saveCategories(data.categories.map((item) => item.id === category.id ? { ...item, visible: item.visible === false } : item))}>{category.visible === false ? "Mostrar" : "Ocultar"}</button></div></article>)}</div></fieldset></details></>
+    :<section className={styles.workspace} aria-label="Editor de portafolio" aria-busy={busy}>
+      <div className={styles.workspaceTop}><div><strong>{editor.title||"Trabajo sin nombre"}</strong><p>{editor.id?"Proyecto guardado":"Borrador nuevo"} · {photosCount} fotos · {socialCount} enlaces</p></div><button type="button" className={styles.secondary} disabled={busy} onClick={()=>void save()}>{busy?"Procesando…":"Guardar datos"}</button></div>
+      {notice&&<p className={styles.notice} role="status">{notice}</p>}
       <fieldset disabled={busy} className={styles.stepFields}>
-      {step === 0 ? <><div className={styles.stepGuide}><h3>¿Qué tipo de trabajo quieres mostrar?</h3><p>Elige la categoría del evento. La visibilidad y el orden de las categorías se aplican al portafolio completo.</p></div><div className={styles.choiceGrid}>{data.categories.map((category, index) => <article key={category.id} data-selected={editor.categoryId === category.id} data-hidden={category.visible === false}><button className={styles.categorySelect} type="button" onClick={() => update({ categoryId: category.id, serviceType: category.name })}><strong>{category.name}</strong><span>{category.visible === false ? "Oculta en el sitio" : "Visible en el sitio"}</span></button><div><button type="button" disabled={index === 0} onClick={() => { const next=[...data.categories];[next[index-1],next[index]]=[next[index],next[index-1]];void saveCategories(next); }}>↑</button><button type="button" disabled={index === data.categories.length-1} onClick={() => { const next=[...data.categories];[next[index+1],next[index]]=[next[index],next[index+1]];void saveCategories(next); }}>↓</button><button type="button" onClick={() => void saveCategories(data.categories.map((item) => item.id === category.id ? { ...item, visible: item.visible === false } : item))}>{category.visible === false ? "Mostrar" : "Ocultar"}</button></div></article>)}</div></> : null}
-      {step === 1 ? <ProjectInformation editor={editor} update={update} attempted={attempted} /> : null}
-      {step === 2 ? <>
+        <div className={styles.workspaceGrid}>
+          <section id="portfolio-information" tabIndex={-1} className={styles.workCard}><h2>Datos del trabajo</h2>{attempted&&!validInformation(editor)&&<p role="alert">Completa la categoría, nombre y descripción del trabajo antes de guardar archivos o enlaces. Tus selecciones se conservan.</p>}<label className={styles.categoryField}>Tipo de evento *<select value={editor.categoryId} aria-invalid={attempted&&!editor.categoryId} onChange={e=>update({categoryId:e.target.value})}><option value="">Selecciona una categoría</option>{categoryOptions.map(category=><option key={category.id} value={category.id}>{category.name}{category.visible===false?" (oculta)":""}</option>)}</select></label><ProjectInformation editor={editor} update={update} attempted={attempted}/></section>
+          <div className={styles.mediaColumn}>
+            <section id="portfolio-photos" tabIndex={-1} className={styles.workCard}><h2>Fotografías</h2><p>Sube una selección de tus mejores imágenes o continúa con enlaces sociales.</p>
         <div className={styles.upload} data-busy={busy} onDragOver={(event) => event.preventDefault()} onDrop={(event) => { event.preventDefault(); enqueue(Array.from(event.dataTransfer.files)); }}>
-          <label>Selecciona o arrastra fotografías <input type="file" multiple disabled={busy} accept={allowedTypes.join(",")} onChange={(event) => { enqueue(Array.from(event.target.files ?? [])); event.target.value = ""; }} /></label>
-          <p>JPG, PNG, WebP o AVIF · hasta 12 MB por foto.</p>
+          <label>Seleccionar fotografías <input type="file" multiple disabled={busy} accept={allowedTypes.join(",")} onChange={(event) => { enqueue(Array.from(event.target.files ?? [])); event.target.value = ""; }} /></label>
+          <p>Arrastra archivos aquí o elígelos desde tu equipo. JPG, PNG, WebP o AVIF, hasta 12 MB por foto.</p>
           <button type="button" disabled={busy || !hasPending} onClick={() => void uploadPending()}>{busy ? "Procesando…" : uploads.some((item) => item.state === "error") ? "Subir y reintentar pendientes" : "Subir seleccionadas"}</button>
         </div>
         {uploads.length > 0 && <><progress aria-label="Progreso de todas las fotografías" value={uploads.reduce((sum, item) => sum + item.progress, 0) / uploads.length} max={100} /><div className={styles.uploadQueue}>{uploads.map((item) => <article key={item.id}>
@@ -320,16 +320,27 @@ export function PortfolioAdmin({ startCreating = false }: { startCreating?: bool
           {item.state !== "done" && <button type="button" disabled={busy} onClick={() => setUploads((current) => current.filter((entry) => entry.id !== item.id))}>Quitar de la cola</button>}
           {item.error && <em>{item.error}</em>}
         </article>)}</div></>}
-        <MediaList media={media} editor={editor} setCover={(id) => update({ coverAssetId: id })} move={move} unlink={unlink} />
-      </> : null}
-      {step === 3 ? <><div className={styles.formGrid}><label>URL oficial<input value={video.url} onChange={(e) => { const parsed = parseExternalVideoUrl(e.target.value); setVideo({ ...video, url: e.target.value, provider: parsed?.provider || video.provider, embedMode: parsed?.embedUrl ? video.embedMode : "external", orientation: parsed?.contentType === "reel" ? "portrait" : video.orientation }); }}/></label><label>Título<input value={video.title} onChange={(e) => setVideo({ ...video, title: e.target.value })}/></label><label>Descripción accesible<input value={video.alt} onChange={(e) => setVideo({ ...video, alt: e.target.value })}/></label><label>Poster propio opcional<input value={video.posterUrl} onChange={(e) => setVideo({ ...video, posterUrl: e.target.value })}/></label><label>Presentación<select value={video.embedMode} onChange={(e) => setVideo({ ...video, embedMode: e.target.value as typeof video.embedMode })}><option value="embed">Cargar bajo consentimiento</option><option value="external">Solo enlace externo</option></select></label><label>Orientación<select value={video.orientation} onChange={(e) => setVideo({ ...video, orientation: e.target.value as typeof video.orientation })}><option value="landscape">16:9</option><option value="portrait">9:16 / 4:5</option><option value="square">1:1</option></select></label></div><button className={styles.primary} type="button" disabled={busy || !video.url || !video.alt || !video.title} onClick={() => void addVideo()}>Añadir publicación</button><p>Pega únicamente el enlace público original. No se descarga el video ni se solicita HTML; el recurso externo se carga solo cuando el visitante lo autoriza.</p><MediaList media={media.filter((x) => x.kind !== "image")} editor={editor} setCover={(id) => update({ coverAssetId: id })} move={move} unlink={unlink}/></> : null}
-      {step === 4 ? <div className={styles.coverStep}>{preview ? preview.kind === "image" || preview.posterUrl ? <img src={preview.posterUrl || preview.url} alt={preview.alt}/> : <div><strong>{preview.title || preview.alt}</strong><p>Portada social sin miniatura propia. La ficha pública mostrará una composición segura del proveedor.</p></div> : <div><strong>Elige una portada</strong><p>Selecciona una fotografía o publicación autorizada.</p></div>}<div className={styles.coverGrid}>{media.map((item) => <button key={item.id} type="button" data-selected={editor.coverAssetId === item.id} onClick={() => update({ coverAssetId: item.id })}>{item.kind === "image" || item.posterUrl ? <img src={item.posterUrl || item.url} alt={item.alt}/> : <span className={styles.videoBadge}>{item.provider || "social"}</span>}<span>{editor.coverAssetId === item.id ? "Portada seleccionada" : item.alt}</span></button>)}</div></div> : null}
-      {step === 5 ? <fieldset><legend>Autorización de publicación</legend><p>Registra una referencia verificable; la selección no sustituye el respaldo legal.</p><div className={styles.formGrid}><label>Estado<select value={editor.consentStatus} onChange={(e) => update({ consentStatus: e.target.value as PortfolioDraftInput["consentStatus"] })}><option value="missing">Sin respaldo</option><option value="pending">Pendiente</option><option value="verified">Verificada</option><option value="revoked">Revocada</option></select></label><label>Fecha y hora de autorización (Perú)<small>Cuándo recibiste el permiso real, no la fecha del evento.</small><input type="datetime-local" value={limaDateTimeInput(editor.consentAuthorizedAt)} onChange={(e) => update({ consentAuthorizedAt: limaDateTimeToIso(e.target.value) })}/></label><label className={styles.wide}>¿Qué te permitieron publicar?<small>Ej.: selección de fotos del evento en nuestra web. Escribe el alcance real.</small><textarea rows={3} value={editor.consentScope} onChange={(e) => update({ consentScope: e.target.value })}/></label><label className={styles.wide}>¿Dónde se conserva el permiso?<small>Referencia interna al contrato o autorización. No pegues documentos ni datos privados.</small><input value={editor.consentEvidenceReference} onChange={(e) => update({ consentEvidenceReference: e.target.value })}/></label></div></fieldset> : null}
-      {step === 6 ? <div className={styles.publishReview}><h3>Revisión final</h3><p>Publicar requiere portada del trabajo, autorización verificada, fecha y referencia del respaldo. Si muestras el nombre del cliente, también necesitas permiso específico.</p>{(issues.length > 0 || hasPending || pendingVideo) && <ul className={styles.publicationIssues}>{issues.map((issue) => <li key={issue}>{issue}</li>)}{hasPending && <li>Completa las fotografías pendientes.</li>}{pendingVideo && <li>Añade el enlace social pendiente o borra sus campos.</li>}</ul>}<dl><div><dt>Proyecto</dt><dd>{editor.title || "Pendiente"}</dd></div><div><dt>Medios</dt><dd>{media.length}</dd></div><div><dt>Portada</dt><dd>{preview ? "Lista" : "Pendiente"}</dd></div><div><dt>Autorización</dt><dd>{editor.consentStatus}</dd></div></dl><label className={styles.check}><input type="checkbox" checked={editor.featured} onChange={(e) => update({ featured: e.target.checked })}/> Destacar en la portada</label><div className={styles.actions}><button type="button" disabled={busy} onClick={() => void save()}>Guardar borrador</button>{editor.id && <><button type="button" disabled={busy || hasPending || pendingVideo || issues.length > 0} onClick={() => void changeStatus("published")}>Publicar</button><button type="button" disabled={busy} onClick={() => void changeStatus("draft")}>Despublicar</button><button type="button" disabled={busy} onClick={() => void changeStatus("archived")}>Archivar</button>{data.projects.some((project) => project.id === editor.id && project.status === "published") && <><a href={`/portafolio/${editor.slug}`} target="_blank" rel="noopener noreferrer">Vista pública</a><button type="button" onClick={async () => { try { await navigator.clipboard.writeText(new URL(`/portafolio/${editor.slug}`, window.location.origin).href); setNotice("Enlace copiado."); } catch { setNotice("Abre la vista pública y copia la dirección."); } }}>Copiar enlace</button></>}</>}</div></div> : null}
+      </section>
+            <section id="portfolio-social" tabIndex={-1} className={styles.workCard}><h2>Enlaces de redes sociales</h2><div className={styles.socialIntro}><span>Instagram</span><span>Facebook</span><span>TikTok</span><span>YouTube</span><span>Vimeo</span></div>
+          <div className={styles.formGrid}><label className={styles.wide}>Enlace de la publicación<input type="url" placeholder="https://www.instagram.com/p/..." value={video.url} onChange={e=>{const parsed=parseExternalVideoUrl(e.target.value);setVideo({...video,url:e.target.value,provider:parsed?.provider||video.provider,embedMode:parsed?.embedUrl?"embed":"external",orientation:parsed?.contentType==="reel"||parsed?.provider==="tiktok"?"portrait":"landscape"});}}/><small>Pega la dirección original de una publicación pública, no el perfil.</small></label></div>
+          {video.url.trim()&&<p className={styles.socialStatus} role="status">{parsedSocial?("Red reconocida: "+parsedSocial.provider+(parsedSocial.embedUrl?" · reproducción según compatibilidad y consentimiento":" · abrir publicación original")):"No se reconoce este enlace. Copia la dirección completa de la publicación."}</p>}
+          <details className={styles.optionalFields}><summary>Personalizar publicación (opcional)</summary><div className={styles.formGrid}>
+          <label className={styles.wide}>Título<input maxLength={180} placeholder="Ej.: Resumen de la boda" value={video.title} onChange={e=>setVideo({...video,title:e.target.value})}/><small>Si está vacío se utiliza el nombre del trabajo.</small></label>
+          <label className={styles.wide}>Descripción accesible<input maxLength={240} placeholder="Ej.: La pareja durante la ceremonia" value={video.alt} onChange={e=>setVideo({...video,alt:e.target.value})}/></label>
+          <label className={styles.wide}>Imagen propia de portada (URL opcional)<input type="url" value={video.posterUrl} onChange={e=>setVideo({...video,posterUrl:e.target.value})}/></label>
+          <label>Presentación<select value={video.embedMode} onChange={e=>setVideo({...video,embedMode:e.target.value as typeof video.embedMode})}><option value="embed" disabled={!parsedSocial?.embedUrl}>Reproducir si es compatible</option><option value="external">Abrir publicación original</option></select></label>
+          <label>Formato<select value={video.orientation} onChange={e=>setVideo({...video,orientation:e.target.value as typeof video.orientation})}><option value="landscape">Horizontal</option><option value="portrait">Vertical</option><option value="square">Cuadrado</option></select></label>
+          </div></details>
+          <div className={styles.localActions}><button className={styles.primary} type="button" disabled={busy||!parsedSocial} onClick={()=>void addVideo()}>Añadir enlace</button>{pendingVideo&&<button className={styles.secondary} type="button" onClick={()=>setVideo(current=>({...current,url:"",title:"",alt:"",posterUrl:""}))}>Limpiar</button>}</div>
+          <p>No se descarga el video. Si no puede reproducirse aquí, se mostrará un enlace al original. Puedes añadir varios enlaces, uno por vez.</p></section>
+          </div>
+          <section className={styles.workCard+" "+styles.spanWorkspace}><h2>Contenido y portada</h2><p>Elige la imagen o publicación que representará el trabajo. Puedes ordenar o quitar archivos guardados.</p><div className={styles.coverStep}>{preview ? preview.kind === "image" || preview.posterUrl ? <img src={preview.posterUrl || preview.url} alt={preview.alt}/> : <div><strong>{preview.title || preview.alt}</strong><p>Portada social sin miniatura propia. La ficha pública mostrará una composición segura del proveedor.</p></div> : <div><strong>Elige una portada</strong><p>Selecciona una fotografía o publicación autorizada.</p></div>}</div><MediaList media={media} editor={editor} setCover={id=>update({coverAssetId:id})} move={move} unlink={unlink}/></section>
+          <section className={styles.workCard}><h2>Permiso para publicar</h2><div className={styles.authorizationFields}><p>Registra una referencia verificable; la selección no sustituye el respaldo legal.</p><div className={styles.formGrid}><label>Estado<select value={editor.consentStatus} onChange={(e) => update({ consentStatus: e.target.value as PortfolioDraftInput["consentStatus"] })}><option value="missing">Sin respaldo</option><option value="pending">Pendiente</option><option value="verified">Verificada</option><option value="revoked">Revocada</option></select></label><label>Fecha y hora de autorización (Perú)<small>Cuándo recibiste el permiso real, no la fecha del evento.</small><input type="datetime-local" value={limaDateTimeInput(editor.consentAuthorizedAt)} onChange={(e) => update({ consentAuthorizedAt: limaDateTimeToIso(e.target.value) })}/></label><label className={styles.wide}>¿Qué te permitieron publicar?<small>Ej.: selección de fotos del evento en nuestra web. Escribe el alcance real.</small><textarea rows={3} value={editor.consentScope} onChange={(e) => update({ consentScope: e.target.value })}/></label><label className={styles.wide}>¿Dónde se conserva el permiso?<small>Referencia interna al contrato o autorización. No pegues documentos ni datos privados.</small><input value={editor.consentEvidenceReference} onChange={(e) => update({ consentEvidenceReference: e.target.value })}/></label></div></div></section>
+          <section className={styles.workCard}><h2>Revisión y publicación</h2><div className={styles.publishReview}><p>Publicar requiere portada del trabajo, autorización verificada, fecha y referencia del respaldo. Si muestras el nombre del cliente, también necesitas permiso específico.</p>{(issues.length > 0 || hasPending || pendingVideo) && <ul className={styles.publicationIssues}>{issues.map((issue) => <li key={issue}>{issue}</li>)}{hasPending && <li>Completa las fotografías pendientes.</li>}{pendingVideo && <li>Añade el enlace social pendiente o borra sus campos.</li>}</ul>}<dl><div><dt>Proyecto</dt><dd>{editor.title || "Pendiente"}</dd></div><div><dt>Medios</dt><dd>{media.length}</dd></div><div><dt>Portada</dt><dd>{preview ? "Lista" : "Pendiente"}</dd></div><div><dt>Autorización</dt><dd>{({missing:"Sin respaldo",pending:"Pendiente",verified:"Verificada",revoked:"Revocada"})[editor.consentStatus]}</dd></div></dl><label className={styles.check}><input type="checkbox" checked={editor.featured} onChange={(e) => update({ featured: e.target.checked })}/> Destacar en la portada</label><div className={styles.actions}><button type="button" disabled={busy || hasPending || pendingVideo || issues.length > 0 || !validInformation(editor)} onClick={() => void changeStatus("published")}>Publicar</button>{editor.id&&data.projects.some(project=>project.id===editor.id&&project.status==="published")&&<button type="button" className={styles.secondary} disabled={busy} onClick={() => void changeStatus("draft")}>Despublicar</button>}{editor.id&&<button type="button" className={styles.secondary} disabled={busy} onClick={() => void changeStatus("archived")}>Archivar</button>}{data.projects.some((project) => project.id === editor.id && project.status === "published") && <><a href={`/portafolio/${editor.slug}`} target="_blank" rel="noopener noreferrer">Vista pública</a><button type="button" onClick={async () => { try { await navigator.clipboard.writeText(new URL(`/portafolio/${editor.slug}`, window.location.origin).href); setNotice("Enlace copiado."); } catch { setNotice("Abre la vista pública y copia la dirección."); } }}>Copiar enlace</button></>}</div></div></section>
+        </div>
+        <div className={styles.workspaceFooter}><p>{hasPending||pendingVideo?"Hay archivos o enlaces pendientes de añadir.":dirty?"Tienes cambios sin guardar.":"Guarda el trabajo antes de salir."}</p><div className={styles.localActions}><button className={styles.secondary} type="button" disabled={busy} onClick={closeEditor}>Volver</button><button className={styles.primary} type="button" disabled={busy} onClick={()=>void save()}>Guardar borrador</button></div></div>
       </fieldset>
-      <nav className={styles.wizardNav}><button type="button" disabled={busy || step === 0} onClick={() => goTo(step - 1)}>Anterior</button><button type="button" disabled={busy} onClick={() => void save()}>Guardar avance</button><button type="button" disabled={busy || step === steps.length - 1} onClick={() => goTo(step + 1)}>Siguiente</button></nav>
-      </section>}
-    </OsDialog>
+    </section>}
   </div>;
 }
 
@@ -338,7 +349,7 @@ function ProjectInformation({editor,update,attempted}:{editor:PortfolioDraftInpu
  const slugError=attempted&&!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(editor.slug);
  const yearError=attempted&&editor.year!==null&&(!Number.isInteger(editor.year)||editor.year<2000||editor.year>2100);
  return <div className={styles.information}>
-  <div className={styles.stepGuide}><h3>Cuéntanos qué trabajo realizaste</h3><p>Completa los campos con * para guardar. El resto es opcional. Los datos de este paso forman parte de la ficha pública cuando la publiques.</p></div>
+  <p className={styles.stepGuide}>Los campos marcados con asterisco son obligatorios.</p>
   <div className={styles.formGrid}>
    <label className={styles.wide}>Nombre del trabajo *<input maxLength={180} placeholder="Ej.: Boda · Cobertura de fotografía y video" value={editor.title} aria-invalid={titleError} aria-describedby="title-help" onChange={e=>update({title:e.target.value,slug:editor.id?editor.slug:slugifyPortfolioTitle(e.target.value).replace(/-+$/,"")})}/><small id="title-help">{titleError?"Escribe al menos 3 caracteres.":"Así aparecerá el trabajo en tu portafolio. Evita nombres personales si no tienes permiso."}</small></label>
    <label>Servicio realizado *<input maxLength={180} list="crisdal-service-options" placeholder="Ej.: Fotografía y video" value={editor.serviceType} aria-invalid={serviceError} aria-describedby="service-help" onChange={e=>update({serviceType:e.target.value})}/><datalist id="crisdal-service-options"><option value="Fotografía y video"/><option value="Fotografía profesional"/><option value="Video profesional"/><option value="Cobertura audiovisual"/></datalist><small id="service-help">{serviceError?"Escribe el servicio realizado.":"Selecciona una sugerencia o escribe tu propio servicio."}</small></label>
@@ -354,4 +365,4 @@ function ProjectInformation({editor,update,attempted}:{editor:PortfolioDraftInpu
  </div>;
 }
 
-function MediaList({ media, editor, setCover, move, unlink }: { media: PortfolioMedia[]; editor: PortfolioDraftInput; setCover: (id: string) => void; move: (id: string, direction: -1|1) => Promise<void>; unlink: (item: PortfolioMedia) => Promise<void> }) { return <div className={styles.mediaList}>{media.map((item, index) => <article key={item.id}>{item.kind === "image" ? <img src={item.posterUrl || item.url} alt={item.alt}/> : <span className={styles.videoBadge}>{item.provider || "video"}</span>}<p>{item.alt}</p><div><button type="button" onClick={() => void move(item.id, -1)} disabled={index === 0}>Subir</button><button type="button" onClick={() => void move(item.id, 1)} disabled={index === media.length - 1}>Bajar</button><button type="button" onClick={() => setCover(item.id)}>{editor.coverAssetId === item.id ? "Portada" : "Usar portada"}</button><button type="button" onClick={() => void unlink(item)}>Quitar</button></div></article>)}</div>; }
+function MediaList({ media, editor, setCover, move, unlink }: { media: PortfolioMedia[]; editor: PortfolioDraftInput; setCover: (id: string) => void; move: (id: string, direction: -1|1) => Promise<void>; unlink: (item: PortfolioMedia) => Promise<void> }) { return <div className={styles.mediaList}>{media.map((item, index) => <article key={item.id}>{item.kind === "image" ? <img src={item.posterUrl || item.url} alt={item.alt}/> : <span className={styles.videoBadge}>{item.provider || "video"}</span>}<p>{item.alt}</p><div><button type="button" onClick={() => void move(item.id, -1)} disabled={index === 0}>Subir</button><button type="button" onClick={() => void move(item.id, 1)} disabled={index === media.length - 1}>Bajar</button><button type="button" aria-pressed={editor.coverAssetId===item.id} onClick={() => setCover(item.id)}>{editor.coverAssetId === item.id ? "Portada elegida" : "Usar como portada"}</button><button type="button" onClick={() => void unlink(item)}>Quitar</button></div></article>)}</div>; }
