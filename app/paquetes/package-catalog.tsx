@@ -1,7 +1,6 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
 
-import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { EVENT_TYPES, type EventType } from "../lib/availability/public-calendar";
@@ -21,10 +20,6 @@ const categoryNames: Record<EventType, string> = {
   "Pedida de mano": "Pedidas de mano",
   "Sesión fotográfica": "Sesiones fotográficas",
   "Otro evento": "Otros eventos",
-};
-const photos: Partial<Record<EventType, string>> = {
-  Boda: "/media/categorias/bodas-detalle.webp",
-  "Evento corporativo": "/media/categorias/eventos-auditorio.webp",
 };
 
 export function PackageCatalog({ packages, compact = false }: { packages: PublicPackage[]; compact?: boolean }) {
@@ -51,9 +46,7 @@ export function PackageCatalog({ packages, compact = false }: { packages: Public
       <div className={styles.eventOptions}>
         {EVENT_TYPES.map((event) => {
           const count = events.filter((item) => eventTypeForCategory(item.category) === event).length;
-          const photo = photos[event];
-          return <button type="button" key={event} aria-pressed={category === event} className={styles.eventOption} data-photo={Boolean(photo)} onClick={() => changeCategory(event)}>
-            {photo && <Image src={photo} fill alt="" sizes="(max-width: 42rem) 46vw, 25vw" />}
+          return <button type="button" key={event} aria-pressed={category === event} className={styles.eventOption} onClick={() => changeCategory(event)}>
             <span><strong>{categoryNames[event]}</strong><small>{count ? count + (count === 1 ? " paquete publicado" : " paquetes publicados") : "Consulta tu cobertura"}</small></span>
           </button>;
         })}

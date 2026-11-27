@@ -37,15 +37,14 @@
   isolation: isolate;
   border: 2px solid #ded4c0;
   border-radius: clamp(1.1rem, 3vw, 1.55rem);
-  background: linear-gradient(150deg,#f9f2e4,#e9d9ba);
+  background:
+    radial-gradient(ellipse at 112% 0%, rgb(250 183 19 / 26%), transparent 68%),
+    linear-gradient(150deg, #faf4e9, #eadbbd);
   color: #171816;
   text-align: left;
   overflow: hidden;
   cursor: pointer;
 }
-.eventOption[data-photo="true"] { background: #25221b; color: #fffaf1; }
-.eventOption[data-photo="true"]::after { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg,transparent 12%,rgb(17 18 16 / 94%) 95%); }
-.eventOption img { z-index: -2; object-fit: cover; object-position: center 54%; }
 .eventOption[aria-pressed="true"] { border-color: #fab713; box-shadow: 0 0 0 2px #453319; }
 .eventOption:focus-visible { outline: 3px solid #76560b; outline-offset: 2px; }
 .eventOption span { display: grid; gap: .25rem; }
