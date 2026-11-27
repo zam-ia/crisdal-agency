@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { DisclosureNav } from "../disclosure-nav";
+import { SidebarLayout } from "./sidebar-layout";
 import { selectMobileNavigation } from "./mobile-navigation";
 import { OsIcon, type OsIconName } from "./os-icon";
 import { QuickActions, type OsQuickAction } from "./quick-actions";
@@ -17,8 +18,8 @@ export type OsNavigationItem = {
 
 const mobileRoutes = ["/panel", "/panel/agenda", "/panel/finanzas"];
 
-function NavigationLink({ item }: { item: OsNavigationItem }) {
-  return <Link className={styles.navLink} href={item.href} aria-current={item.active ? "page" : undefined}>
+function NavigationLink({ item, sidebar = false }: { item: OsNavigationItem; sidebar?: boolean }) {
+  return <Link className={styles.navLink} href={item.href} aria-current={item.active ? "page" : undefined} aria-label={sidebar ? item.label : undefined} data-sidebar-tooltip={sidebar ? item.label : undefined}>
     <OsIcon name={item.icon} /><span>{item.label}</span>
   </Link>;
 }
@@ -35,18 +36,19 @@ export function AppShell({ children, navigation, quickActions }: {
     const item = mobileItems.find((entry) => entry.href === href);
     return item ? <NavigationLink item={item} /> : <span aria-hidden="true" />;
   }
-  return <div className={styles.shell}>
-    <a className={styles.skipLink} href="#os-main">Saltar al contenido</a>
-    <aside className={styles.sidebar}>
-      <Link className={styles.brand} href="/panel"><Image src="/brand/crisdal-imagotipo.png" width={31} height={34} alt="" />Crisdal OS</Link>
-      {quickActions.length ? <QuickActions actions={quickActions} className={styles.create + " " + styles.desktopCreate} /> : <span aria-hidden="true" />}
-      <nav aria-label="Navegación principal de Crisdal OS" className={styles.desktopNav}>
+  const brand = <Link className={styles.brand} href="/panel" aria-label="Crisdal OS, inicio" data-sidebar-tooltip="Crisdal OS">
+    <Image src="/brand/crisdal-imagotipo.png" width={31} height={34} alt="" /><span>Crisdal OS</span>
+  </Link>;
+  const sidebar = <>
+      {quickActions.length ? <QuickActions sidebar actions={quickActions} className={styles.create + " " + styles.desktopCreate} /> : <span aria-hidden="true" />}
+      <nav id="os-sidebar-nav" aria-label="Navegación principal de Crisdal OS" className={styles.desktopNav}>
         {groups.map((group) => <section key={group} className={styles.group}>
           <h2>{group}</h2>
-          {navigation.filter((item) => item.group === group).map((item) => <NavigationLink key={item.href} item={item} />)}
+          {navigation.filter((item) => item.group === group).map((item) => <NavigationLink sidebar key={item.href} item={item} />)}
         </section>)}
       </nav>
-    </aside>
+    </>;
+  return <SidebarLayout brand={brand} sidebar={sidebar}>
     <main id="os-main" tabIndex={-1} className={styles.main}>{children}</main>
     <nav className={styles.mobileNav} aria-label="Navegación móvil de Crisdal OS">
       {mobileLink("/panel")}
@@ -57,7 +59,7 @@ export function AppShell({ children, navigation, quickActions }: {
         {overflow.map((item) => <NavigationLink key={item.href} item={item} />)}
       </DisclosureNav> : <span aria-hidden="true" />}
     </nav>
-  </div>;
+  </SidebarLayout>;
 }
 
 export function MetricGrid({ children }: { children: ReactNode }) {

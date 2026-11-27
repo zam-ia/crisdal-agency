@@ -1,5 +1,5 @@
 .shell { min-height: 100dvh; background: var(--os-bg); color: var(--os-text); }
-.sidebar { display: none; }
+.sidebar, .sidebarTooltip { display: none; }
 .main {
   min-width: 0;
   padding: 1rem 1rem calc(var(--os-mobile-nav-height) + 1.75rem + env(safe-area-inset-bottom, 0px));
@@ -18,8 +18,8 @@
 .skipLink:focus { top: 1rem; }
 .brand { display: flex; align-items: center; gap: .7rem; color: var(--os-text); text-decoration: none; font-weight: 650; }
 .brand svg { color: var(--os-accent-strong); }
-.brand img { object-fit: contain; }
-.desktopNav { display: grid; gap: 1.15rem; align-content: start; min-height: 0; overflow: auto; }
+.brand img { display: block; width: 1.9rem; height: auto; object-fit: contain; }
+.desktopNav { display: grid; gap: .7rem; flex-shrink: 0; }
 .group { display: grid; gap: .22rem; }
 .group h2 { font: 600 .75rem/1.2 var(--os-font); color: var(--os-text-muted); margin: .25rem .7rem; }
 .navLink {
@@ -35,8 +35,8 @@
   text-decoration: none;
   transition: background-color .16s ease, color .16s ease;
 }
-.navLink[aria-current="page"] { background: var(--os-highlight); color: var(--os-accent-strong); }
-.navLink:hover, .quickLink:hover { background: var(--os-surface-muted); }
+.navLink[aria-current="page"] { background: var(--os-highlight); color: var(--os-accent-strong); box-shadow: inset 3px 0 var(--os-accent-strong); }
+.navLink:not([aria-current]):hover, .quickLink:hover { background: var(--os-surface-muted); }
 .navLink svg, .quickLink svg { flex: 0 0 auto; }
 .mobileNav {
   position: fixed;
@@ -78,7 +78,7 @@
   cursor: pointer;
 }
 .create:hover { background: var(--os-primary-hover); }
-.desktopCreate { display: flex; align-items: center; justify-content: center; min-height: 44px; gap: .45rem; font-size: .875rem; }
+.desktopCreate { flex-shrink: 0; display: flex; align-items: center; justify-content: center; min-height: 44px; gap: .45rem; font-size: .875rem; }
 .moreNav > summary { list-style: none; cursor: pointer; border-radius: .85rem; }
 .moreNav > summary::-webkit-details-marker { display: none; }
 .moreNav[open] > summary { background: var(--os-highlight); color: var(--os-accent-strong); }
@@ -135,10 +135,82 @@
   text-decoration: none;
 }
 .skeleton { min-height: 5rem; border-radius: var(--os-radius-md); background: var(--os-surface-muted); }
+
 @media (min-width: 64rem) {
-  .shell { display: grid; grid-template-columns: 15.75rem minmax(0, 1fr); }
-  .sidebar { display: grid; grid-template-rows: auto auto minmax(0, 1fr); align-items: start; gap: 1.25rem; position: sticky; top: 0; height: 100dvh; min-width: 0; padding: 1.4rem 1rem; border-right: 1px solid var(--os-border); background: var(--os-surface); }
-  .main { padding: clamp(1.2rem, 2.5vw, 2.5rem); }
+  .shell {
+    display: grid;
+    grid-template-columns: 15.4rem minmax(0, 1fr);
+    align-items: start;
+  }
+  .shell[data-sidebar-collapsed="true"] { grid-template-columns: 4.65rem minmax(0, 1fr); }
+  .sidebar {
+    position: sticky;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    gap: .7rem;
+    height: 100dvh;
+    min-width: 0;
+    padding: 0 .65rem .85rem;
+    border-right: 1px solid var(--os-border);
+    background: var(--os-surface);
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-gutter: stable;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--os-control-border) transparent;
+    scroll-padding-block: 4rem .4rem;
+  }
+  .sidebarHead {
+    flex-shrink: 0;
+    position: sticky;
+    z-index: 1;
+    top: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 44px;
+    align-items: center;
+    gap: .3rem;
+    padding: .65rem .12rem .45rem;
+    border-bottom: 1px solid var(--os-border);
+    background: var(--os-surface);
+  }
+  .brand { min-height: 44px; padding-inline: .3rem; border-radius: .7rem; }
+  .sidebarToggle {
+    display: grid;
+    place-items: center;
+    inline-size: 44px;
+    block-size: 44px;
+    border: 1px solid var(--os-control-border);
+    border-radius: .75rem;
+    background: var(--os-surface);
+    color: var(--os-text);
+    cursor: pointer;
+  }
+  .sidebarToggle:hover, .brand:hover { background: var(--os-surface-muted); }
+  .main { padding: clamp(1.1rem, 2.2vw, 2rem); }
   .mobileNav { display: none; }
+  .shell[data-sidebar-collapsed="true"] .sidebar { padding-inline: .35rem; scroll-padding-block-start: 7rem; }
+  .shell[data-sidebar-collapsed="true"] .sidebarHead { grid-template-columns: minmax(0, 1fr); justify-items: center; }
+  .shell[data-sidebar-collapsed="true"] .sidebar :is(.brand span, .desktopCreate span, .navLink span, .group h2) { display: none; }
+  .shell[data-sidebar-collapsed="true"] .sidebar :is(.brand, .navLink, .desktopCreate) { justify-content: center; }
+  .shell[data-sidebar-collapsed="true"] .group + .group { border-top: 1px solid var(--os-border); padding-top: .35rem; }
+  .shell[data-sidebar-collapsed="true"] .desktopNav { gap: .35rem; }
+  .sidebarTooltip {
+    display: block;
+    position: fixed;
+    z-index: 54;
+    transform: translateY(-50%);
+    pointer-events: none;
+    padding: .4rem .65rem;
+    border: 1px solid var(--os-control-border);
+    border-radius: .55rem;
+    background: var(--os-surface);
+    color: var(--os-text);
+    box-shadow: var(--os-shadow-sm);
+    font-size: .82rem;
+    font-weight: 650;
+  }
 }
+
 @media (prefers-reduced-motion: reduce) { .navLink { transition: none; } }

@@ -36,7 +36,7 @@ export function DateRequestsAdmin({ canWrite }: { canWrite: boolean }) {
     finally { setPending(false); }
   }
   const visible = items.filter((item)=>filter==="all"||item.state===filter);
-  return <main className={styles.page}>
+  return <div className={styles.page}>
     <header className={styles.header}><div><p>CRISDAL OS · COMERCIAL</p><h1>Solicitudes de fechas</h1><span>Consultas recibidas. Ninguna equivale a una reserva confirmada.</span></div><a href="/consultar-fecha" target="_blank" rel="noopener noreferrer">Ver experiencia pública ↗</a></header>
     {failed && <div role="alert" className={styles.error}><strong>Atención</strong><p>{failed} Si no se aplicaron las migraciones, la bandeja permanecerá desactivada.</p></div>}
     {notice && <p role="status" className={styles.notice}>{notice}</p>}
@@ -47,5 +47,5 @@ export function DateRequestsAdmin({ canWrite }: { canWrite: boolean }) {
       <div className={styles.actions}><a href={`https://wa.me/${(() => { const digits=item.contact_phone.replace(/\D/g,"");return digits.length===9?`51${digits}`:digits; })()}`} target="_blank" rel="noopener noreferrer">Contactar por WhatsApp</a>{canWrite&&<select aria-label={`Cambiar estado de ${item.contact_name}`} disabled={pending} value={item.state} onChange={(e)=>void changeState(item.id,e.target.value as DateRequest["state"])}>{Object.entries(STATES).map(([key,label])=><option key={key} value={key}>{label}</option>)}</select>}</div>
       <small>Recibida {new Intl.DateTimeFormat("es-PE", { timeZone: "America/Lima", dateStyle: "medium", timeStyle: "short" }).format(new Date(item.created_at))}</small>
     </article>)}{!failed&&visible.length===0&&<div className={styles.empty}>No hay solicitudes en esta vista.</div>}</section>
-  </main>;
+  </div>;
 }
