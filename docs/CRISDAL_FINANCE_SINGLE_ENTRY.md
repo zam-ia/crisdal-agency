@@ -1,0 +1,7 @@
+# Cobro y boleta en un solo guardado
+
+- Al marcar **Registrar también la boleta emitida en SUNAT**, el formulario sugiere el cliente del contrato, el importe, el concepto, la fecha y la moneda. Los datos de la boleta son editables. La moneda corresponde a la cuenta del contrato, igual que al vincular una boleta desde el formulario independiente.
+- El documento del cliente se propone por longitud. El IGV, el descuento y el detalle de servicios son opcionales. Un campo fiscal vacío se conserva como dato ausente. Los originales permanecen en SUNAT y Drive. Crisdal OS registra únicamente sus datos.
+- Los comprobantes nuevos reciben `CRISDAL_ISSUER_RUC` desde el servidor. El panel recibe únicamente un indicador de configuración. El formulario de corrección conserva el emisor del registro histórico. Cuando la variable está ausente, se admite el dato manual.
+- La API exige `finance.write` y comprueba el origen. La RPC transaccional reutiliza las dos operaciones financieras existentes con claves de reintento estables y sus eventos de auditoría. La caja se calcula desde el movimiento y el informe de boletas desde la fecha de emisión.
+- La migración incremental se generó con Supabase CLI desde el candidato de `docs/sql/CRISDAL_RECEIPT_WITH_VOUCHER_CANDIDATE.sql`. En una base aislada, ejecutar `psql -v ON_ERROR_STOP=1 -f tests/sql/finance-single-entry.sql` tras aplicar la migración. El caso comprueba permisos, rollback, duplicados, auditoría, reintentos, fechas, importes y periodos. Verificar el respaldo recuperable y la RPC antes de desplegar el frontend.

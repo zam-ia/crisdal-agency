@@ -13,7 +13,7 @@
 3. En **Enlaces de redes sociales**, pega la URL pública original y pulsa **Añadir enlace**. La red se reconoce automáticamente si el formato es compatible. Puedes añadir varios enlaces uno por uno. Título y descripción opcionales se sugieren desde el proyecto; verifica que sean apropiados. Si la reproducción integrada no es compatible, se ofrece abrir el original.
 4. En **Contenido y portada**, elige **Usar como portada** en un medio guardado. Puedes ordenar o quitar medios. No necesitas subir fotos si cuentas con un enlace social válido.
 5. En **Permiso para publicar**, registra fecha, alcance y referencia del respaldo real. Si todavía no lo tienes, guarda un borrador. En **Revisión y publicación**, revisa los requisitos y pulsa **Publicar**. Comprueba **Vista pública** y copia el enlace para WhatsApp.
-6. **Guardar borrador** guarda datos del proyecto, no sube automáticamente los archivos o enlaces que aún no hayas añadido. Las categorías generales se ordenan o se ocultan desde **Administrar categorías del portafolio**, fuera del editor.
+6. **Guardar borrador** guarda los datos del trabajo. Usa **Subir seleccionadas** y **Añadir enlace** para incorporar el material pendiente. Las categorías generales se ordenan o se ocultan desde **Administrar categorías del portafolio**, fuera del editor.
 
 ## Prepara paquetes y consultas
 
@@ -30,7 +30,7 @@
 
 ## Registra cobros, gastos y boletas
 
-- **Finanzas → Registrar cobro.** Elige el contrato, importe, fecha y medio de pago. En **Referencia del pago**, registra el número de operación de Yape, Plin o transferencia. En efectivo, deja el campo vacío para generar una referencia interna al guardar. Si ya emitiste la boleta, marca **Registrar también la boleta emitida en SUNAT** y coloca su número en **Número de boleta SUNAT** para precargar la serie y el correlativo en el siguiente paso. Comprueba el cobro en **Cobros y gastos**.
+- **Finanzas → Registrar cobro.** Elige el contrato, importe, fecha y medio de pago. En **Referencia del pago**, registra el número de operación de Yape, Plin o transferencia. En efectivo, deja el campo vacío para generar una referencia interna al guardar. Si ya emitiste la boleta, marca **Registrar también la boleta emitida en SUNAT**. Completa la serie y el correlativo, revisa los datos sugeridos y pulsa **Guardar cobro y boleta**. El pago aparece en **Cobros y gastos** y la boleta vinculada en **Boletas SUNAT**.
 - **Registrar gasto.** Registra el desembolso efectuado y selecciona su clase. Vincula un gasto directo al contrato correspondiente.
 - **Registrar boleta.** Emite la boleta en SUNAT. Después copia los datos en **Finanzas → Registrar boleta**. Escribe el RUC del emisor, la serie y el correlativo en sus campos separados. Por ejemplo, en **EB01-27**, la serie es **EB01** y el correlativo es **27**.
 - Copia la fecha de emisión y el importe total del comprobante. En **IGV consignado**, introduce «0,00» cuando la boleta consigne cero. Déjalo vacío si el dato no figura.

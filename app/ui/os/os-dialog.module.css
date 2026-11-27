@@ -18,7 +18,7 @@
 .dialog::backdrop { background: rgb(17 18 16 / 65%); }
 .dialog[open] { animation: arrive .24s ease-out; }
 .head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; }
-.head h2 { margin: 0; font: 620 clamp(1.25rem, 4vw, 1.6rem)/1.2 var(--os-font); }
+.head h2 { min-width: 0; margin: 0; overflow-wrap: anywhere; font: 620 clamp(1.25rem, 4vw, 1.6rem)/1.2 var(--os-font); }
 .close {
   flex: 0 0 44px;
   height: 44px;

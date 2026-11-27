@@ -1,8 +1,7 @@
-# Portfolio workspace — independent UX fix
-Base 83eab59, separate from financial PR #31. The shared dialog had fixed positioning without explicit inset/margin and a narrow width; old wizard footer negative margins contributed to clipping. Portfolio now renders in the panel's document flow, with no dialog or seven-step navigation.
-- Category selection is a single dropdown, events first; global category ordering/visibility moved to a separate settings disclosure on list view.
-- Photos and social URL input are visible together with project information. Existing private upload queue, retry, signed uploads, metadata, media order and consent gates reused. Add media persists valid project details first; if incomplete, focus returns to information, retaining pending files/URL.
-- One URL at a time; provider detected using existing parser, defaults to safe embed/external mode. Optional title/alt default to project context; no scraping, no downloads, no new third-party requests or providers.
-- Cover and saved media, authorization and publication remain available in the same page. No backend or schema modifications. Save draft does not upload queued files automatically; use Subir seleccionadas / Añadir enlace. Existing public links and permission checks preserved.
-- Shared OsDialog explicit desktop centering, mobile bottom positioning; verify other modal consumers.
-- QA: lint/tsc/test/build, actual owner-authenticated isolated flow, width 320/390/768/1440 + low height, both themes and zoom, focus/error, queue retry, multiple links, cover, consent and public/revoke, category settings, other dialogs. No production change. No claim of verified screenshot.
+# Editor de portafolio
+
+- El editor se abre dentro del panel. Reúne datos del trabajo, fotografías, enlaces sociales, portada y autorización. La selección de categoría es un desplegable y la configuración global sigue disponible en el listado.
+- Al añadir medios, el editor guarda primero los datos válidos del trabajo. Si debe corregirse algún campo, el foco vuelve a los datos y se conservan los archivos y enlaces pendientes. **Guardar borrador** guarda la ficha. Para incorporar medios, usa **Subir seleccionadas** o **Añadir enlace**.
+- La URL reconoce el proveedor mediante el analizador existente. El título, la descripción accesible, la miniatura y el modo de presentación se pueden personalizar. Los enlaces se añaden uno por uno.
+- La portada, el orden de medios y el permiso se revisan antes de publicar. Se conservan las cargas privadas, los reintentos, los enlaces públicos y los permisos existentes. Los diálogos compartidos se centran en escritorio y se abren desde abajo en móvil.
+- El recorrido de propietario se probó con PostgreSQL y PostgREST aislados, una sesión de prueba y almacenamiento simulado. Se verificaron selección y reintento de varias fotografías, guardado previo, dos proveedores, portada, orden, borradores, rechazo sin permiso, publicación y retirada. Las pruebas visuales incluyeron claro y oscuro, 320, 390, 768, 1024 y 1440 px y un título largo.

@@ -56,18 +56,21 @@
 .publicationIssues { margin: .85rem 0; padding: .7rem .9rem .7rem 1.85rem; color: var(--os-warning); background: var(--os-warning-bg); border-radius: .75rem; }
 
 /* Portfolio is an in-page editor, not a modal wizard. */
-.page{min-width:0;max-width:90rem;margin-inline:auto}
+.page{min-width:0;max-width:90rem;margin-inline:auto;overflow-wrap:anywhere}
 .page h1,.page h2,.page h3{font-family:var(--os-font);text-transform:none;letter-spacing:-.025em;line-height:1.2}
 .header{align-items:center;margin-bottom:1.25rem}.header h1{font-size:clamp(1.9rem,4vw,3rem);font-weight:650}.header span{font-size:.92rem}
 .projects h2,.emptyState h2{font-size:clamp(1.15rem,2vw,1.5rem);font-weight:650}
+.projects{grid-template-columns:repeat(auto-fit,minmax(min(100%,15rem),1fr))}
 .emptyState{display:grid;gap:.7rem;min-height:0;max-width:48rem;justify-items:start}
 .categorySettings{margin-top:1.2rem;border:1px solid var(--os-border);border-radius:1rem;padding:1rem;background:var(--os-surface)}
 .categorySettings summary,.optionalFields summary{cursor:pointer;font-weight:650;min-height:44px;align-content:center}
 .categorySettings p{margin:.5rem 0 1rem;color:var(--os-text-muted);font-size:.86rem}
 .choiceGrid .categoryLabel{display:grid;gap:.35rem;padding:.85rem;border:0}.categoryLabel strong{font-size:.9rem}
-.categorySettings .choiceGrid article>div:last-child button{min-height:44px}
+.categorySettings .choiceGrid article>div:last-child{flex-wrap:wrap}
+.categorySettings .choiceGrid article>div:last-child button{min-width:44px;min-height:44px}
 .workspace{display:grid;gap:1rem;min-width:0}
 .workspaceTop,.workspaceFooter{display:flex;justify-content:space-between;align-items:center;gap:.75rem;flex-wrap:wrap;padding:.85rem 1rem;border:1px solid var(--os-border);border-radius:1rem;background:var(--os-surface)}
+.workspaceTop>div{min-width:0}
 .workspaceTop p,.workspaceFooter p{font-size:.82rem;color:var(--os-text-muted);margin:.25rem 0}
 .workspace .stepFields,.categorySettings .stepFields{border:0;padding:0;margin:0;min-width:0}
 .workspaceGrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.12fr);gap:1rem;align-items:start}
@@ -83,7 +86,7 @@
 .workCard input[type=checkbox]{width:1.1rem;min-height:0;height:1.1rem;accent-color:var(--os-primary)}
 .workCard input::placeholder,.workCard textarea::placeholder{color:var(--os-text-muted);opacity:1}
 .workCard [aria-invalid=true]{border-color:var(--os-danger)}
-.workCard .stepGuide{margin-bottom:.65rem}
+.workCard .stepGuide{margin:0 0 .65rem}
 .workCard .optionalFields{margin-top:.25rem}
 .workCard .upload{display:grid;grid-template-columns:minmax(0,1fr);gap:.6rem;padding:.85rem;border:1px dashed var(--os-control-border);border-radius:.85rem;background:var(--os-surface-muted)}
 .upload label{display:grid;gap:.5rem;font-size:.86rem;font-weight:650}
