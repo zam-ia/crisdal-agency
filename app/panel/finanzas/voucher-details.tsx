@@ -15,13 +15,18 @@ export function readVoucherItems(data:FormData):VoucherItem[]{
 }
 
 export function VoucherDetails({voucher,disabled}:{voucher?:FinanceVoucher;disabled:boolean}){
- const [rows,setRows]=useState<Row[]>(()=> (voucher?.items??[]).map((item,i)=>({id:i,quantity:String(item.quantity),description:item.description,unit:decimal(item.unitMinor),total:decimal(item.lineMinor)})));
- const [nextId,setNextId]=useState(rows.length);
- const change=(id:number,key:Exclude<keyof Row,"id">,value:string)=>setRows(old=>old.map(row=>row.id===id?{...row,[key]:value}:row));
  return <>
  <label>Fuente de los datos<small>Usa de preferencia el comprobante original SUNAT.</small><select name="sourceKind" defaultValue={voucher?.source_kind??"sunat_original"}>{Object.entries(sourceLabels).map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></label>
  <label>Descuento consignado (opcional)<small>Copia el valor de SUNAT. Vacío significa sin dato.</small><input name="discount" inputMode="decimal" defaultValue={voucher?.discount_minor!=null?decimal(voucher.discount_minor):""} placeholder="Sin dato"/></label>
- <details className={styles.full} open={rows.length>0||undefined}>
+ <VoucherLineItems items={voucher?.items} disabled={disabled}/>
+ </>;
+}
+
+export function VoucherLineItems({items,disabled}:{items?:VoucherItem[];disabled:boolean}){
+ const [rows,setRows]=useState<Row[]>(()=> (items??[]).map((item,i)=>({id:i,quantity:String(item.quantity),description:item.description,unit:decimal(item.unitMinor),total:decimal(item.lineMinor)})));
+ const [nextId,setNextId]=useState(rows.length);
+ const change=(id:number,key:Exclude<keyof Row,"id">,value:string)=>setRows(old=>old.map(row=>row.id===id?{...row,[key]:value}:row));
+ return <details className={styles.full} open={rows.length>0||undefined}>
    <summary>Detalle de servicios de la boleta (opcional)</summary>
    <p className={styles.hint}>Copia cantidades, valores unitarios e importes tal como aparecen en el documento. No se recalculan impuestos ni se acredita un pago.</p>
    {rows.map(row=><fieldset key={row.id} className={styles.voucherLine} disabled={disabled}><legend>Concepto</legend>
@@ -32,6 +37,5 @@ export function VoucherDetails({voucher,disabled}:{voucher?:FinanceVoucher;disab
      <button type="button" onClick={()=>setRows(old=>old.filter(x=>x.id!==row.id))}>Quitar concepto</button>
    </fieldset>)}
    <button type="button" disabled={disabled||rows.length>=20} onClick={()=>{setRows(old=>[...old,{id:nextId,...blank}]);setNextId(n=>n+1);}}>+ Añadir concepto</button>
- </details>
- </>;
+ </details>;
 }

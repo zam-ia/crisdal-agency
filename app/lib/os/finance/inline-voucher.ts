@@ -1,12 +1,11 @@
 import {limaDate,parseMoney,parseVoucherNumber} from "./operations";
-export function configuredIssuer(value:string|undefined){const clean=value?.trim()??"";return /^\d{11}$/.test(clean)?clean:"";}
 export function inferDocumentType(number:string){return /^\d{8}$/.test(number)?"DNI":/^\d{11}$/.test(number)?"RUC":"";}
-export function readInlineVoucher(data:FormData,issuer:string){
+export function readInlineVoucher(data:FormData,issuerConfigured:boolean){
  const s=(key:string)=>String(data.get(key)??"").trim();
  const number=parseVoucherNumber(s("inlineNumber"));
  if(!number)throw new Error("Escribe el número de la boleta emitida. Ej.: EB01-27.");
- const issuerRuc=configuredIssuer(issuer||s("inlineIssuer"));
- if(!issuerRuc)throw new Error("Configura o escribe el RUC de Crisdal de 11 dígitos.");
+ const issuerRuc=issuerConfigured?undefined:s("inlineIssuer");
+ if(issuerRuc!==undefined&&!/^\d{11}$/.test(issuerRuc))throw new Error("Escribe el RUC de Crisdal de 11 dígitos.");
  const customer=s("inlineCustomer");
  if(!customer||customer.length>160)throw new Error("Escribe el nombre o razón social según SUNAT.");
  const documentNumber=s("inlineDocument"),documentType=s("inlineDocumentType");
@@ -18,5 +17,5 @@ export function readInlineVoucher(data:FormData,issuer:string){
  const igvMinor=s("inlineIgv")?parseMoney(s("inlineIgv")):null;
  const discountMinor=s("inlineDiscount")?parseMoney(s("inlineDiscount")):null;
  if(igvMinor!==null&&igvMinor>amountMinor)throw new Error("El IGV consignado no puede superar el total.");
- return {issuerRuc,...number,date,amountMinor,customer,documentType:documentType||null,documentNumber:documentNumber||null,description,igvMinor,discountMinor,sourceKind:"sunat_original" as const,items:[]};
+ return {issuerRuc,...number,date,amountMinor,customer,documentType:documentType||null,documentNumber:documentNumber||null,description,igvMinor,discountMinor};
 }

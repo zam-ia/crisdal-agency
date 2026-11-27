@@ -2,14 +2,15 @@
 import {useState} from "react";
 import {limaDate} from "../../lib/os/finance/operations";
 import {inferDocumentType} from "../../lib/os/finance/inline-voucher";
+import { VoucherLineItems } from "./voucher-details";
 import styles from "./finance.module.css";
-export function InlineVoucher({issuer,customer,amount,description,date,currency}:{issuer:string;customer:string;amount:string;description:string;date:string;currency:string}){
+export function InlineVoucher({issuerConfigured,customer,amount,description,date,currency,busy}:{issuerConfigured:boolean;customer:string;amount:string;description:string;date:string;currency:string;busy:boolean}){
  const [buyer,setBuyer]=useState<string|null>(null),[total,setTotal]=useState<string|null>(null),[concept,setConcept]=useState<string|null>(null),[issued,setIssued]=useState<string|null>(null);
  const [document,setDocument]=useState(""),[kind,setKind]=useState<string|null>(null);
  const type=kind??inferDocumentType(document);
- return <section className={styles.inlineVoucher} aria-labelledby="inline-voucher-heading">
- <div className={styles.inlineVoucherHead}><div><span className={styles.eyebrow}>COMPROBANTE EMITIDO</span><h3 id="inline-voucher-heading">Datos de la boleta SUNAT</h3><p>Verifica el comprobante original. Reutilizamos los datos del cobro; puedes corregirlos si son diferentes.</p></div>{issuer&&<small>Emisor: Crisdal · RUC configurado</small>}</div>
- {!issuer&&<label>RUC emisor<input required name="inlineIssuer" inputMode="numeric" pattern="[0-9]{11}" maxLength={11}/><small>Configúralo una vez en el servidor para no repetirlo.</small></label>}
+ return <section id="inline-voucher" className={styles.inlineVoucher} aria-labelledby="inline-voucher-heading">
+ <div className={styles.inlineVoucherHead}><div><span className={styles.eyebrow}>COMPROBANTE EMITIDO</span><h3 id="inline-voucher-heading">Datos de la boleta SUNAT</h3><p>Verifica los datos sugeridos y ajusta los que difieran del comprobante original.</p></div>{issuerConfigured&&<small>Emisor Crisdal · RUC configurado</small>}</div>
+ {!issuerConfigured&&<label>RUC emisor<input required name="inlineIssuer" inputMode="numeric" pattern="[0-9]{11}" maxLength={11}/></label>}
  <label>Número de boleta *<input required name="inlineNumber" maxLength={20} placeholder="EB01-27"/><small>Serie y correlativo de SUNAT.</small></label>
  <label>Fecha de emisión *<input required type="date" name="inlineDate" max={limaDate()} value={issued??date} onChange={e=>setIssued(e.target.value)}/><small>Se propone la fecha del cobro; verifica la original.</small></label>
  <label>Documento del cliente<input name="inlineDocument" inputMode={type==="DNI"||type==="RUC"||!type?"numeric":"text"} maxLength={30} value={document} placeholder="DNI o RUC" onChange={e=>setDocument(e.target.value)}/><small>Se reconoce DNI de 8 dígitos o RUC de 11.</small></label>
@@ -18,6 +19,6 @@ export function InlineVoucher({issuer,customer,amount,description,date,currency}
  <label>Importe de la boleta ({currency}) *<input name="inlineAmount" required inputMode="decimal" value={total??amount} onChange={e=>setTotal(e.target.value)} placeholder="500.00"/><small>Puede ser distinto al dinero recibido.</small></label>
  <label>Concepto de la boleta *<input name="inlineDescription" required maxLength={240} value={concept??description} onChange={e=>setConcept(e.target.value)} placeholder="Cobertura audiovisual"/></label>
  <details className={styles.full}><summary>IGV y descuento, si figuran en el comprobante</summary><div className={styles.inlineTax}><label>IGV consignado<input name="inlineIgv" inputMode="decimal" placeholder="Sin dato"/></label><label>Descuento consignado<input name="inlineDiscount" inputMode="decimal" placeholder="Sin dato"/></label></div><p className={styles.hint}>Cero si el original dice 0.00; vacío si no figura. No se calculan impuestos.</p></details>
- <p className={styles.full}>Un solo guardado registra el cobro y su boleta vinculada. No emite comprobantes ni suma dinero dos veces.</p>
+ <VoucherLineItems disabled={busy}/>
  </section>;
 }

@@ -29,7 +29,7 @@
 
 ## Registra cobros, gastos y boletas
 
-- **Finanzas → Registrar cobro.** Elige el contrato, importe, fecha y medio de pago. En **Referencia del pago**, registra el número de operación de Yape, Plin o transferencia. En efectivo, deja el campo vacío para generar una referencia interna al guardar. Si ya emitiste la boleta, marca **Registrar también la boleta emitida en SUNAT** y coloca su número en **Número de boleta SUNAT** para precargar la serie y el correlativo en el siguiente paso. Comprueba el cobro en **Cobros y gastos**.
+- **Finanzas → Registrar cobro.** Elige el contrato, importe, fecha y medio de pago. En **Referencia del pago**, registra el número de operación de Yape, Plin o transferencia. En efectivo, deja el campo vacío para generar una referencia interna al guardar. Si ya emitiste la boleta, marca **Registrar también la boleta emitida en SUNAT**. Completa la serie y el correlativo, revisa los datos sugeridos y pulsa **Guardar cobro y boleta**. El pago aparece en **Cobros y gastos** y la boleta vinculada en **Boletas SUNAT**.
 - **Registrar gasto.** Registra el desembolso efectuado y selecciona su clase. Vincula un gasto directo al contrato correspondiente.
 - **Registrar boleta.** Emite la boleta en SUNAT. Después copia los datos en **Finanzas → Registrar boleta**. Escribe el RUC del emisor, la serie y el correlativo en sus campos separados. Por ejemplo, en **EB01-27**, la serie es **EB01** y el correlativo es **27**.
 - Copia la fecha de emisión y el importe total del comprobante. En **IGV consignado**, introduce «0,00» cuando la boleta consigne cero. Déjalo vacío si el dato no figura.
