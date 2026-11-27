@@ -55,7 +55,7 @@ export function PanelShell({ session, currentPath, children }: {
     <AppShell navigation={navigation} quickActions={panelQuickActions(session.capabilities)}>
       <header className={styles.topbar}>
         <div className={styles.user}><strong>{session.displayName}</strong><span>{ROLE_LABELS[session.role]}</span></div>
-        <div className={styles.controls}><ThemePicker /><form action={panelLogoutAction}><button type="submit">Cerrar sesión</button></form></div>
+        <div className={styles.controls}><ThemePicker /><form action={panelLogoutAction} data-os-leaves-editor><button type="submit">Cerrar sesión</button></form></div>
       </header>
       {children}
     </AppShell>

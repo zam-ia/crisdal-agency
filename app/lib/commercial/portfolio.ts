@@ -87,7 +87,12 @@ export type PortfolioProject = z.infer<typeof portfolioProjectSchema>;
 export type PortfolioDraftInput = z.infer<typeof portfolioDraftInputSchema>;
 export type PortfolioStatus = z.infer<typeof portfolioStatusSchema>;
 
-export function publicationIssues(project: PortfolioProject) {
+type PortfolioPublication = Pick<PortfolioProject,
+  "consentStatus" | "consentEvidenceReference" | "consentScope" | "consentAuthorizedAt" |
+  "coverAssetId" | "media" | "clientName" | "clientDisplayAuthorized"
+>;
+
+export function publicationIssues(project: PortfolioPublication) {
   const issues: string[] = [];
   if (project.consentStatus !== "verified") issues.push("La autorización debe estar verificada.");
   if (!project.consentEvidenceReference.trim()) issues.push("Falta una referencia de respaldo de autorización.");

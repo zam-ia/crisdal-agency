@@ -50,3 +50,7 @@
   .stepper button { min-height: 44px; padding-inline: .1rem; }
   .stepper span { display: none; }
 }
+
+.editor .stepFields{border:0;padding:0;margin:0;min-width:0}.stepFields label small{font-size:.82rem;line-height:1.45;color:var(--os-text-muted)}.stepFields:disabled button{cursor:wait}
+
+.publicationIssues { margin: .85rem 0; padding: .7rem .9rem .7rem 1.85rem; color: var(--os-warning); background: var(--os-warning-bg); border-radius: .75rem; }

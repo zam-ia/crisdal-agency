@@ -3,9 +3,11 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { PortfolioDraftInput, PortfolioMedia, PortfolioProject, PortfolioStatus } from "../../lib/commercial/portfolio";
-import { parseExternalVideoUrl, slugifyPortfolioTitle, portfolioDraftInputSchema } from "../../lib/commercial/portfolio";
+import { parseExternalVideoUrl, slugifyPortfolioTitle, portfolioDraftInputSchema, publicationIssues } from "../../lib/commercial/portfolio";
 import type { PortfolioCategory } from "../../lib/commercial/portfolio-repository";
 import { OsDialog } from "../../ui/os/os-dialog";
+import { useUnsavedNavigation } from "../../ui/os/use-unsaved-navigation";
+import {limaDateTimeInput,limaDateTimeToIso} from "../../lib/os/form-safeguards";
 import styles from "./portfolio-admin.module.css";
 
 type LoadResult = { projects: PortfolioProject[]; categories: PortfolioCategory[]; error?: string };
@@ -79,27 +81,17 @@ export function PortfolioAdmin({ startCreating = false }: { startCreating?: bool
   const [attempted, setAttempted] = useState(false);
   const writing = useRef(false);
   const hasPending = uploads.some((item) => item.state !== "done");
-  const unsaved = dirty || hasPending || Boolean(video.url || video.title || video.alt || video.posterUrl);
-  useEffect(() => {
-    if (!unsaved) return;
-    const guard = (event: BeforeUnloadEvent) => event.preventDefault();
-    window.addEventListener("beforeunload", guard);
-    const guardPanelLink = (event: MouseEvent) => {
-      if (!(event.target instanceof Element) || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
-      const link = event.target.closest<HTMLAnchorElement>("a[href]");
-      if (!link || (link.target && link.target !== "_self") || link.origin !== location.origin || link.pathname === location.pathname) return;
-      if (window.confirm("Hay cambios sin guardar. ¿Quieres salir de este proyecto?")) return;
-      event.preventDefault();
-      event.stopPropagation();
-    };
-    window.addEventListener("click", guardPanelLink, true);
-    return () => {
-      window.removeEventListener("beforeunload", guard);
-      window.removeEventListener("click", guardPanelLink, true);
-    };
-  }, [unsaved]);
+  const pendingVideo = Boolean(video.url || video.title || video.alt || video.posterUrl);
+  const unsaved = dirty || hasPending || pendingVideo;
+  const issues = editor ? publicationIssues({ ...editor, media }) : [];
+  const leaveState = useCallback(() => ({
+    writing: writing.current,
+    warning: unsaved ? "Hay cambios sin guardar. ¿Quieres salir de este proyecto?" : "",
+  }), [unsaved]);
+  useUnsavedNavigation(leaveState);
 
   const update = (value: Partial<PortfolioDraftInput>) => {
+    if(writing.current)return;
     setEditor((current) => current ? { ...current, ...value } : null);
     setDirty(true);
   };
@@ -171,11 +163,16 @@ export function PortfolioAdmin({ startCreating = false }: { startCreating?: bool
       setNotice("Completa o retira las cargas pendientes antes de publicar.");
       return;
     }
-    if (status === "published" && (video.url || video.title || video.alt || video.posterUrl)) {
+    if (status === "published" && pendingVideo) {
       setStep(3);
       setNotice("Añade el enlace social pendiente o borra sus campos antes de publicar.");
       return;
     }
+    if (status === "published" && issues.length) {
+      setNotice(issues.join(" "));
+      return;
+    }
+
     writing.current = true;
     setBusy(true);
     try {
@@ -219,7 +216,7 @@ export function PortfolioAdmin({ startCreating = false }: { startCreating?: bool
     setNotice("");
     let failed = 0;
     try {
-      const projectId = editor.id ?? (await persist())?.id;
+      const projectId = editor.id && !dirty ? editor.id : (await persist())?.id;
       if (!projectId) return;
       for (const item of batch) {
         patchUpload(item.id, { state: "uploading", progress: 5, error: undefined });
@@ -252,10 +249,45 @@ export function PortfolioAdmin({ startCreating = false }: { startCreating?: bool
     }
   }
 
-  async function addVideo() { if (!editor?.id) { setNotice("Guarda primero el proyecto."); return; } setBusy(true); try { const parsed = parseExternalVideoUrl(video.url); if (!parsed) throw new Error("Usa una URL HTTPS compatible de Instagram, Facebook, TikTok, YouTube o Vimeo."); const payload = { ...video, url: parsed.canonicalUrl, provider: parsed.provider, embedMode: parsed.embedUrl ? video.embedMode : "external" }; const result = await api({ action: "video", id: editor.id, ...payload, posterUrl: video.posterUrl || null }); setMedia((current) => [...current, result.media]); setVideo({ url: "", posterUrl: "", alt: "", title: "", provider: "youtube", embedMode: "embed", orientation: "landscape" }); setNotice("Publicación añadida con URL canónica y proveedor verificado."); } catch (error) { setNotice(error instanceof Error ? error.message : "No se pudo añadir la publicación."); } finally { setBusy(false); } }
-  async function move(id: string, direction: -1|1) { if (!editor?.id || writing.current) return; const index = media.findIndex((entry) => entry.id === id); if (index < 0) return; const target = index + direction; if (target < 0 || target >= media.length) return; const next = [...media]; [next[index], next[target]] = [next[target], next[index]]; try { await api({ action: "reorder", id: editor.id, mediaIds: next.map((item) => item.id) }); setMedia(next); setNotice("Orden confirmado."); } catch (error) { setNotice(error instanceof Error ? error.message : "No se pudo reordenar."); } }
-  async function unlink(item: PortfolioMedia) { if (!editor?.id || !confirm(`¿Quitar ${item.alt} de este proyecto? El original privado no se elimina.`)) return; try { await api({ action: "unlink", id: editor.id, mediaId: item.id }); setMedia((current) => current.filter((x) => x.id !== item.id)); if (editor.coverAssetId === item.id) update({ coverAssetId: null }); setNotice("Medio retirado del proyecto."); } catch (error) { setNotice(error instanceof Error ? error.message : "No se pudo retirar el medio."); } }
-  async function saveCategories(next: PortfolioCategory[]) { setData((current) => ({ ...current, categories: next })); try { await api({ action: "categories", updates: next.map((item, index) => ({ id: item.id, visible: item.visible !== false, sortOrder: (index + 1) * 10 })) }); setNotice("Orden y visibilidad de categorías confirmados."); } catch (error) { setNotice(error instanceof Error ? error.message : "No se pudo guardar la configuración de categorías."); await load(); } }
+  async function runMediaMutation(work:()=>Promise<void>,fallback:string){
+    if(writing.current)return;
+    writing.current=true;setBusy(true);
+    try{await work();}catch(error){setNotice(error instanceof Error?error.message:fallback);}
+    finally{writing.current=false;setBusy(false);}
+  }
+  async function addVideo(){
+    if(!editor)return;
+    await runMediaMutation(async()=>{
+      const parsed=parseExternalVideoUrl(video.url);
+      if(!parsed)throw new Error("Usa una URL HTTPS compatible de Instagram, Facebook, TikTok, YouTube o Vimeo.");
+      const projectId=editor.id&&!dirty?editor.id:(await persist())?.id;
+      if(!projectId)return;
+      const payload={...video,url:parsed.canonicalUrl,provider:parsed.provider,embedMode:parsed.embedUrl?video.embedMode:"external"};
+      const result=await api({action:"video",id:projectId,...payload,posterUrl:video.posterUrl||null});
+      setMedia(current=>current.some(item=>item.id===result.media.id)?current:[...current,result.media]);
+      setVideo({url:"",posterUrl:"",alt:"",title:"",provider:"youtube",embedMode:"embed",orientation:"landscape"});
+      setNotice("Publicación añadida con URL canónica y proveedor verificado.");await load();
+    },"No se pudo añadir la publicación.");
+  }
+  async function move(id:string,direction:-1|1){
+    if(!editor?.id)return;
+    const index=media.findIndex(entry=>entry.id===id),target=index+direction;
+    if(index<0||target<0||target>=media.length)return;
+    const next=[...media];[next[index],next[target]]=[next[target],next[index]];
+    await runMediaMutation(async()=>{await api({action:"reorder",id:editor.id,mediaIds:next.map(item=>item.id)});setMedia(next);setNotice("Orden confirmado.");},"No se pudo reordenar.");
+  }
+  async function unlink(item:PortfolioMedia){
+    if(!editor?.id||writing.current||!confirm(`¿Quitar ${item.alt} de este proyecto? El original privado no se elimina.`))return;
+    await runMediaMutation(async()=>{
+      await api({action:"unlink",id:editor.id,mediaId:item.id});
+      setMedia(current=>current.filter(x=>x.id!==item.id));
+      if(editor.coverAssetId===item.id){setEditor(current=>current?{...current,coverAssetId:null}:null);setDirty(true);}
+      setNotice("Medio retirado del proyecto.");await load();
+    },"No se pudo retirar el medio.");
+  }
+  async function saveCategories(next:PortfolioCategory[]){
+    await runMediaMutation(async()=>{await api({action:"categories",updates:next.map((item,index)=>({id:item.id,visible:item.visible!==false,sortOrder:(index+1)*10}))});setData(current=>({...current,categories:next}));setNotice("Orden y visibilidad de categorías confirmados.");},"No se pudo guardar la configuración de categorías.");
+  }
   const preview = useMemo(() => media.find((item) => item.id === editor?.coverAssetId), [media, editor?.coverAssetId]);
 
   return <div className={styles.page}><header className={styles.header}><div><p>CRISDAL OS · CONTENIDO</p><h1>Portafolio</h1><span>Asistente guiado, medios privados y publicación con autorización.</span></div><button type="button" disabled={busy || Boolean(data.error)} onClick={() => switchProject()}>Nuevo proyecto</button></header>
@@ -265,10 +297,11 @@ export function PortfolioAdmin({ startCreating = false }: { startCreating?: bool
       if (unsaved && !window.confirm("Hay cambios o archivos sin guardar. ¿Cerrar el proyecto?")) return;
       setEditor(null); setUploads([]); setDirty(false); setAttempted(false); setVideo((current) => ({ ...current, url: "", title: "", alt: "", posterUrl: "" }));
     }}>
-      {editor && <section className={styles.editor} aria-label="Asistente de proyecto">
+      {editor && <section className={styles.editor} aria-label="Asistente de proyecto" aria-busy={busy}>
       {notice && <p className={styles.notice} role="status">{notice}</p>}
         <div className={styles.editorHead}><div><p>Paso {step + 1} de {steps.length}</p><h3>{steps[step]}</h3></div></div>
       <ol className={styles.stepper}>{steps.map((name, index) => <li key={name} data-active={index === step} data-complete={index < step}><button type="button" disabled={busy} aria-current={index === step ? "step" : undefined} aria-label={name} onClick={() => goTo(index)}>{index + 1}<span>{name}</span></button></li>)}</ol>
+      <fieldset disabled={busy} className={styles.stepFields}>
       {step === 0 ? <><div className={styles.stepGuide}><h3>¿Qué tipo de trabajo quieres mostrar?</h3><p>Elige la categoría del evento. La visibilidad y el orden de las categorías se aplican al portafolio completo.</p></div><div className={styles.choiceGrid}>{data.categories.map((category, index) => <article key={category.id} data-selected={editor.categoryId === category.id} data-hidden={category.visible === false}><button className={styles.categorySelect} type="button" onClick={() => update({ categoryId: category.id, serviceType: category.name })}><strong>{category.name}</strong><span>{category.visible === false ? "Oculta en el sitio" : "Visible en el sitio"}</span></button><div><button type="button" disabled={index === 0} onClick={() => { const next=[...data.categories];[next[index-1],next[index]]=[next[index],next[index-1]];void saveCategories(next); }}>↑</button><button type="button" disabled={index === data.categories.length-1} onClick={() => { const next=[...data.categories];[next[index+1],next[index]]=[next[index],next[index+1]];void saveCategories(next); }}>↓</button><button type="button" onClick={() => void saveCategories(data.categories.map((item) => item.id === category.id ? { ...item, visible: item.visible === false } : item))}>{category.visible === false ? "Mostrar" : "Ocultar"}</button></div></article>)}</div></> : null}
       {step === 1 ? <ProjectInformation editor={editor} update={update} attempted={attempted} /> : null}
       {step === 2 ? <>
@@ -291,8 +324,9 @@ export function PortfolioAdmin({ startCreating = false }: { startCreating?: bool
       </> : null}
       {step === 3 ? <><div className={styles.formGrid}><label>URL oficial<input value={video.url} onChange={(e) => { const parsed = parseExternalVideoUrl(e.target.value); setVideo({ ...video, url: e.target.value, provider: parsed?.provider || video.provider, embedMode: parsed?.embedUrl ? video.embedMode : "external", orientation: parsed?.contentType === "reel" ? "portrait" : video.orientation }); }}/></label><label>Título<input value={video.title} onChange={(e) => setVideo({ ...video, title: e.target.value })}/></label><label>Descripción accesible<input value={video.alt} onChange={(e) => setVideo({ ...video, alt: e.target.value })}/></label><label>Poster propio opcional<input value={video.posterUrl} onChange={(e) => setVideo({ ...video, posterUrl: e.target.value })}/></label><label>Presentación<select value={video.embedMode} onChange={(e) => setVideo({ ...video, embedMode: e.target.value as typeof video.embedMode })}><option value="embed">Cargar bajo consentimiento</option><option value="external">Solo enlace externo</option></select></label><label>Orientación<select value={video.orientation} onChange={(e) => setVideo({ ...video, orientation: e.target.value as typeof video.orientation })}><option value="landscape">16:9</option><option value="portrait">9:16 / 4:5</option><option value="square">1:1</option></select></label></div><button className={styles.primary} type="button" disabled={busy || !video.url || !video.alt || !video.title} onClick={() => void addVideo()}>Añadir publicación</button><p>Pega únicamente el enlace público original. No se descarga el video ni se solicita HTML; el recurso externo se carga solo cuando el visitante lo autoriza.</p><MediaList media={media.filter((x) => x.kind !== "image")} editor={editor} setCover={(id) => update({ coverAssetId: id })} move={move} unlink={unlink}/></> : null}
       {step === 4 ? <div className={styles.coverStep}>{preview ? preview.kind === "image" || preview.posterUrl ? <img src={preview.posterUrl || preview.url} alt={preview.alt}/> : <div><strong>{preview.title || preview.alt}</strong><p>Portada social sin miniatura propia. La ficha pública mostrará una composición segura del proveedor.</p></div> : <div><strong>Elige una portada</strong><p>Selecciona una fotografía o publicación autorizada.</p></div>}<div className={styles.coverGrid}>{media.map((item) => <button key={item.id} type="button" data-selected={editor.coverAssetId === item.id} onClick={() => update({ coverAssetId: item.id })}>{item.kind === "image" || item.posterUrl ? <img src={item.posterUrl || item.url} alt={item.alt}/> : <span className={styles.videoBadge}>{item.provider || "social"}</span>}<span>{editor.coverAssetId === item.id ? "Portada seleccionada" : item.alt}</span></button>)}</div></div> : null}
-      {step === 5 ? <fieldset><legend>Autorización de publicación</legend><p>Registra una referencia verificable; la selección no sustituye el respaldo legal.</p><div className={styles.formGrid}><label>Estado<select value={editor.consentStatus} onChange={(e) => update({ consentStatus: e.target.value as PortfolioDraftInput["consentStatus"] })}><option value="missing">Sin respaldo</option><option value="pending">Pendiente</option><option value="verified">Verificada</option><option value="revoked">Revocada</option></select></label><label>Fecha<input type="datetime-local" value={editor.consentAuthorizedAt?.slice(0, 16) || ""} onChange={(e) => update({ consentAuthorizedAt: e.target.value ? new Date(e.target.value).toISOString() : null })}/></label><label className={styles.wide}>Alcance<textarea value={editor.consentScope} onChange={(e) => update({ consentScope: e.target.value })}/></label><label className={styles.wide}>Referencia<input value={editor.consentEvidenceReference} onChange={(e) => update({ consentEvidenceReference: e.target.value })}/></label></div></fieldset> : null}
-      {step === 6 ? <div className={styles.publishReview}><h3>Revisión final</h3><dl><div><dt>Proyecto</dt><dd>{editor.title || "Pendiente"}</dd></div><div><dt>Medios</dt><dd>{media.length}</dd></div><div><dt>Portada</dt><dd>{editor.coverAssetId ? "Lista" : "Pendiente"}</dd></div><div><dt>Autorización</dt><dd>{editor.consentStatus}</dd></div></dl><label className={styles.check}><input type="checkbox" checked={editor.featured} onChange={(e) => update({ featured: e.target.checked })}/> Destacar en la portada</label><div className={styles.actions}><button type="button" disabled={busy} onClick={() => void save()}>Guardar borrador</button>{editor.id && <><button type="button" disabled={busy || hasPending || editor.consentStatus !== "verified" || !editor.coverAssetId} onClick={() => void changeStatus("published")}>Publicar</button><button type="button" disabled={busy} onClick={() => void changeStatus("draft")}>Despublicar</button><button type="button" disabled={busy} onClick={() => void changeStatus("archived")}>Archivar</button>{data.projects.some((project) => project.id === editor.id && project.status === "published") && <><a href={`/portafolio/${editor.slug}`} target="_blank" rel="noopener noreferrer">Vista pública</a><button type="button" onClick={async () => { try { await navigator.clipboard.writeText(new URL(`/portafolio/${editor.slug}`, window.location.origin).href); setNotice("Enlace copiado."); } catch { setNotice("Abre la vista pública y copia la dirección."); } }}>Copiar enlace</button></>}</>}</div></div> : null}
+      {step === 5 ? <fieldset><legend>Autorización de publicación</legend><p>Registra una referencia verificable; la selección no sustituye el respaldo legal.</p><div className={styles.formGrid}><label>Estado<select value={editor.consentStatus} onChange={(e) => update({ consentStatus: e.target.value as PortfolioDraftInput["consentStatus"] })}><option value="missing">Sin respaldo</option><option value="pending">Pendiente</option><option value="verified">Verificada</option><option value="revoked">Revocada</option></select></label><label>Fecha y hora de autorización (Perú)<small>Cuándo recibiste el permiso real, no la fecha del evento.</small><input type="datetime-local" value={limaDateTimeInput(editor.consentAuthorizedAt)} onChange={(e) => update({ consentAuthorizedAt: limaDateTimeToIso(e.target.value) })}/></label><label className={styles.wide}>¿Qué te permitieron publicar?<small>Ej.: selección de fotos del evento en nuestra web. Escribe el alcance real.</small><textarea rows={3} value={editor.consentScope} onChange={(e) => update({ consentScope: e.target.value })}/></label><label className={styles.wide}>¿Dónde se conserva el permiso?<small>Referencia interna al contrato o autorización. No pegues documentos ni datos privados.</small><input value={editor.consentEvidenceReference} onChange={(e) => update({ consentEvidenceReference: e.target.value })}/></label></div></fieldset> : null}
+      {step === 6 ? <div className={styles.publishReview}><h3>Revisión final</h3><p>Publicar requiere portada del trabajo, autorización verificada, fecha y referencia del respaldo. Si muestras el nombre del cliente, también necesitas permiso específico.</p>{(issues.length > 0 || hasPending || pendingVideo) && <ul className={styles.publicationIssues}>{issues.map((issue) => <li key={issue}>{issue}</li>)}{hasPending && <li>Completa las fotografías pendientes.</li>}{pendingVideo && <li>Añade el enlace social pendiente o borra sus campos.</li>}</ul>}<dl><div><dt>Proyecto</dt><dd>{editor.title || "Pendiente"}</dd></div><div><dt>Medios</dt><dd>{media.length}</dd></div><div><dt>Portada</dt><dd>{preview ? "Lista" : "Pendiente"}</dd></div><div><dt>Autorización</dt><dd>{editor.consentStatus}</dd></div></dl><label className={styles.check}><input type="checkbox" checked={editor.featured} onChange={(e) => update({ featured: e.target.checked })}/> Destacar en la portada</label><div className={styles.actions}><button type="button" disabled={busy} onClick={() => void save()}>Guardar borrador</button>{editor.id && <><button type="button" disabled={busy || hasPending || pendingVideo || issues.length > 0} onClick={() => void changeStatus("published")}>Publicar</button><button type="button" disabled={busy} onClick={() => void changeStatus("draft")}>Despublicar</button><button type="button" disabled={busy} onClick={() => void changeStatus("archived")}>Archivar</button>{data.projects.some((project) => project.id === editor.id && project.status === "published") && <><a href={`/portafolio/${editor.slug}`} target="_blank" rel="noopener noreferrer">Vista pública</a><button type="button" onClick={async () => { try { await navigator.clipboard.writeText(new URL(`/portafolio/${editor.slug}`, window.location.origin).href); setNotice("Enlace copiado."); } catch { setNotice("Abre la vista pública y copia la dirección."); } }}>Copiar enlace</button></>}</>}</div></div> : null}
+      </fieldset>
       <nav className={styles.wizardNav}><button type="button" disabled={busy || step === 0} onClick={() => goTo(step - 1)}>Anterior</button><button type="button" disabled={busy} onClick={() => void save()}>Guardar avance</button><button type="button" disabled={busy || step === steps.length - 1} onClick={() => goTo(step + 1)}>Siguiente</button></nav>
       </section>}
     </OsDialog>
