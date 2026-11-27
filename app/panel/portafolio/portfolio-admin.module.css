@@ -108,3 +108,5 @@
 .workspaceFooter{margin-top:1rem}
 @media(max-width:76rem){.workspaceGrid{grid-template-columns:minmax(0,1fr)}.spanWorkspace{grid-column:auto}}
 @media(max-width:42rem){.header{align-items:start}.workCard .formGrid,.workCard .information .formGrid{grid-template-columns:minmax(0,1fr)}.workspaceTop,.workspaceFooter{align-items:start}.workspaceFooter .localActions{width:100%}.workspaceFooter button{flex:1}.workCard .wide{grid-column:1/-1}.workCard .mediaList article>img{height:7rem;width:100%}}
+
+.workCard .mediaList button[aria-pressed=true]{border-color:var(--os-accent-strong);background:var(--os-highlight);color:var(--os-accent-strong)}.workCard .publishReview p{margin-bottom:.65rem}.authorizationFields{display:grid;gap:.8rem}.workCard .coverStep{min-width:0}.workCard .actions button:nth-of-type(3),.workCard .actions button:nth-of-type(4){background:var(--os-surface-muted);color:var(--os-text)}
