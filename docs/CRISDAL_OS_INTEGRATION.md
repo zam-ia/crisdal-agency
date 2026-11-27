@@ -1,5 +1,8 @@
 # Crisdal OS — Integración operativa
 
+> Estado vigente en la [entrega operativa diaria](CRISDAL_DAILY_OPERATIONS_RELEASE.md). Las 11 migraciones están aplicadas y el perfil propietario está activo. La sesión nominal y la publicación del primer trabajo se validan con el propietario.
+
+
 Revisión del 26 de noviembre de 2026. La base comercial es `bb4bd9955f2121f7aa8c2fbba9a991ae91806856`. La rama `codex/crisdal-os-integration` conserva el trabajo de `parallel/crisdal-os-integrated` en `23ad34b2e85f2b0c1fcb20f4bd22c4c2dc28d8e0` ([PR #26](https://github.com/zam-ia/crisdal-agency/pull/26)). Incluye sus aportes de finanzas y entregas de los PR #24 y #14.
 
 ## Estado por módulo

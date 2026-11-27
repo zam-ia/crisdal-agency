@@ -31,7 +31,7 @@ export function PortfolioExplorer({ projects }: { projects: PublicPortfolioCard[
     <p className={styles.resultCount} role="status">{visible.length} {visible.length === 1 ? "trabajo" : "trabajos"}</p>
     <div className={styles.grid}>
       {visible.map((project, index) => <Link href={`/portafolio/${project.slug}`} className={styles.card} key={project.slug}>
-        <div className={styles.cardVisual}>{project.image ? <img src={project.image} alt="" loading={index === 0 ? "eager" : "lazy"} decoding="async" /> : <span>CRISDAL AGENCY</span>}{project.hasVideo ? <span className={styles.videoTag}>Video</span> : null}</div>
+        <div className={styles.cardVisual}>{project.image ? <img src={project.image} alt="" loading={index === 0 ? "eager" : "lazy"} decoding="async" /> : <span className={styles.noCover}>{project.hasSocial ? "Publicación social" : "Ver detalles del trabajo"}</span>}{project.hasVideo || project.hasSocial ? <span className={styles.videoTag}>{project.hasVideo ? "Video" : "Publicación social"}</span> : null}</div>
         <div className={styles.cardCopy}><span>{project.categoryName}</span><h2>{project.title}</h2><p>{project.serviceType}{project.year ? ` · ${project.year}` : ""}</p><span className={styles.openCase} aria-hidden="true">Ver trabajo ↗</span></div>
       </Link>)}
       {!visible.length ? <div className={styles.empty}><h2>No hay trabajos para este filtro.</h2><button type="button" onClick={() => { setCategory("all"); setMediaType("all"); }}>Ver todos</button></div> : null}

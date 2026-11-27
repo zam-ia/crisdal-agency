@@ -1,11 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import {
   EVENT_TYPES, monthShift, peruToday, statusText, withinPublicHorizon,
   type EventType, type PublicDateStatus, type PublicMonth,
 } from "../../lib/availability/public-calendar";
 import { inquiryWhatsAppUrl, validateInquiry } from "../../lib/availability/inquiry";
+import type { InquiryContext } from "../../lib/availability/inquiry-context";
+import {publicSite} from "../../lib/public-site-content";
 import { WhatsAppLink } from "../whatsapp-link";
 import styles from "./public-availability.module.css";
 
@@ -16,7 +18,7 @@ const initialForm = { eventType: "Boda" as EventType, contactName: "", contactPh
 
 type FormError = Record<string,string>;
 
-export function PublicAvailabilityExperience() {
+export function PublicAvailabilityExperience({context}:{context?:InquiryContext}={}) {
   const today = peruToday();
   const startMonth = today.slice(0,7);
   const [month, setMonth] = useState(startMonth);
@@ -24,7 +26,9 @@ export function PublicAvailabilityExperience() {
   const [failed, setFailed] = useState(false);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<string | null>(null);
-  const [form, setForm] = useState(initialForm);
+  const [form, setForm] = useState(()=>({...initialForm,eventType:context?.eventType??initialForm.eventType,message:context?.reference??""}));
+  const inFlight=useRef(false);
+  const [attempt,setAttempt]=useState(0);
   const [errors, setErrors] = useState<FormError>({});
   const [sending, setSending] = useState(false);
   const [result, setResult] = useState<{ reference: string; message: string } | null>(null);
@@ -41,7 +45,7 @@ export function PublicAvailabilityExperience() {
       .catch(() => { if (!abort.signal.aborted) setFailed(true); })
       .finally(() => { if (!abort.signal.aborted) setLoading(false); });
     return () => abort.abort();
-  }, [month]);
+  }, [month,attempt]);
 
   const dayMap = useMemo(() => new Map(loaded?.month === month ? loaded.days.map((item) => [item.day, item.status] as const) : []), [loaded, month]);
   const dayCount = new Date(Date.UTC(Number(month.slice(0,4)), Number(month.slice(5,7)), 0)).getUTCDate();
@@ -50,12 +54,11 @@ export function PublicAvailabilityExperience() {
   const selectedStatus: PublicDateStatus = selected && dayMap.get(selected) ? dayMap.get(selected)! : "inquiry";
   const selectedEditable = Boolean(selected && selectedStatus !== "past" && selectedStatus !== "unavailable");
   const fields = { ...form, preferredDay: selected || "" };
-  const validForm = selectedEditable && validateInquiry(fields, today).ok;
-  const waUrl = selected ? inquiryWhatsAppUrl(fields) : null;
+  const waUrl = selected ? inquiryWhatsAppUrl(fields,publicSite.brand.whatsapp) : null;
 
   const changeMonth = (direction: -1 | 1) => {
     const next = monthShift(month, direction);
-    if (withinPublicHorizon(next, today)) {
+    if (!sending && withinPublicHorizon(next, today)) {
       setLoading(true); setFailed(false); setLoaded(null); setSelected(null); setResult(null);
       setMonth(next);
     }
@@ -68,12 +71,13 @@ export function PublicAvailabilityExperience() {
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if(inFlight.current)return;
     const validation = validateInquiry(fields, peruToday());
     if (!selectedEditable || !validation.ok) {
       setErrors(validation.ok ? { preferredDay: "Selecciona otra fecha." } : validation.errors);
       return;
     }
-    setSending(true); setRequestError(""); setErrors({});
+    inFlight.current=true;setSending(true); setRequestError(""); setErrors({});
     try {
       const response = await fetch("/api/public/date-requests", {
         method: "POST", headers: { "Content-Type": "application/json" },
@@ -87,7 +91,7 @@ export function PublicAvailabilityExperience() {
       setResult({ reference: data.reference, message: data.message || "Solicitud recibida; fecha no reservada." });
     } catch (error) {
       setRequestError(error instanceof Error ? error.message : "No pudimos registrar la consulta. Usa WhatsApp como alternativa.");
-    } finally { setSending(false); }
+    } finally { inFlight.current=false;setSending(false); }
   }
 
   return <section className={styles.stage} aria-labelledby="availability-title">
@@ -101,8 +105,8 @@ export function PublicAvailabilityExperience() {
         <div className={styles.calendarHeader}>
           <div><span className={styles.overline}>Calendario de eventos</span><h2>{monthLabel(month)}</h2></div>
           <div className={styles.monthActions}>
-            <button type="button" onClick={() => changeMonth(-1)} disabled={!withinPublicHorizon(monthShift(month,-1),today)} aria-label="Mes anterior">‹</button>
-            <button type="button" onClick={() => changeMonth(1)} disabled={!withinPublicHorizon(monthShift(month,1),today)} aria-label="Mes siguiente">›</button>
+            <button type="button" onClick={() => changeMonth(-1)} disabled={sending||!withinPublicHorizon(monthShift(month,-1),today)} aria-label="Mes anterior">‹</button>
+            <button type="button" onClick={() => changeMonth(1)} disabled={sending||!withinPublicHorizon(monthShift(month,1),today)} aria-label="Mes siguiente">›</button>
           </div>
         </div>
         <div className={styles.weekdays} aria-hidden="true">{WEEKDAYS.map((name,index)=><span key={index}>{name}</span>)}</div>
@@ -111,19 +115,20 @@ export function PublicAvailabilityExperience() {
             if (!day) return <span aria-hidden="true" key={`empty-${index}`} />;
             const status = day < today ? "past" : dayMap.get(day) || "inquiry";
             const active = selected === day;
-            return <button type="button" key={day} className={styles.day} data-status={status} data-selected={active} disabled={status === "past" || status === "unavailable" || loading} aria-pressed={active} aria-label={`${dateLabel(day)}: ${statusText(status)}`} onClick={() => { setSelected(day); setResult(null); setRequestError(""); }}>
+            return <button type="button" key={day} className={styles.day} data-status={status} data-selected={active} disabled={status === "past" || status === "unavailable" || loading || sending} aria-pressed={active} aria-label={`${dateLabel(day)}: ${statusText(status)}`} onClick={() => { setSelected(day); setResult(null); setRequestError(""); }}>
               <span>{Number(day.slice(-2))}</span><i aria-hidden="true" />
             </button>;
           })}
         </div>
-        {loading ? <p className={styles.availabilityNotice} role="status">Consultando disponibilidad…</p> : failed || loaded?.source === "unavailable" ? <p className={styles.availabilityNotice}>No podemos verificar el calendario ahora. Puedes seleccionar una fecha y consultarla.</p> : <p className={styles.availabilityNotice}>Disponibilidad sujeta a confirmación del equipo. Puede cambiar antes de contratar.</p>}
+        {loading ? <p className={styles.availabilityNotice} role="status">Consultando disponibilidad…</p> : failed || loaded?.source === "unavailable" ? <p className={styles.availabilityNotice}>No podemos verificar el calendario ahora. Puedes seleccionar una fecha y consultarla. <button type="button" className={styles.retry} disabled={sending} onClick={()=>{setLoading(true);setFailed(false);setLoaded(null);setAttempt(n=>n+1);}}>Actualizar calendario</button></p> : <p className={styles.availabilityNotice}>Disponibilidad sujeta a confirmación del equipo. Puede cambiar antes de contratar.</p>}
         <div className={styles.legend} aria-label="Leyenda"><span><i data-dot="available" /> Disponible</span><span><i data-dot="unavailable" /> Sin disponibilidad</span><span><i data-dot="inquiry" /> Consultar</span></div>
       </div>
       <div className={styles.inquiryCard}>
         <div className={styles.cardTop}><span className={styles.overline}>Tu evento comienza aquí</span><span className={styles.step}>02 / 02</span></div>
         <h2>Cuéntanos <em>tu idea.</em></h2>
         <p className={styles.summary}>{selected ? `${dateLabel(selected)} · ${statusText(selectedStatus)}` : "Selecciona un día del calendario para comenzar."}</p>
-        {result ? <div className={styles.success} role="status"><strong>Solicitud recibida</strong><p>{result.message}</p><small>Referencia: {result.reference}</small><p>Esta solicitud no constituye una reserva ni un pago.</p></div> : <form onSubmit={(event) => void submit(event)} noValidate>
+        {context?.reference&&<p className={styles.reference}>Tu referencia: {context.reference.replace(/^Me interesa (una cobertura similar a: |el paquete: )/,"")}. Puedes cambiarla en los detalles.</p>}
+        {result ? <div className={styles.success} role="status"><strong>Solicitud recibida</strong><p>{result.message}</p><small>Referencia: {result.reference}</small><p>Esta solicitud no constituye una reserva ni un pago.</p></div> : <form onSubmit={(event) => void submit(event)} noValidate><fieldset disabled={sending} className={styles.inquiryFields}>
           <div className={styles.formRow}><label>Tipo de evento<select value={form.eventType} onChange={(event) => update("eventType",event.target.value as EventType)}>{EVENT_TYPES.map((type)=><option key={type}>{type}</option>)}</select></label></div>
           <div className={styles.formRow}><label>Tu nombre<input autoComplete="name" placeholder="¿Cómo te llamas?" value={form.contactName} maxLength={120} onChange={(event)=>update("contactName", event.target.value)} required /></label>{errors.contactName?<small role="alert">{errors.contactName}</small>:null}</div>
           <div className={styles.formTwo}><div className={styles.formRow}><label>WhatsApp<input autoComplete="tel" inputMode="tel" placeholder="987 654 321" value={form.contactPhone} maxLength={32} onChange={(event)=>update("contactPhone",event.target.value)} required /></label>{errors.contactPhone?<small role="alert">{errors.contactPhone}</small>:null}</div><div className={styles.formRow}><label>Ciudad del evento<input autoComplete="address-level2" placeholder="Huancayo, Lima…" value={form.city} maxLength={120} onChange={(event)=>update("city",event.target.value)} required /></label>{errors.city?<small role="alert">{errors.city}</small>:null}</div></div>
@@ -133,10 +138,10 @@ export function PublicAvailabilityExperience() {
           {errors.preferredDay?<small className={styles.error} role="alert">{errors.preferredDay}</small>:null}
           <label className={styles.honeypot} aria-hidden="true">Dejar vacío<input tabIndex={-1} autoComplete="off" value={form.website} onChange={(event)=>update("website",event.target.value)} /></label>
           {requestError ? <p className={styles.error} role="alert">{requestError} No se ha registrado tu solicitud.</p> : null}
-          <button type="submit" className={styles.primary} disabled={sending || !validForm}>{sending ? "Registrando solicitud…" : "Solicitar esta fecha"}<span aria-hidden="true">↗</span></button>
+          <button type="submit" className={styles.primary} disabled={sending || !selectedEditable}>{sending ? "Registrando solicitud…" : "Solicitar esta fecha"}<span aria-hidden="true">↗</span></button>
           {waUrl ? <WhatsAppLink className={styles.secondary} placement="public_date_fallback" customHref={waUrl} redirectAfterClick={false}>Prefiero consultar por WhatsApp</WhatsAppLink> : <p className={styles.subtle}>Primero selecciona una fecha para continuar.</p>}
           <p className={styles.privacy}>Sin pagos ni reserva automática. Te contactamos para confirmar disponibilidad, cobertura y condiciones.</p>
-        </form>}
+        </fieldset></form>}
       </div>
     </div>
   </section>;

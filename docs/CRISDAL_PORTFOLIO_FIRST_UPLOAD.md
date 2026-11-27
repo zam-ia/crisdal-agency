@@ -1,5 +1,8 @@
 # CRISDAL — Primera publicación real en el portafolio
 
+> Estado vigente en la [entrega operativa diaria](CRISDAL_DAILY_OPERATIONS_RELEASE.md). Las 11 migraciones están aplicadas y el perfil propietario está activo. La sesión nominal y la publicación del primer trabajo se validan con el propietario.
+
+
 Este documento prepara el trabajo del administrador; **no es una publicación automática** ni prueba de que Supabase esté operativo. Basado en el código publicado de `/panel/portafolio` y en las imágenes de la publicación de Facebook compartidas por el propietario el 26-11-2026.
 
 ## Estado actual comprobable

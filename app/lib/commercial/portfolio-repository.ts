@@ -1,8 +1,8 @@
 import "server-only";
 
-import { createHash, randomUUID } from "node:crypto";
+import { randomUUID } from "node:crypto";
 import { getSupabaseAdmin } from "../supabase-admin";
-import type { PortfolioDraftInput, PortfolioMedia, PortfolioProject, PortfolioStatus } from "./portfolio";
+import { publicationIssues, type PortfolioDraftInput, type PortfolioMedia, type PortfolioProject, type PortfolioStatus } from "./portfolio";
 
 export type PortfolioCategory = { id: string; slug: string; name: string; active: boolean; visible?: boolean; sortOrder: number };
 
@@ -42,11 +42,11 @@ export class SupabasePortfolioRepository implements PortfolioRepository {
     return (data || []).map((row) => ({ id: row.id, slug: row.slug, name: row.name, active: row.active, visible: row.visible, sortOrder: row.sort_order }));
   }
 
-  private async hydrate(rows: ProjectRow[]) {
+  private async hydrate(rows: ProjectRow[], publicOnly = false) {
     if (!rows.length) return [];
     const ids = rows.map((row) => row.id);
     const [{ data: links, error: linksError }, { data: consents, error: consentError }] = await Promise.all([
-      this.db.from("portfolio_media").select("project_id,sort_order,media_assets(id,kind,public_url,poster_url,alt_text,orientation,mime_type,width,height,external_provider,external_content_type,embed_mode,title,private_storage_path,thumbnail_storage_path)").in("project_id", ids).order("sort_order"),
+      this.db.from("portfolio_media").select("project_id,sort_order,media_assets(id,kind,public_url,poster_url,alt_text,orientation,mime_type,width,height,external_provider,external_content_type,embed_mode,title,private_storage_path,thumbnail_storage_path,publication_authorized)").in("project_id", ids).order("sort_order"),
       this.db.from("publication_consents").select("project_id,status,scope,evidence_reference,authorized_at").in("project_id", ids),
     ]);
     if (linksError) throw linksError;
@@ -56,14 +56,15 @@ export class SupabasePortfolioRepository implements PortfolioRepository {
       const consent = (consents || []).find((item) => item.project_id === row.id);
       const media = await Promise.all((links || []).filter((item) => item.project_id === row.id).map(async (item) => {
         const raw = Array.isArray(item.media_assets) ? item.media_assets[0] : item.media_assets;
-        if (!raw) return null;
+        if (!raw || (publicOnly && (!raw.publication_authorized || !raw.public_url || raw.public_url.startsWith("private:")))) return null;
         let url = raw.public_url;
         let posterUrl = raw.poster_url;
-        if (raw.private_storage_path && (!url || url.startsWith("private:"))) {
+        if (!publicOnly && raw.private_storage_path && (!url || url.startsWith("private:"))) {
           const { data } = await this.db.storage.from("crisdal-private-media").createSignedUrl(raw.private_storage_path, 900);
           if (data?.signedUrl) url = data.signedUrl;
         }
-        if (raw.thumbnail_storage_path && (!posterUrl || posterUrl.startsWith("private:"))) {
+        if (publicOnly && posterUrl?.startsWith("private:")) posterUrl = null;
+        if (!publicOnly && raw.thumbnail_storage_path && (!posterUrl || posterUrl.startsWith("private:"))) {
           const { data } = await this.db.storage.from("crisdal-private-media").createSignedUrl(raw.thumbnail_storage_path, 900);
           if (data?.signedUrl) posterUrl = data.signedUrl;
         }
@@ -98,16 +99,16 @@ export class SupabasePortfolioRepository implements PortfolioRepository {
     if (categorySlug) query = query.eq("portfolio_categories.slug", categorySlug);
     const { data, error } = await query;
     if (error) throw error;
-    const projects = await this.hydrate((data || []) as unknown as ProjectRow[]);
-    return projects.filter((project) => project.consentStatus === "verified" && project.media.length > 0 && project.coverAssetId);
+    const projects = await this.hydrate((data || []) as unknown as ProjectRow[], true);
+    return projects.filter((project) => publicationIssues(project).length === 0);
   }
 
   async findPublishedBySlug(slug: string) {
     const { data, error } = await this.db.from("portfolio_projects").select(this.baseSelect(true)).eq("slug", slug).eq("status", "published").eq("portfolio_categories.visible", true).maybeSingle();
     if (error) throw error;
     if (!data) return null;
-    const project = (await this.hydrate([data as unknown as ProjectRow]))[0];
-    return project?.consentStatus === "verified" && project.media.length && project.coverAssetId ? project : null;
+    const project = (await this.hydrate([data as unknown as ProjectRow], true))[0];
+    return project && publicationIssues(project).length === 0 ? project : null;
   }
 
   async findAdminById(id: string) {
@@ -138,8 +139,12 @@ export class SupabasePortfolioRepository implements PortfolioRepository {
   }
 
   async setStatus(id: string, status: PortfolioStatus, actorUserId: string) {
-    const { error } = await this.db.from("portfolio_projects").update({ status, published_at: status === "published" ? new Date().toISOString() : null, updated_by: actorUserId }).eq("id", id);
-    if (error) throw error;
+    // Hide first on withdrawal; expose only after preparing all approved public assets.
+    const updateStatus = async () => {
+      const {error} = await this.db.from("portfolio_projects").update({status,published_at:status === "published" ? new Date().toISOString() : null,updated_by:actorUserId}).eq("id",id);
+      if(error) throw error;
+    };
+    if(status !== "published") await updateStatus();
     {
       const { data: links, error: linksError } = await this.db.from("portfolio_media").select("media_asset_id,media_assets(id,private_storage_path,storage_bucket,storage_path,mime_type)").eq("project_id", id);
       if (linksError) throw linksError;
@@ -151,7 +156,7 @@ export class SupabasePortfolioRepository implements PortfolioRepository {
           const { data: file, error: downloadError } = await this.db.storage.from("crisdal-private-media").download(asset.private_storage_path);
           if (downloadError || !file) throw downloadError || new Error("No se pudo preparar el medio público.");
           const publicPath = `portfolio/${id}/${asset.id}.webp`;
-          const { error: uploadError } = await this.db.storage.from("crisdal-public-media").upload(publicPath, file, { contentType: asset.mime_type, cacheControl: "31536000", upsert: true });
+          const { error: uploadError } = await this.db.storage.from("crisdal-public-media").upload(publicPath, file, { contentType: asset.mime_type, cacheControl: "60", upsert: true });
           if (uploadError) throw uploadError;
           const publicUrl = this.db.storage.from("crisdal-public-media").getPublicUrl(publicPath).data.publicUrl;
           const { error: updateError } = await this.db.from("media_assets").update({ storage_bucket: "crisdal-public-media", storage_path: publicPath, public_url: publicUrl, publication_authorized: true }).eq("id", asset.id);
@@ -165,13 +170,16 @@ export class SupabasePortfolioRepository implements PortfolioRepository {
         for (const link of links || []) {
           const asset = Array.isArray(link.media_assets) ? link.media_assets[0] : link.media_assets;
           if (!asset?.private_storage_path || asset.storage_bucket !== "crisdal-public-media" || !asset.storage_path) continue;
-          await this.db.storage.from("crisdal-public-media").remove([asset.storage_path]);
-          await this.db.from("media_assets").update({ storage_bucket: "crisdal-private-media", storage_path: asset.private_storage_path, public_url: `private:${asset.id}`, publication_authorized: false }).eq("id", asset.id);
+          const {error:removeError} = await this.db.storage.from("crisdal-public-media").remove([asset.storage_path]);
+          if(removeError) throw removeError;
+          const {error:resetError} = await this.db.from("media_assets").update({ storage_bucket: "crisdal-private-media", storage_path: asset.private_storage_path, public_url: `private:${asset.id}`, publication_authorized: false }).eq("id", asset.id);
+          if(resetError) throw resetError;
         }
         const { error: assetError } = await this.db.from("media_assets").update({ publication_authorized: false }).in("id", assetIds);
         if (assetError) throw assetError;
       }
     }
+    if(status === "published") await updateStatus();
     const project = await this.findAdminById(id);
     if (!project) throw new Error("Proyecto no encontrado.");
     return project;
@@ -189,25 +197,10 @@ export class SupabasePortfolioRepository implements PortfolioRepository {
     return { id, kind: input.kind||"video", url: input.url, posterUrl: input.posterUrl || null, alt: input.alt, orientation: input.orientation, sortOrder, mimeType: "text/uri-list", width: null, height: null, provider: input.provider, embedMode: input.embedMode||"embed", contentType: input.contentType||"video", title: input.title||input.alt };
   }
 
-  async addUploadedImage(projectId: string, input: { bytes: Uint8Array; mimeType: string; extension: string; alt: string; orientation: PortfolioMedia["orientation"] }, actorUserId: string): Promise<PortfolioMedia> {
-    const sha256 = createHash("sha256").update(input.bytes).digest("hex");
-    const { data: existing } = await this.db.from("media_assets").select("id,public_url,poster_url,alt_text,orientation,mime_type,width,height").eq("sha256", sha256).maybeSingle();
-    const id = existing?.id || randomUUID();
-    let publicUrl = existing?.public_url || "";
-    if (!existing) {
-      const path = `portfolio/${projectId}/${id}.${input.extension}`;
-      const { error: uploadError } = await this.db.storage.from("crisdal-public-media").upload(path, input.bytes, { contentType: input.mimeType, cacheControl: "31536000", upsert: false });
-      if (uploadError) throw uploadError;
-      publicUrl = this.db.storage.from("crisdal-public-media").getPublicUrl(path).data.publicUrl;
-      const { error: assetError } = await this.db.from("media_assets").insert({ id, kind: "image", provider: "supabase", storage_bucket: "crisdal-public-media", storage_path: path, public_url: publicUrl, alt_text: input.alt, orientation: input.orientation, mime_type: input.mimeType, size_bytes: input.bytes.byteLength, sha256, created_by: actorUserId, publication_authorized: false });
-      if (assetError) throw assetError;
-    }
-    const { data: links, error: countError } = await this.db.from("portfolio_media").select("id").eq("project_id", projectId);
-    if (countError) throw countError;
-    const sortOrder = links?.length || 0;
-    const { error: linkError } = await this.db.from("portfolio_media").upsert({ project_id: projectId, media_asset_id: id, sort_order: sortOrder }, { onConflict: "project_id,media_asset_id" });
-    if (linkError) throw linkError;
-    return { id, kind: "image", url: publicUrl, posterUrl: null, alt: input.alt, orientation: input.orientation, sortOrder, mimeType: input.mimeType, width: existing?.width || null, height: existing?.height || null };
+  async addUploadedImage(_projectId: string, _input: { bytes: Uint8Array; mimeType: string; extension: string; alt: string; orientation: PortfolioMedia["orientation"] }, _actorUserId: string): Promise<PortfolioMedia> {
+    // Retained only for repository contract compatibility: private signed upload is the only supported path.
+    void _projectId; void _input; void _actorUserId;
+    throw new Error("Utiliza el flujo privado de carga firmada.");
   }
 
   async reorderMedia(projectId: string, mediaIds: string[], actorUserId: string) {

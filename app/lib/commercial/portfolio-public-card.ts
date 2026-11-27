@@ -11,8 +11,8 @@ export function toPublicPortfolioCard(project: PortfolioProject) {
     categoryName: project.categoryName, serviceType: project.serviceType,
     year: project.year, featured: project.featured,
     image: asset ? asset.kind === "image" ? asset.url : asset.posterUrl : null,
-    hasPhoto: project.media.some((item) => item.kind === "image"),
-    hasVideo: project.media.some((item) => item.kind === "video"),
+    hasPhoto: project.media.some((item) => item.kind === "image" || (item.kind === "social" && (item.contentType === "photo" || item.contentType === "carousel"))),
+    hasVideo: project.media.some((item) => item.kind === "video" || (item.kind === "social" && (item.contentType === "reel" || item.contentType === "video"))),
     hasSocial: project.media.some((item) => item.kind === "social"),
   };
 }

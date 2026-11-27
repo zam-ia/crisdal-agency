@@ -93,7 +93,7 @@ export function publicationIssues(project: PortfolioProject) {
   if (!project.consentEvidenceReference.trim()) issues.push("Falta una referencia de respaldo de autorización.");
   if (!project.consentScope.trim()) issues.push("Falta documentar el alcance autorizado.");
   if (!project.consentAuthorizedAt) issues.push("Falta la fecha de autorización.");
-  if (!project.coverAssetId) issues.push("Falta seleccionar una portada.");
+  if (!project.coverAssetId || !project.media.some(item => item.id === project.coverAssetId)) issues.push("Falta seleccionar una portada del proyecto.");
   if (!project.media.length) issues.push("El proyecto necesita al menos un medio.");
   if (project.clientName && !project.clientDisplayAuthorized) {
     issues.push("El cliente no puede mostrarse sin autorización específica.");

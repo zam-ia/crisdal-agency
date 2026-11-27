@@ -19,3 +19,5 @@ test("spoofed providers, credentials, unsafe schemes and unsupported social path
   for(const value of ["http://instagram.com/p/ABC123/","https://instagram.com.evil.test/p/ABC123/","https://user:pass@www.youtube.com/watch?v=abc1234","javascript:alert(1)","https://www.instagram.com/crisdal/","https://www.facebook.com/crisdal"]){assert.equal(parseExternalVideoUrl(value),null,value);}
 });
 test("image signatures are verified instead of trusting the extension",()=>{assert.equal(detectedImageMime(Uint8Array.from([0xff,0xd8,0xff,0,0,0,0,0,0,0,0,0])),"image/jpeg");assert.equal(detectedImageMime(new Uint8Array(12)),null);});
+
+test("a verified project cannot use the cover ID of another project",()=>{assert.equal(canPublishPortfolioProject(project({coverAssetId:"30000000-0000-4000-8000-000000000009"})),false);});

@@ -1,3 +1,4 @@
+import { readBoundedJson } from "../../../../lib/os/bounded-json";
 import { z } from "zod";
 import { authorizePanelApi } from "../../../../lib/commercial/api-auth";
 import { portfolioDraftInputSchema, portfolioStatusSchema } from "../../../../lib/commercial/portfolio";
@@ -34,7 +35,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const auth = await authorizePanelApi(request, "portfolio.manage", true);
   if ("response" in auth) return auth.response;
-  const result = mutationSchema.safeParse(await request.json().catch(() => null));
+  const result = mutationSchema.safeParse(await readBoundedJson(request,64000).catch(() => null));
   if (!result.success) return Response.json({ error: "Datos inválidos." }, { status: 400 });
   const input = result.data;
   const repository = createPortfolioRepository();

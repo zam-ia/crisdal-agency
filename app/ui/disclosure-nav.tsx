@@ -1,7 +1,7 @@
 "use client";
 import {useEffect,useRef,type ReactNode} from "react";
 /** Native disclosure preserves built-in keyboard and expanded-state semantics. */
-export function DisclosureNav({className,label,navLabel,children}:{className:string;label:string;navLabel:string;children:ReactNode}){
+export function DisclosureNav({className,label,navLabel,children}:{className:string;label:ReactNode;navLabel:string;children:ReactNode}){
  const ref=useRef<HTMLDetailsElement>(null);
  useEffect(()=>{
    const el=ref.current;if(!el)return;

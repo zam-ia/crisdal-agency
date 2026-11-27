@@ -1,6 +1,7 @@
 import { requirePanelSession } from "../../lib/os/dal";
 import { LIMA_TIME_ZONE } from "../../lib/os/domain-schemas";
 import { PanelShell } from "../../ui/os/panel-shell";
+import { OsInstallGuide } from "../../ui/os/install-guide";
 import styles from "../panel.module.css";
 
 export const metadata = { title: "Configuración | Crisdal OS", robots: { index: false, follow: false } };
@@ -19,6 +20,7 @@ export default async function ConfigurationPage() {
         <div><dt>Vence</dt><dd>{expiry} ({LIMA_TIME_ZONE})</dd></div>
       </dl>
       <section className={styles.capabilities}><h2>Capacidades efectivas</h2><ul>{session.capabilities.map((capability) => <li key={capability}>{capability}</li>)}</ul></section>
+      <OsInstallGuide />
     </PanelShell>
   );
 }

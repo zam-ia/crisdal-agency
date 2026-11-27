@@ -17,9 +17,19 @@ export class SupabasePackageRepository implements PackageRepository{
   async setStatus(id:string,status:CommercialPackage["status"],actor:string){const{error}=await this.db.from("commercial_packages").update({status,updated_by:actor}).eq("id",id);if(error)throw error;const item=await this.findAdmin(id);if(!item)throw new Error("Paquete no encontrado.");return item;}
   async reorder(ids:string[],actor:string){await Promise.all(ids.map(async(id,sort_order)=>{const{error}=await this.db.from("commercial_packages").update({sort_order,updated_by:actor}).eq("id",id);if(error)throw error;}));}
   async createShare(packageIds:string[],message:string,actor:string){const token=newShareToken();const tokenHash=hashShareToken(token);const campaignId=randomUUID();const{data,error}=await this.db.from("package_share_links").insert({token_hash:tokenHash,campaign_id:campaignId,package_ids:packageIds,message,created_by:actor}).select("created_at").single();if(error)throw error;const all=await this.listPublished();return{token,campaignId,message,packages:all.filter((item)=>packageIds.includes(item.id)),createdAt:data.created_at};}
+  async revokeShare(campaignId: string, actor: string) {
+    const { data, error } = await this.db.from("package_share_links").update({ revoked_at: new Date().toISOString() })
+      .eq("campaign_id", campaignId).eq("created_by", actor).is("revoked_at", null).select("campaign_id").maybeSingle();
+    if (error) throw error;
+    if (data) return true;
+    const { data: previous, error: lookupError } = await this.db.from("package_share_links").select("revoked_at")
+      .eq("campaign_id", campaignId).eq("created_by", actor).maybeSingle();
+    if (lookupError) throw lookupError;
+    return Boolean(previous?.revoked_at);
+  }
   async findShare(token:string){if(!/^[A-Za-z0-9_-]{32}$/.test(token))return null;const{data,error}=await this.db.from("package_share_links").select("campaign_id,package_ids,message,created_at,revoked_at,expires_at").eq("token_hash",hashShareToken(token)).maybeSingle();if(error)throw error;if(!data||data.revoked_at||(data.expires_at&&new Date(data.expires_at)<=new Date()))return null;const all=await this.listPublished();return{token,campaignId:data.campaign_id,message:data.message,packages:all.filter((item)=>data.package_ids.includes(item.id)),createdAt:data.created_at};}
 }
-export function createPackageRepository():PackageRepository{return new SupabasePackageRepository();}
+export function createPackageRepository(){return new SupabasePackageRepository();}
 export type PublicPackageState={status:"ready"|"empty"|"unconfigured"|"unavailable";packages:PublicPackage[]};
 export async function safePublicPackages():Promise<PublicPackageState>{
   if(!process.env.SUPABASE_URL?.trim()||!process.env.SUPABASE_SECRET_KEY?.trim())return{status:"unconfigured",packages:[]};

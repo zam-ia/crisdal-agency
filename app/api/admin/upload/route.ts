@@ -1,3 +1,5 @@
+import {isTrustedOrigin} from "../../../lib/os/security";
+import {JsonBodyError,readBoundedJson} from "../../../lib/os/bounded-json";
 import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -32,6 +34,7 @@ export async function POST(request: Request) {
   if (!(await isAdminAuthenticated())) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   }
+  if (!isTrustedOrigin({origin:request.headers.get("origin"),host:request.headers.get("host"),forwardedHost:request.headers.get("x-forwarded-host")})) return NextResponse.json({error:"Origen inválido."},{status:403,headers:{"Cache-Control":"no-store"}});
   if (!isSupabaseConfigured()) {
     return NextResponse.json(
       { error: "Supabase no está configurado" },
@@ -40,8 +43,10 @@ export async function POST(request: Request) {
   }
 
   try {
-    const input = uploadRequestSchema.parse(await request.json());
-    const extension = input.fileName.split(".").pop()?.toLowerCase() || "bin";
+    const input = uploadRequestSchema.parse(await readBoundedJson(request,4096));
+    const extensions: Record<string,string> = {"image/jpeg":"jpg","image/png":"png","image/webp":"webp","image/avif":"avif","video/mp4":"mp4","video/webm":"webm","text/vtt":"vtt"};
+    const extension = extensions[input.contentType];
+    if (!extension) return NextResponse.json({error:"Formato no permitido."},{status:415});
     const safeBaseName = input.fileName
       .replace(/\.[^.]+$/, "")
       .normalize("NFKD")
@@ -66,9 +71,10 @@ export async function POST(request: Request) {
       supabaseUrl: uploadConfig.url,
       publishableKey: uploadConfig.publishableKey,
       contentType: input.contentType,
-    });
+    }, {headers:{"Cache-Control":"no-store"}});
   } catch (error) {
-    console.error("Error de carga en el panel", error);
+    if(error instanceof JsonBodyError)return NextResponse.json({error:error.message},{status:error.status,headers:{"Cache-Control":"no-store"}});
+    console.error("Error de carga en el panel");
     return NextResponse.json({ error: "No se pudo subir el archivo" }, { status: 400 });
   }
 }

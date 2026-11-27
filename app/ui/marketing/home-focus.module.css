@@ -26,3 +26,25 @@
 .hero[data-has-cover] h1{overflow-wrap:anywhere;text-wrap:balance}
 @media(max-width:48rem){.hero[data-has-cover] h1{font-size:clamp(2.4rem,9vw,4.25rem);line-height:1.02}}
 @media(hover:hover) and (pointer:fine) and (prefers-reduced-motion:no-preference){.sample{transition:border-color .2s,transform .2s}.sample:hover{border-color:#fab713;transform:translateY(-2px)}}
+
+/* Portfolio cards reserve space, keep the real frame and never load social players on the home page. */
+.portfolio.portfolio{gap:clamp(1rem,2vw,1.65rem)}
+.samples{gap:clamp(.75rem,2vw,1.35rem);align-items:stretch}
+.sample{display:flex;flex-direction:column;background:#fffaf1;color:#111210;border:1px solid #d9cdb7}
+.sample .sampleVisual{position:relative;display:grid;place-items:center;aspect-ratio:4/3;padding:0;background:#211e19;overflow:hidden}
+.sampleVisual img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;aspect-ratio:auto}
+.sample .sampleVisual>span{color:#f4eee3;text-align:center;padding:1rem;line-height:1.4}
+.sample .sampleCopy{display:flex;flex-direction:column;flex:1;gap:.45rem;padding:clamp(.9rem,2vw,1.25rem)}
+.sample .sampleCopy>span{color:#6f4e2f;font-size:.73rem;font-weight:750;letter-spacing:.06em;text-transform:uppercase}
+.sample .sampleCopy h3{margin:0;line-height:1.12;font-size:clamp(1.4rem,2.8vw,2.1rem)}
+.sample .sampleCopy p{color:#58534a;font-size:.9rem;line-height:1.5;overflow-wrap:anywhere}
+.sample .sampleCopy .sampleAction{margin-top:auto;padding-top:.45rem;color:#6f4e2f;letter-spacing:0;text-transform:none;font-size:.85rem}
+.sampleAction span{color:inherit}
+.portfolioActions{display:flex;flex-wrap:wrap;gap:.65rem;align-items:center}
+.portfolioActions>a{min-height:44px}
+.emptyPreview{display:grid;gap:.9rem;max-width:48rem;padding:clamp(1rem,3vw,1.65rem);background:#f4eee3;border:1px solid #dfd5c3;border-radius:1rem}
+.emptyPreview p{line-height:1.6;color:#58534a}
+.emptyPreview .eventTypes{font-size:.85rem;color:#6f4e2f}
+@media(min-width:48.01rem) and (max-width:64rem){.samples{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:48rem){.portfolioActions>a{width:100%}.sample .sampleCopy h3{font-size:1.55rem}}
+@media(prefers-reduced-motion:no-preference) and (hover:hover) and (pointer:fine){.sampleVisual img{transition:transform .3s ease}.sample:hover .sampleVisual img{transform:scale(1.012)}}

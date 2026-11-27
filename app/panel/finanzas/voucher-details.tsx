@@ -19,16 +19,16 @@ export function VoucherDetails({voucher,disabled}:{voucher?:FinanceVoucher;disab
  const [nextId,setNextId]=useState(rows.length);
  const change=(id:number,key:Exclude<keyof Row,"id">,value:string)=>setRows(old=>old.map(row=>row.id===id?{...row,[key]:value}:row));
  return <>
- <label>Documento utilizado<select name="sourceKind" defaultValue={voucher?.source_kind??"manual_reference"}>{Object.entries(sourceLabels).map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></label>
- <label>Descuento consignado (opcional)<input name="discount" inputMode="decimal" defaultValue={voucher?.discount_minor!=null?decimal(voucher.discount_minor):""} placeholder="Sin dato"/></label>
+ <label>Fuente de los datos<small>Usa de preferencia el comprobante original SUNAT.</small><select name="sourceKind" defaultValue={voucher?.source_kind??"sunat_original"}>{Object.entries(sourceLabels).map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></label>
+ <label>Descuento consignado (opcional)<small>Copia el valor de SUNAT. Vacío significa sin dato.</small><input name="discount" inputMode="decimal" defaultValue={voucher?.discount_minor!=null?decimal(voucher.discount_minor):""} placeholder="Sin dato"/></label>
  <details className={styles.full} open={rows.length>0||undefined}>
-   <summary>Detalle de servicios (opcional)</summary>
+   <summary>Detalle de servicios de la boleta (opcional)</summary>
    <p className={styles.hint}>Copia cantidades, valores unitarios e importes tal como aparecen en el documento. No se recalculan impuestos ni se acredita un pago.</p>
    {rows.map(row=><fieldset key={row.id} className={styles.voucherLine} disabled={disabled}><legend>Concepto</legend>
      <label>Cantidad<input name="voucherQuantity" type="number" min={1} max={10000} step={1} required value={row.quantity} onChange={e=>change(row.id,"quantity",e.target.value)}/></label>
      <label>Descripción<input name="voucherDescription" maxLength={240} required value={row.description} onChange={e=>change(row.id,"description",e.target.value)}/></label>
-     <label>Valor unitario<input name="voucherUnit" inputMode="decimal" required value={row.unit} onChange={e=>change(row.id,"unit",e.target.value)}/></label>
-     <label>Importe de línea<input name="voucherLine" inputMode="decimal" required value={row.total} onChange={e=>change(row.id,"total",e.target.value)}/></label>
+     <label>Valor unitario (sin impuestos, según documento)<input name="voucherUnit" inputMode="decimal" required value={row.unit} onChange={e=>change(row.id,"unit",e.target.value)}/></label>
+     <label>Importe de venta de la línea<input name="voucherLine" inputMode="decimal" required value={row.total} onChange={e=>change(row.id,"total",e.target.value)}/></label>
      <button type="button" onClick={()=>setRows(old=>old.filter(x=>x.id!==row.id))}>Quitar concepto</button>
    </fieldset>)}
    <button type="button" disabled={disabled||rows.length>=20} onClick={()=>{setRows(old=>[...old,{id:nextId,...blank}]);setNextId(n=>n+1);}}>+ Añadir concepto</button>

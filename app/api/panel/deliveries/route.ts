@@ -1,3 +1,4 @@
+import { readBoundedJson } from "../../../lib/os/bounded-json";
 import { z } from "zod";
 import { authorizePanelApi } from "../../../lib/commercial/api-auth";
 import { EVENT_TYPES } from "../../../lib/deliveries/domain";
@@ -71,7 +72,7 @@ export async function POST(request: Request) {
   const auth = await authorizePanelApi(request, "projects.write", true);
   if ("response" in auth) return auth.response;
   if (Number(request.headers.get("content-length") || 0) > 16000) return Response.json({ error: "Petición demasiado grande." }, { status: 413 });
-  const parsed = schema.safeParse(await request.json().catch(() => null));
+  const parsed = schema.safeParse(await readBoundedJson(request,16000).catch(() => null));
   if (!parsed.success) return Response.json({ error: "Revisa los datos enviados." }, { status: 422, headers: NO_CACHE });
   const input = parsed.data;
   try {

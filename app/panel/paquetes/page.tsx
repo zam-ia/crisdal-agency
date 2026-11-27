@@ -5,7 +5,8 @@ import { PackageAdmin } from "./package-admin";
 export const metadata = { title: "Paquetes | Crisdal OS", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
 
-export default async function PackagesAdminPage() {
+export default async function PackagesAdminPage({ searchParams }: { searchParams: Promise<{ accion?: string }> }) {
   const session = await requirePanelSession("packages.read");
-  return <PanelShell session={session} currentPath="/panel/paquetes"><PackageAdmin canWrite={session.capabilities.includes("packages.write")} /></PanelShell>;
+  const startCreating=(await searchParams).accion==="nuevo";
+  return <PanelShell session={session} currentPath="/panel/paquetes"><PackageAdmin key={String(startCreating)} startCreating={startCreating} canWrite={session.capabilities.includes("packages.write")} /></PanelShell>;
 }

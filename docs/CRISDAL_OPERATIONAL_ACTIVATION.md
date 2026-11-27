@@ -1,5 +1,8 @@
 # Crisdal Agency — Activación operativa
 
+> Estado vigente en la [entrega operativa diaria](CRISDAL_DAILY_OPERATIONS_RELEASE.md). Las 11 migraciones están aplicadas y el perfil propietario está activo. La sesión nominal y la publicación del primer trabajo se validan con el propietario.
+
+
 Fecha de corte: 26 de noviembre de 2026  
 Zona horaria: `America/Lima`
 

@@ -1,3 +1,5 @@
+import {validOperationFilter} from "../../../lib/os/operation-filters";
+import {JsonBodyError,readBoundedJson} from "../../../lib/os/bounded-json";
 import {z} from "zod";
 import {authorizePanelApi} from "../../../lib/commercial/api-auth";
 import {getSupabaseAdmin} from "../../../lib/supabase-admin";
@@ -43,6 +45,9 @@ export async function GET(request:Request){
  if(!Object.hasOwn(viewCaps,view))return respond({error:"Sección inválida."},422);
  const auth=await authorizePanelApi(request,viewCaps[view]);
  if("response" in auth)return auth.response;
+ const filter=q.get("filter")||"all";
+ if(!validOperationFilter(view,filter))return respond({error:"Filtro inválido."},422);
+ const today=limaDate();
  const offset=Number(q.get("offset")||0);
  if(!Number.isInteger(offset)||offset<0||offset>1000000)return respond({error:"Página inválida."},422);
  try{
@@ -64,8 +69,10 @@ export async function GET(request:Request){
    if(/^\+?[0-9\s().-]+$/.test(search)&&/\d/.test(search))filters.push(`phone.like.%${search.replace(/\D/g,"")}%`);
    directory.or(filters.join(","));
   }
+  if(filter==="due")directory.neq("stage","closed").lte("next_action_on",today);
+  else if(filter!=="all")directory.eq("stage",filter);
   const [clients,inquiries]=await Promise.all([
-   directory.order("created_at",{ascending:false}).order("id").range(offset,offset+49),
+   (filter==="due"?directory.order("next_action_on"):directory.order("created_at",{ascending:false})).order("id").range(offset,offset+49),
    db.from("crisdal_public_date_inquiries").select("id,contact_name,contact_phone,event_type,requested_day").neq("state","spam").order("created_at",{ascending:false}).limit(50),
   ]);
   check(clients,inquiries);
@@ -74,13 +81,33 @@ export async function GET(request:Request){
   check(links);return respond({rows:clients.data,count:clients.count,inquiries:inquiries.data,links:links.data});
  }
  if(view==="quotes"){
+  const lookup=q.get("clientLookup");
+  if(lookup!==null){
+   const term=lookup.trim();
+   if(term.length<2||term.length>80)return respond({error:"Busca entre 2 y 80 caracteres."},422);
+   const literal = term.replace(/[\\%_]/g, (character) => "\\" + character);
+   const match=await db.from("crisdal_clients").select("id,name").ilike("name","%"+literal+"%").order("name").order("id").limit(30);
+   check(match);return respond({clients:match.data});
+  }
+  const quoteQuery=db.from("crisdal_quotes").select("id,client_id,title,event_on,currency,lines,pricing,total_minor,terms,expires_on,status,revision,acceptance_reference,accepted_at,crisdal_clients(name)",{count:"exact"});
+  if(filter==="expired")quoteQuery.eq("status","sent").lt("expires_on",today);
+  else if(filter==="sent")quoteQuery.eq("status","sent").gte("expires_on",today);
+  else if(filter!=="all")quoteQuery.eq("status",filter);
   const [quotes,clients]=await Promise.all([
-   db.from("crisdal_quotes").select("id,client_id,title,event_on,currency,lines,pricing,total_minor,terms,expires_on,status,revision,acceptance_reference,accepted_at,crisdal_clients(name)",{count:"exact"}).order("created_at",{ascending:false}).order("id").range(offset,offset+49),
+   quoteQuery.order("created_at",{ascending:false}).order("id").range(offset,offset+49),
    db.from("crisdal_clients").select("id,name").order("name").limit(200),
   ]);check(quotes,clients);return respond({rows:quotes.data,count:quotes.count,clients:clients.data});
  }
  if(view==="production"){
-  const projects=await db.from("crisdal_production_projects").select("id,title,event_on,due_on,lead_user_id,stage,notes",{count:"exact"}).order("created_at",{ascending:false}).order("id").range(offset,offset+49);
+  const projectQuery=db.from("crisdal_production_projects").select("id,title,event_on,due_on,lead_user_id,stage,notes",{count:"exact"});
+  if(filter==="delivered")projectQuery.eq("stage","delivered");
+  else if(filter!=="all"){
+   projectQuery.neq("stage","delivered");
+   if(filter==="overdue")projectQuery.lt("due_on",today);
+   if(filter==="today")projectQuery.eq("due_on",today);
+   if(filter==="unassigned")projectQuery.is("lead_user_id",null);
+  }
+  const projects=await (filter==="overdue"||filter==="today"?projectQuery.order("due_on"):projectQuery.order("created_at",{ascending:false})).order("id").range(offset,offset+49);
   check(projects);
   const ids=(projects.data||[]).map(p=>p.id);
   const tasks=ids.length?await db.from("crisdal_production_tasks").select("id,project_id,title,due_on,assigned_to,done").in("project_id",ids).order("created_at").limit(1000):{data:[],error:null};
@@ -105,9 +132,7 @@ export async function GET(request:Request){
 export async function POST(request:Request){
  if(!isTrustedOrigin({origin:request.headers.get("origin"),host:request.headers.get("host"),forwardedHost:request.headers.get("x-forwarded-host")}))return respond({error:"Origen inválido."},403);
  if(!await getPanelSession())return respond({error:"Sesión requerida."},401);
- if(!request.headers.get("content-type")?.startsWith("application/json"))return respond({error:"Formato inválido."},415);
- if(Number(request.headers.get("content-length")||0)>32000)return respond({error:"Solicitud demasiado grande."},413);
- let raw:unknown;try{const s=await request.text();if(s.length>32000)return respond({error:"Solicitud demasiado grande."},413);raw=JSON.parse(s);}catch{return respond({error:"Datos inválidos."},400);}
+ let raw:unknown;try{raw=await readBoundedJson(request,32000);}catch(error){return respond({error:error instanceof JsonBodyError?error.message:"Datos inválidos."},error instanceof JsonBodyError?error.status:400);}
  const parsed=schema.safeParse(raw);if(!parsed.success)return respond({error:"Revisa los campos obligatorios y los importes."},422);
  const auth=await authorizePanelApi(request,actionCaps[parsed.data.action],true);if("response" in auth)return auth.response;
  if(parsed.data.action==="quote_accept"&&!auth.session.capabilities.includes("finance.write"))return respond({error:"La confirmación requiere permiso financiero."},403);

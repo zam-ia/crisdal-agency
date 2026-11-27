@@ -47,6 +47,7 @@ export function MarketingShell({ children }: { children: ReactNode }) {
             phone={publicSite.brand.whatsapp}
             message={publicSite.messages.general}
             className={styles.headerCta}
+            redirectAfterClick={false}
           >
             Hablemos
           </WhatsAppLink>
@@ -56,7 +57,7 @@ export function MarketingShell({ children }: { children: ReactNode }) {
       <footer className={styles.footer}>
         <div>
           <Link className={styles.footerBrand} href="/">Crisdal Agency</Link>
-          <p>Creación de contenido y producción audiovisual desde Huancayo, Perú.</p>
+          <p>Fotografía y video de eventos. Producción audiovisual desde Huancayo, Perú.</p>
         </div>
         <nav aria-label="Navegación del pie">
           {navigation.map((item) => <Link href={item.href} key={item.href}>{item.label}</Link>)}
@@ -73,6 +74,7 @@ export function MarketingShell({ children }: { children: ReactNode }) {
         phone={publicSite.brand.whatsapp}
         message={publicSite.messages.general}
         className={styles.floatingWhatsApp}
+        redirectAfterClick={false}
       >
         <Image src="/brand/whatsapp-official.png" alt="" width={30} height={30} aria-hidden="true" />
         <span>WhatsApp</span>
@@ -130,8 +132,8 @@ export function EmptyPortfolio() {
   return (
     <section className={styles.portfolioEmpty} aria-labelledby="portfolio-empty-title">
       <div>
-        <p className={styles.eyebrow}>Archivo en preparación</p>
-        <h2 id="portfolio-empty-title">¿Quieres ver un trabajo parecido a lo que buscas?</h2>
+        <p className={styles.eyebrow}>Portafolio de Crisdal</p>
+        <h2 id="portfolio-empty-title">Encuentra una referencia para tu evento.</h2>
         <p>
           Estamos preparando esta selección. Cuéntanos qué tipo de evento tienes en mente y conversemos sobre el estilo de cobertura.
         </p>
@@ -143,7 +145,7 @@ export function EmptyPortfolio() {
         message={publicSite.messages.general}
         className={styles.secondaryButton}
       >
-        Consultar por trabajos relacionados
+        Solicitar referencias
       </WhatsAppLink>
     </section>
   );

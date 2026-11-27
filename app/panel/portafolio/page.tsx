@@ -5,7 +5,8 @@ import { PortfolioAdmin } from "./portfolio-admin";
 export const metadata = { title: "Portafolio | Crisdal OS", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
 
-export default async function PortfolioAdminPage() {
+export default async function PortfolioAdminPage({ searchParams }: { searchParams: Promise<{ accion?: string }> }) {
   const session = await requirePanelSession("portfolio.manage");
-  return <PanelShell session={session} currentPath="/panel/portafolio"><PortfolioAdmin /></PanelShell>;
+  const startCreating=(await searchParams).accion==="nuevo";
+  return <PanelShell session={session} currentPath="/panel/portafolio"><PortfolioAdmin key={String(startCreating)} startCreating={startCreating} /></PanelShell>;
 }
