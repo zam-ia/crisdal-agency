@@ -320,7 +320,6 @@ export function PortfolioAdmin({ startCreating = false }: { startCreating?: bool
           {item.state !== "done" && <button type="button" disabled={busy} onClick={() => setUploads((current) => current.filter((entry) => entry.id !== item.id))}>Quitar de la cola</button>}
           {item.error && <em>{item.error}</em>}
         </article>)}</div></>}
-        
       </section>
             <section id="portfolio-social" tabIndex={-1} className={styles.workCard}><h2>Enlaces de redes sociales</h2><div className={styles.socialIntro}><span>Instagram</span><span>Facebook</span><span>TikTok</span><span>YouTube</span><span>Vimeo</span></div>
           <div className={styles.formGrid}><label className={styles.wide}>Enlace de la publicación<input type="url" placeholder="https://www.instagram.com/p/..." value={video.url} onChange={e=>{const parsed=parseExternalVideoUrl(e.target.value);setVideo({...video,url:e.target.value,provider:parsed?.provider||video.provider,embedMode:parsed?.embedUrl?"embed":"external",orientation:parsed?.contentType==="reel"||parsed?.provider==="tiktok"?"portrait":"landscape"});}}/><small>Pega la dirección original de una publicación pública, no el perfil.</small></label></div>
