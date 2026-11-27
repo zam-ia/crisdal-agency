@@ -85,8 +85,7 @@ export async function GET(request:Request){
   if(lookup!==null){
    const term=lookup.trim();
    if(term.length<2||term.length>80)return respond({error:"Busca entre 2 y 80 caracteres."},422);
-   const literal=term.replace(/[\\%_]/g,"\\  const [quotes,clients]=await Promise.all([
-   db.from("crisdal_quotes").select("id,client_id,title,event_on,currency,lines,pricing,total_minor,terms,expires_on,status,revision,acceptance_reference,accepted_at,crisdal_clients(name)",{count:"exact"}).order("created_at",{ascending:false}).order("id").range(offset,offset+49),");
+   const literal = term.replace(/[\\%_]/g, (character) => "\\" + character);
    const match=await db.from("crisdal_clients").select("id,name").ilike("name","%"+literal+"%").order("name").order("id").limit(30);
    check(match);return respond({clients:match.data});
   }

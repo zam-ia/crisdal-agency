@@ -2,7 +2,7 @@ import type {EventType} from "./public-calendar";
 import {EVENT_TYPES} from "./public-calendar";
 type QueryValue=string|string[]|undefined;
 export type InquiryContext={eventType?:EventType;reference:string};
-function clean(value:QueryValue){return typeof value==="string"?value.replace(/[\u0000-\u001f\u007f]/g," ").trim().slice(0,120):"";}
+function clean(value:QueryValue){return typeof value==="string"?value.replace(/\p{Cc}/gu," ").trim().slice(0,120):"";}
 export function eventTypeForCategory(category:string):EventType|undefined{
  const s=category.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
  if(/boda/.test(s))return "Boda";

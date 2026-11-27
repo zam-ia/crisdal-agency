@@ -30,3 +30,13 @@ test("public states expire, no demo availability is seeded, audited writes", () 
   assert.match(sql, /availability\.public\.status\.changed/);
   assert.match(sql, /-- No seed, no fabricated availability/);
 });
+
+test("blocked dates are computed over all confirmed agenda rows and only exposed to the server", () => {
+  const fn = sql.match(/create or replace function public\.crisdal_public_agenda_blocked_days[\s\S]*?\$\$;/i)?.[0] ?? "";
+  assert.match(fn, /returns table \(day date\)/i);
+  assert.match(fn, /security invoker/i);
+  assert.match(fn, /exists\s*\(/i);
+  assert.match(fn, /status = 'confirmed'/i);
+  assert.doesNotMatch(fn, /\blimit\b/i);
+  assert.match(sql, /revoke all on function public\.crisdal_public_agenda_blocked_days\(date\) from public, anon, authenticated/i);
+});

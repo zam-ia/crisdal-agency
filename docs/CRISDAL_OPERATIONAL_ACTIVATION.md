@@ -1,5 +1,8 @@
 # Crisdal Agency — Activación operativa
 
+> Estado vigente en la [entrega operativa diaria](CRISDAL_DAILY_OPERATIONS_RELEASE.md). Las 11 migraciones están aplicadas y el perfil propietario está activo. La sesión nominal y la publicación del primer trabajo se validan con el propietario.
+
+
 Fecha de corte: 26 de noviembre de 2026  
 Zona horaria: `America/Lima`
 
@@ -65,7 +68,7 @@ La CLI disponible es Supabase CLI 3.4.0. En esta versión el destino predetermin
 Antes de ejecutar SQL en producción se debe completar, en este orden:
 
 1. Autenticar la CLI con una credencial de alcance mínimo para el proyecto `emdheaugznkzskrgkyaw`, guardada en el entorno seguro, nunca en Git ni en este documento.
-2. Generar dumps independientes de roles, esquema y datos con `supabase db dump --remote=emdheaugznkzskrgkyaw`, usando las opciones confirmadas por `supabase db dump --help`.
+2. Abrir **Connect → Session pooler** en CRISDAL LANDING. Si está disponible la contraseña vigente, introducirla en un prompt local oculto de PostgreSQL. Generar dumps de roles, esquema y datos, con Auth y metadatos de Storage. La CLI ofrece `supabase db dump` si Docker está disponible. El entorno Windows también tiene los binarios nativos de PostgreSQL 17.12.
 3. Exportar por separado los objetos de Storage y registrar los buckets, privacidad, límites y políticas.
 4. Calcular hashes de los artefactos de respaldo, registrar fecha, responsable y ubicación cifrada.
 5. Restaurar el respaldo en una base aislada y comprobar conteos, relaciones, Auth, Storage y lectura del CMS.
@@ -85,7 +88,10 @@ El orden versionado actual es:
 5. `20261125200000_crisdal_events_media_promotions.sql`
 6. `20261125210000_crisdal_agenda_base.sql`
 7. `20261126120000_crisdal_public_availability_inquiries.sql`
-8. `20261126190000_crisdal_social_portfolio.sql`
+8. `20261126180000_crisdal_client_delivery_galleries.sql`
+9. `20261126190000_crisdal_social_portfolio.sql`
+10. `20261126200000_crisdal_operational_finance.sql`
+11. `20261126200100_crisdal_operational_modules.sql`
 
 La primera migración debe compararse con `landing_content_versions` y `admin_users` existentes en lugar de aplicarse a ciegas. Cada archivo posterior depende de la identidad y de objetos creados antes. El alta del propietario se realiza únicamente después de que `crisdal_os_users` exista:
 
@@ -142,5 +148,5 @@ Hasta completar esos puntos, `/entregas/[token]` no se considera una función op
 
 ## Próxima ventana operativa
 
-La siguiente acción segura es preparar el respaldo con credenciales del proyecto correcto en un entorno seguro, restaurarlo en aislamiento y ejecutar las ocho migraciones junto con pgTAP y los flujos de autenticación. Hasta entonces, producción comercial queda publicada y el CMS heredado se conserva sin cambios de esquema.
+La siguiente acción es completar el respaldo de base y archivos del proyecto, restaurarlo en aislamiento y ensayar las once migraciones y los flujos de autenticación con esa copia. Hasta entonces, el sitio comercial y el CMS heredado siguen en el despliegue actual.
 

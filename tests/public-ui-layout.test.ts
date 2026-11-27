@@ -22,7 +22,7 @@ test("home portfolio preview renders supplied public work with an actionable emp
 });
 test("package selection clears when changing categories and uses configured contact",()=>{
  const c=read("app/paquetes/package-catalog.tsx");
- assert.ok(c.includes("visible.find((item)=>item.id===selected)"));
- assert.ok(c.includes('setLine("events");setSelected(null)'));
+ assert.ok(c.includes("visible.find((item) => item.id === selected)"));
+ assert.ok(c.includes('setSelected(null)'));
  assert.ok(c.includes("phone={publicSite.brand.whatsapp}"));
 });

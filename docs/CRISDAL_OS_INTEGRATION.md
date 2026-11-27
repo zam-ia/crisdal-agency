@@ -1,5 +1,8 @@
 # Crisdal OS — Integración operativa
 
+> Estado vigente en la [entrega operativa diaria](CRISDAL_DAILY_OPERATIONS_RELEASE.md). Las 11 migraciones están aplicadas y el perfil propietario está activo. La sesión nominal y la publicación del primer trabajo se validan con el propietario.
+
+
 Revisión del 26 de noviembre de 2026. La base comercial es `bb4bd9955f2121f7aa8c2fbba9a991ae91806856`. La rama `codex/crisdal-os-integration` conserva el trabajo de `parallel/crisdal-os-integrated` en `23ad34b2e85f2b0c1fcb20f4bd22c4c2dc28d8e0` ([PR #26](https://github.com/zam-ia/crisdal-agency/pull/26)). Incluye sus aportes de finanzas y entregas de los PR #24 y #14.
 
 ## Estado por módulo
@@ -30,3 +33,12 @@ El OAuth de MCP habilita las herramientas de administración, que en esta sesió
 - Sesiones PostgreSQL independientes comprobaron aceptaciones simultáneas, cobros simultáneos de importe superior al saldo combinado, rechazo de otra moneda, unicidad de boleta y separación entre boleta y caja. Los roles `anon` y `authenticated` quedaron sin acceso directo a las tablas y RPC comprobadas. El rol de producción no pudo aceptar cotizaciones ni crear cuentas financieras.
 - En navegador local se usó una sesión nominal sintética y un servicio HTTP de prueba. Se comprobó inicio y cierre de sesión, búsqueda, historial, formulario de cotización, alta manual financiera y menú móvil. Clientes, Cotizaciones, Producción, Finanzas e Indicadores se revisaron a 320, 390, 768, 1280 y 1440 px sin desbordamiento. Se capturaron pantallas de directorio, menú móvil, cotización e indicadores durante el QA.
 - El release comercial de `main` respondió HTTP 200. La revisión de integración se envía a Preview, con entregas privadas deshabilitadas. La aceptación de la revisión y su despliegue productivo quedan condicionados a los ensayos sobre la restauración real y a los controles pendientes del módulo que se quiera activar.
+
+## Validación del release consolidado
+
+- El PR #28 incorpora la revisión de interfaz de #27 en `2f82221a833bad81e71b55e095a008c6cf30e6f4`. El seguimiento y las correcciones de activación continúan en la misma rama.
+- El calendario público calcula los días bloqueados en PostgreSQL sin recortar la agenda. Se comprobó en PostgreSQL 17.12 con 1.102 actividades confirmadas, casos que terminan a medianoche, cruces de día, actividades canceladas y pendientes, y permisos de la función. Se reejecutaron las once migraciones en el entorno aislado.
+- Las acciones rápidas del panel aparecen según los permisos. El resumen de agenda se consulta después de verificar `calendar.read`.
+- El QA a 320 px detectó que una barra de scroll vertical reducía el espacio disponible y el ancho mínimo global cortaba el borde del contenido. Se retiró ese mínimo y se comprobó la convivencia de WhatsApp y el banner de consentimiento.
+- El proyecto remoto sigue saludable, con 11 tablas públicas heredadas, una cuenta Auth, siete buckets y 21 objetos, incluido un objeto privado. El inventario es de solo lectura. La conexión directa IPv6 a PostgreSQL no respondió desde este equipo. Para el respaldo, abrir **Connect → Session pooler** en el proyecto `emdheaugznkzskrgkyaw` e introducir la credencial vigente en un prompt local oculto. La copia de archivos de Storage requiere acceso separado.
+- Merge, alta de propietario, migraciones remotas y limpieza de ramas pendientes de restauración verificada. Se conserva `recovery/pre-production-2026-11-26` y se preservan los prototipos con trabajo único.

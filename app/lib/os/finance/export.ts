@@ -5,7 +5,7 @@ type Cell=string|number|null|undefined;
 export function csvCell(value:Cell):string{
  if(typeof value==="number"){if(!Number.isFinite(value))throw new Error("Invalid amount");return String(value);}
  let text=value??"";
- if(/^[\s\u0000-\u001f]*[=+\-@]/.test(text)||/^[\t\r\n]/.test(text))text="'"+text;
+ if(/^[\s\p{Cc}]*[=+\-@]/u.test(text)||/^[\t\r\n]/.test(text))text="'"+text;
  return '"'+text.replace(/"/g,'""')+'"';
 }
 export function encodeCsv(rows:readonly (readonly Cell[])[]):string{return "\uFEFF"+rows.map(row=>row.map(csvCell).join(",")).join("\r\n")+"\r\n";}

@@ -1,0 +1,39 @@
+# Guía rápida de Crisdal OS
+
+## Tu acceso y las tareas de hoy
+
+1. Abre el [acceso del panel](https://crisdal-agency.vercel.app/panel/login) e ingresa con el correo y la contraseña de tu cuenta nominal de Crisdal OS. El CMS de la landing tiene su propio acceso en [/admin](https://crisdal-agency.vercel.app/admin).
+2. En **Hoy en Crisdal** verás la próxima actividad confirmada y los pendientes de los módulos autorizados. Una cifra en cero representa una consulta sin registros. Un mensaje de indisponibilidad indica que el panel no pudo consultar el dato.
+3. En móvil, pulsa **Crear** para abrir el formulario que necesitas. También puedes abrirlo desde el módulo. Elige **Sistema**, **Claro** u **Oscuro** en la cabecera.
+
+## Publica tu primer trabajo
+
+1. En **Portafolio → Nuevo proyecto**, elige la categoría y agrega el título, la descripción y los datos comprobados. Pulsa **Guardar avance** para continuar después.
+2. En **Galería**, selecciona varias fotos o arrástralas al recuadro. Admite JPG, PNG, WebP y AVIF de hasta 12 MB por archivo. Escribe una descripción breve de cada foto y pulsa **Subir seleccionadas**. Reintenta las que indiquen un error. La cola muestra cuáles quedaron guardadas.
+3. En **Publicaciones**, pega la URL pública original de Instagram, Facebook, TikTok, YouTube o Vimeo. Escribe título y descripción. Selecciona **Solo enlace externo** si el proveedor no admite reproducción integrada.
+4. En **Portada**, elige una imagen y ordena los medios con **Subir** y **Bajar**. En **Autorización**, registra el alcance, la fecha y la referencia documental de la divulgación web. Incluye nombres solo cuando el permiso los cubra.
+5. En **Publicación**, revisa el resumen y publica. Abre la **Vista pública** en una nueva ventana, comprueba que las imágenes cargan y usa **Copiar enlace**. Luego puedes pegarlo en WhatsApp. Usa **Despublicar** para retirar la ficha.
+
+## Prepara paquetes y consultas
+
+- En **Paquetes → Nuevo paquete**, elige primero el tipo de evento. Indica nombre, descripción, entregables aprobados y la visibilidad del precio. Guarda el borrador y publica cuando la información esté confirmada.
+- Pulsa **Compartir paquetes**, marca la selección y ajusta el mensaje. Genera el enlace y usa **Ver como cliente** para revisar la selección. Puedes copiarlo, abrir WhatsApp, compartir en otra app si el navegador ofrece esa opción o revocar el enlace generado.
+- Las consultas que llegan desde **Consultar fecha** aparecen en **Solicitudes**. Revisa la fecha y el contexto comercial antes de confirmar una cobertura.
+
+## Gestiona clientes, agenda y cotizaciones
+
+- **Clientes → Nuevo cliente.** Completa contacto, etapa y próxima acción. Usa **Seguimientos vencidos y de hoy** para revisar toda la base y priorizar respuestas.
+- **Agenda → Agendar en esta fecha.** Elige el día, registra el horario de Lima, categoría y estado. Cambia a **Confirmada** solo cuando haya un acuerdo.
+- **Cotizaciones → Nueva cotización.** Busca el cliente por nombre. Completa cantidades, precios, descuentos, tributos y vigencia. Guarda el borrador y usa **Texto para compartir con el cliente** para revisar y copiar la propuesta.
+- Registra **Aceptar** solo con respaldo de aceptación. El sistema genera la cuenta por cobrar y el proyecto. Registra el cobro cuando el dinero se haya recibido.
+
+## Registra cobros, gastos y boletas
+
+- **Finanzas → Registrar cobro.** Elige el contrato, importe, fecha y medio de pago. Comprueba que aparece en **Cobros y gastos**.
+- **Registrar gasto.** Registra el desembolso efectuado y selecciona su clase. Vincula un gasto directo al contrato correspondiente.
+- **Registrar boleta.** Emite la boleta en SUNAT y después registra en el panel la serie, correlativo e importes del comprobante emitido. Vincúlala a su cobro o contrato cuando corresponda.
+- El CSV de **Resumen** incluye totales del mes y la moneda seleccionada. Las listas exportan la página que estás viendo.
+
+## Crea un acceso en Windows
+
+Abre el panel con Chrome o Edge. Desde **Configuración**, revisa la sección de instalación. Si el navegador ofrece **Instalar**, úsalo. También puedes buscar la opción de instalar la página como aplicación en el menú del navegador. Para registrar información y confirmar guardados necesitas conexión.

@@ -113,4 +113,31 @@ grant execute on function public.crisdal_submit_public_date_inquiry(text,date,te
 grant execute on function public.crisdal_set_public_date_inquiry_state(uuid,text,uuid,text) to service_role;
 revoke all on function public.crisdal_set_public_availability_day(date,text,uuid,text) from public,anon,authenticated;
 grant execute on function public.crisdal_set_public_availability_day(date,text,uuid,text) to service_role;
+
+create index if not exists calendar_activities_confirmed_range_idx
+  on public.calendar_activities using gist (tstzrange(starts_at, ends_at, '[)'))
+  where status = 'confirmed';
+
+-- Check all confirmed ranges in Postgres. Only calendar dates leave this query.
+create or replace function public.crisdal_public_agenda_blocked_days(p_first date)
+returns table (day date)
+language sql stable security invoker set search_path = '' as $$
+  select p_first + d.offset_days
+    from pg_catalog.generate_series(0, 30) as d(offset_days)
+   where extract(day from p_first) = 1
+     and p_first + d.offset_days < p_first + interval '1 month'
+     and exists (
+       select 1 from public.calendar_activities a
+        where a.status = 'confirmed'
+          and tstzrange(a.starts_at, a.ends_at, '[)') &&
+              tstzrange(
+                (p_first + d.offset_days)::timestamp at time zone 'America/Lima',
+                (p_first + d.offset_days + 1)::timestamp at time zone 'America/Lima',
+                '[)'
+              )
+     )
+   order by 1;
+$$;
+revoke all on function public.crisdal_public_agenda_blocked_days(date) from public, anon, authenticated;
+grant execute on function public.crisdal_public_agenda_blocked_days(date) to service_role;
 commit;

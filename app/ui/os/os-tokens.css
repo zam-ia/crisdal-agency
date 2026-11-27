@@ -1,25 +1,119 @@
-:global(:root) {
-  --os-bg: #f7f7f3;
-  --os-surface: #ffffff;
-  --os-surface-muted: #eff0ed;
-  --os-text: #17181b;
-  --os-text-muted: #63666a;
-  --os-accent: #5bd0c2;
-  --os-accent-strong: #14665d;
-  --os-border: #e2e5df;
-  --os-danger: #a63838;
-  --os-focus: #0d7569;
-  --os-radius-sm: 0.75rem;
-  --os-radius-md: 1.125rem;
-  --os-radius-lg: 1.75rem;
-  --os-shadow-sm: 0 1px 2px rgb(23 24 27 / 5%);
-  --os-shadow-md: 0 18px 48px rgb(23 24 27 / 8%);
-  --os-space-1: 0.25rem;
-  --os-space-2: 0.5rem;
-  --os-space-3: 0.75rem;
+.crisdal-os-theme {
+  --os-primary: #fab713;
+  --os-primary-hover: #e7a50b;
+  --os-charcoal: #111210;
+  --os-bg: #f6f5f1;
+  --os-surface: #fff;
+  --os-surface-muted: #eeede8;
+  --os-text: #171816;
+  --os-text-muted: #61645e;
+  --os-accent: var(--os-primary);
+  --os-accent-strong: #725006;
+  --os-highlight: #fff3d0;
+  --os-border: #e5e5df;
+  --os-control-border: #9d9e95;
+  --os-focus: #785603;
+  --os-success: #197451;
+  --os-success-bg: #e9f5ed;
+  --os-warning: #86530d;
+  --os-warning-bg: #fff4d6;
+  --os-danger: #a43636;
+  --os-danger-bg: #fcece9;
+  --os-info: #345f9a;
+  --os-info-bg: #eaf0fb;
+  --os-radius-sm: .75rem;
+  --os-radius-md: 1.375rem;
+  --os-radius-lg: 1.875rem;
+  --os-shadow-sm: 0 1px 3px rgb(17 18 16 / 6%);
+  --os-shadow-md: 0 16px 42px rgb(17 18 16 / 13%);
+  --os-space-1: .25rem;
+  --os-space-2: .5rem;
+  --os-space-3: .75rem;
   --os-space-4: 1rem;
   --os-space-5: 1.5rem;
   --os-space-6: 2rem;
-  --os-mobile-nav-height: 4.75rem;
+  --os-mobile-nav-height: 4.5rem;
+  --os-font: Inter, "Segoe UI", system-ui, sans-serif;
+  min-height: 100dvh;
+  background: var(--os-bg);
+  color: var(--os-text);
+  font-family: var(--os-font);
+  color-scheme: light;
 }
 
+  .crisdal-os-theme[data-os-theme="dark"] {
+    --os-bg: #111210;
+    --os-surface: #20211e;
+    --os-surface-muted: #292a26;
+    --os-text: #f4eee3;
+    --os-text-muted: #b6b8b1;
+    --os-border: #3f4039;
+    --os-control-border: #777970;
+    --os-accent-strong: #f4c455;
+    --os-focus: #fab713;
+    --os-highlight: #3b3017;
+    --os-success: #9bd8b2;
+    --os-success-bg: #22382d;
+    --os-warning: #f3c275;
+    --os-warning-bg: #3b301c;
+    --os-danger: #f1a9a6;
+    --os-danger-bg: #422627;
+    --os-info: #adcafa;
+    --os-info-bg: #263448;
+    --os-shadow-sm: 0 1px 3px rgb(0 0 0 / 18%);
+    --os-shadow-md: 0 16px 42px rgb(0 0 0 / 35%);
+    color-scheme: dark;
+  }
+
+@media (prefers-color-scheme: dark) {
+  .crisdal-os-theme[data-os-theme="system"] {
+    --os-bg: #111210;
+    --os-surface: #20211e;
+    --os-surface-muted: #292a26;
+    --os-text: #f4eee3;
+    --os-text-muted: #b6b8b1;
+    --os-border: #3f4039;
+    --os-control-border: #777970;
+    --os-accent-strong: #f4c455;
+    --os-focus: #fab713;
+    --os-highlight: #3b3017;
+    --os-success: #9bd8b2;
+    --os-success-bg: #22382d;
+    --os-warning: #f3c275;
+    --os-warning-bg: #3b301c;
+    --os-danger: #f1a9a6;
+    --os-danger-bg: #422627;
+    --os-info: #adcafa;
+    --os-info-bg: #263448;
+    --os-shadow-sm: 0 1px 3px rgb(0 0 0 / 18%);
+    --os-shadow-md: 0 16px 42px rgb(0 0 0 / 35%);
+    color-scheme: dark;
+  }
+}
+
+.crisdal-theme-picker {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  font-size: .875rem;
+}
+.crisdal-theme-picker select {
+  min-height: 44px;
+  max-width: 100%;
+  border: 1px solid var(--os-control-border);
+  border-radius: .85rem;
+  background: var(--os-surface);
+  color: var(--os-text);
+  padding: .5rem;
+  font: inherit;
+}
+.crisdal-os-theme :is(a, button, input, select, textarea, summary):focus-visible {
+  outline: 2px solid var(--os-focus);
+  outline-offset: 3px;
+}
+
+.crisdal-os-offline { margin: 0; padding: .75rem 1rem; background: var(--os-warning-bg); color: var(--os-warning); text-align: center; }
+.crisdal-os-install { margin-block: 1rem; padding: 1rem; border: 1px solid var(--os-border); border-radius: var(--os-radius-md); background: var(--os-surface); }
+.crisdal-os-install h2 { margin-top:0; font: 620 1.25rem/1.2 var(--os-font); }
+.crisdal-os-install p { color: var(--os-text-muted); line-height:1.6; }
+.crisdal-os-install button { min-height:44px;padding:.55rem 1rem;border:0;border-radius:.8rem;background:var(--os-primary);color:var(--os-charcoal);cursor:pointer; }

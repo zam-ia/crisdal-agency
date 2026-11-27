@@ -31,7 +31,7 @@ function BreakEven({currency,fixed}:{currency:Currency;fixed:number}){
  {error&&<p role="alert" className={styles.error}>{error}</p>}
  {result&&<div className={styles.result} role="status">{result.events===null?<><strong>No hay punto de equilibrio con estos valores.</strong><p>El precio debe superar el costo variable de cada evento.</p></>:<><strong>{result.events} evento{result.events===1?"":"s"} al mes</strong><p>Meta de ventas: {money(result.revenueMinor!)}. Cada evento aporta {money(result.contributionMinor)} para cubrir los gastos fijos.</p></>}</div>}</section>;
 }
-export function FinanceClient({canWrite}:{canWrite:boolean}){
+export function FinanceClient({canWrite,initialAction}:{canWrite:boolean;initialAction?:"receipt"|"expense"|"voucher"}){
  const [currency,setCurrency]=useState<Currency>("PEN");
  const [month,setMonth]=useState(()=>limaDate().slice(0,7));
  const [tab,setTab]=useState<Tab>("summary");
@@ -41,7 +41,7 @@ export function FinanceClient({canWrite}:{canWrite:boolean}){
  const [loadError,setLoadError]=useState("");
  const [notice,setNotice]=useState("");
  const [formError,setFormError]=useState("");
- const [draft,setDraft]=useState<Draft|null>(null);
+ const [draft,setDraft]=useState<Draft|null>(()=>canWrite&&initialAction?{kind:initialAction}:null);
  const [expenseClass,setExpenseClass]=useState("direct");
  const [accountChoice,setAccountChoice]=useState("");
  const [busy,setBusy]=useState(false);
@@ -143,7 +143,7 @@ export function FinanceClient({canWrite}:{canWrite:boolean}){
  {draft.kind!=="account"&&<label className={styles.full}>Concepto o descripción<input required name="description" maxLength={240} defaultValue={selectedVoucher?.description||linkedReceipt?.description||""} placeholder={isVoucher?"Ej. Servicio de cobertura fotográfica y audiovisual":"Ej. Adelanto de cobertura audiovisual"}/></label>}
  {!isVoucher&&<label>Referencia de pago (opcional)<small>Número de operación Yape o transferencia; no es el número de boleta.</small><input name="reference" maxLength={160} placeholder="N.º operación / referencia interna"/></label>}
  </>}
- {draft.kind==="receipt"&&<label className={`${styles.full} ${styles.checkRow}`}><input type="checkbox" name="nextVoucher" value="yes"/><span><strong>Registrar también la boleta emitida en SUNAT</strong><small>Primero se guarda el cobro; después se abre la boleta con los datos del pago. No se vuelve a sumar dinero.</small></span></label>}
+ {draft.kind==="receipt"&&<div className={`${styles.full} ${styles.checkRow}`}><input id="next-voucher" type="checkbox" name="nextVoucher" value="yes" aria-describedby="next-voucher-help"/><span><label htmlFor="next-voucher">Registrar también la boleta emitida en SUNAT</label><small id="next-voucher-help">Primero se guarda el cobro. Después se abre la boleta con los datos del pago.</small></span></div>}
  {formError&&<p className={styles.error} role="alert">{formError}</p>}
  <div className={styles.formActions}><button type="submit" className={styles.primary} disabled={busy}>{busy?"Guardando…":"Guardar registro"}</button><button type="button" disabled={busy} onClick={()=>setDraft(null)}>Cancelar</button></div>
  </form></section>}

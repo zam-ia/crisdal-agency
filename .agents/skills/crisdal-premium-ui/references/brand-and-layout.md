@@ -7,9 +7,9 @@ Esta referencia es un contrato visual orientativo basado en el código del repos
 | | Web pública | Crisdal OS |
 |---|---|---|
 | Intención | emocionar, demostrar calidad, convertir | trabajar con precisión y rapidez |
-| Fondo | carbón `#111210`, matices `#1a1a17` | crema grisáceo `#f7f7f3`, blanco `#ffffff` |
-| Superficie | marfil `#f4eee3`, papel `#faf7f0` | `#eff0ed`, blanco |
-| Acento | dorado CRISDAL `#fab713`, bronce `#6f4e2f` | turquesa `#5bd0c2`, profundo `#14665d` |
+| Fondo | carbón `#111210`, matices `#1a1a17` | marfil `#f6f5f1` o carbón `#111210` según tema |
+| Superficie | marfil `#f4eee3`, papel `#faf7f0` | `#ffffff` en claro, `#20211e` y `#292a26` en oscuro |
+| Acento | dorado CRISDAL `#fab713`, bronce `#6f4e2f` | dorado `#fab713`, hover `#e7a50b`, texto carbón `#111210` |
 | Contraste | fuertes bloques de luz/oscuridad + foto | superficies tranquilas, estado operativo visible |
 | Texto | editorial evocador, CTA sencillo | operativo directo, etiquetas sin ambigüedad |
 
@@ -20,7 +20,7 @@ No usar `#fab713` como fondo de grandes bloques ni turquesa como decoración pú
 - Mantener las fuentes instaladas hasta decisión formal; el sitio usa actualmente títulos serif (Georgia) y cuerpo sans. No cargar Google Fonts adicionales por defecto.
 - Hero público: máximo 2–3 líneas con quiebres pensados, `clamp()` responsivo; primera línea y énfasis sobrios.
 - Cuerpo: `1rem` o mayor para párrafos, line-height cercano 1.5–1.75, ancho de lectura 55–75 caracteres.
-- Administración: jerarquía con 3 niveles máximo por pantalla, datos numéricos tabulares, etiquetas breves.
+- Administración: Inter, Segoe UI u otra sans instalada. Cuerpo 15–16 px, etiquetas 12–14 px, títulos con peso 500–650 y números tabulares.
 - Nunca usar mayúsculas espaciadas en párrafos largos.
 
 ## Layout y medios
@@ -37,7 +37,7 @@ No usar `#fab713` como fondo de grandes bloques ni turquesa como decoración pú
 
 **Portafolio filtros preferidos:** Bodas → Quinceaños → Corporativos → Celebraciones → Bautizos → Pedidas de mano → Sesiones → Detrás de cámaras → Negocios, con `Todos` si corresponde. No mostrar filtros vacíos como clicables sin explicar resultados.
 
-**Admin navegación:** Panel → Agenda → Portafolio → Paquetes → Consultas → módulos permitidos. Ítems según capacidades; no presentar áreas de finanzas a personal no autorizado.
+**Admin navegación:** General, Comercial, Operaciones, Finanzas y Administración en escritorio. Inicio, Agenda, Crear, Finanzas y Más en móvil. Filtrar destinos y acciones por capacidades efectivas.
 
 ## Componentes estéticos de alto valor
 
@@ -55,3 +55,9 @@ No usar `#fab713` como fondo de grandes bloques ni turquesa como decoración pú
 - Diferenciar "Solicitud enviada", "Consulta recibida", "Fecha por confirmar" y "Reserva confirmada"; son estados legales/operativos distintos.
 - Promociones: solo vigencia, descuentos y disponibilidad comprobables; no fake countdowns. Preferir banner contextual sobre popup a la apertura.
 - Nunca publicar listas de clientes, locales o fechas vinculadas a terceros sin autorización.
+
+## Tokens administrativos y ritmo
+
+- Texto claro `#171816` sobre superficies claras. Texto oscuro en tema oscuro se reemplaza por marfil `#f4eee3` y secundario `#b6b8b1`. Toma los valores definitivos de `app/ui/os/os-tokens.css`.
+- Usa una escala de 4, 8, 12, 16, 20, 24, 32, 40 y 48 px. Tarjetas de 20–24 px de radio y hasta 32 px para el próximo evento. Reservar dorado para acciones y selección. Verde, ámbar, rojo, azul y violeta señalan estados o categorías con texto.
+- Empezar con el tema del sistema. Mantener únicamente la preferencia de color en almacenamiento local. Las referencias de Focali orientan los flujos y la jerarquía. Conservar composición, marca, contenidos y recursos propios de Crisdal.

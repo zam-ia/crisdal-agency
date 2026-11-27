@@ -18,8 +18,8 @@ Esta skill es una **guía de ejecución para código**, no un prompt para genera
 ## Jerarquía y diseño
 
 - **Público:** fotografía y video de bodas, quinceaños, corporativos, celebraciones, bautizos, pedidas de mano, sesiones; después contenido empresarial. Convertir en `ver trabajo → entender cobertura → consultar fecha/solicitar propuesta`.
-- **Admin:** tareas frecuentes en máximo 2–3 decisiones: crear trabajo, subir fotos, elegir portada, revisar autorización, publicar, compartir. Bajar la carga cognitiva, no esconder funciones.
-- Diferenciar superficies: **marketing editorial oscuro** vs **Crisdal OS luminoso/turquesa**. No introducir un tercer lenguaje visual.
+- **Admin:** priorizar Inicio, Agenda, Crear, Finanzas y Más en móvil, y grupos por área en escritorio. Tareas frecuentes en máximo 2–3 decisiones: crear trabajo, subir fotos, elegir portada, revisar autorización, publicar, compartir. Bajar la carga cognitiva, no esconder funciones.
+- Diferenciar superficies: **marketing editorial oscuro** vs **Crisdal OS claro u oscuro con dorado de marca**. No introducir un tercer lenguaje visual.
 - Cada pantalla: un `h1`, una acción primaria dominante, agrupación semántica, tipografía clara y espacios deliberados. Fotos auténticas autorizadas como protagonistas.
 - Nunca inventar trabajos, descuentos, fechas libres, opiniones, reservas, precios ni entregables. No mostrar datos privados de eventos a terceros.
 - No reemplazar rutas/funciones existentes sin prueba de compatibilidad de `/admin`, `/ruta-crisdal`, Pixel/CAPI, UTMs, consentimiento y WhatsApp.

@@ -68,7 +68,7 @@ Usar el color correcto del contexto público/admin. No introducir filtros grande
 
 ## Motion
 
-- `150–250ms` para estados de botones/foco; `250–450ms` para entrada de tarjetas y lightbox.
+- `120–180ms` para botones, `180–260ms` para tarjetas y `220–320ms` para diálogos y hojas.
 - `opacity` y `transform` primero; evitar animar `height`/`width`, blur masivo, `filter` continuo y scroll hijacking.
 - Sin animaciones automáticamente repetitivas o parallax global.
 - No animar componentes si cambia el layout de forma que desplaza el CTA.
@@ -88,3 +88,9 @@ Usar el color correcto del contexto público/admin. No introducir filtros grande
 ## Medios reales
 
 No usar imágenes sintéticas como trabajos realizados. Optimizar derivadas WEB únicamente después de controlar permisos sobre los originales. No editar píxeles de rostros para producir tarjetas "más estéticas". Preferir un encuadre natural y una portada distinta si el crop corta caras.
+
+### Coordinación diaria
+
+- Inicio responde por el siguiente evento, nuevos contactos, saldos, vencimientos y accesos. Usa consultas completas para agregados. Distingue cero, ausencia de permiso y fuente inaccesible.
+- Dock flotante con safe areas y alternativa opaca. El botón Crear abre un diálogo con acciones habilitadas. Escape cierra y devuelve el foco. Las hojas de compartir muestran la selección, el mensaje y las acciones efectivamente disponibles.
+- La agenda usa hora Lima y muestra categorías reales con leyenda. La consulta pública conserva evento y paquete hasta el formulario. En una página compartida se muestran solo las opciones enviadas.

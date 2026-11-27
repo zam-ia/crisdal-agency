@@ -20,4 +20,4 @@ High-priority remaining gates:
 6. Preserve existing consent semantics and WhatsApp paths; verify public form/marketing body limits and valid clients. No real client data in fixtures.
 7. Do not treat this targeted source review as exhaustive pentest or completed infrastructure activation.
 
-Integrate PR #29 into PR #28 after QA; no separate release branch needed. 
+Integrate PR #29 into PR #28 after QA; no separate release branch needed.
