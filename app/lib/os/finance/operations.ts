@@ -37,8 +37,8 @@ export function receiptReference(reference: string | null, method: string, reque
   return reference || (method === "cash" ? "EF-" + requestId.replaceAll("-", "").toUpperCase() : null);
 }
 
-export function receiptVoucherNumber(reference: string | null | undefined) {
-  const match = /^([A-Z0-9]{4})\s*-\s*(\d{1,8})$/i.exec(reference?.trim() ?? "");
+export function parseVoucherNumber(value: string) {
+  const match = /^([A-Z0-9]{4})\s*-\s*(\d{1,8})$/i.exec(value.trim());
   if (!match || Number(match[2]) === 0) return null;
   const { series } = normalizeVoucher(match[1], match[2]);
   return { series, number: match[2] };

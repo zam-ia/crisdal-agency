@@ -14,6 +14,7 @@
   --os-highlight: #fff3d0;
   --os-border: #e5e5df;
   --os-control-border: #9d9e95;
+  --os-scroll-thumb: #75786f;
   --os-focus: #785603;
   --os-success: #197451;
   --os-success-bg: #e9f5ed;
@@ -53,6 +54,7 @@
     --os-text-muted: #c0c1b7;
     --os-border: #4b4d43;
     --os-control-border: #808278;
+    --os-scroll-thumb: #97998d;
     --os-accent-strong: #f4c455;
     --os-focus: #fab713;
     --os-highlight: #3b3017;
@@ -80,6 +82,7 @@
     --os-text-muted: #c0c1b7;
     --os-border: #4b4d43;
     --os-control-border: #808278;
+    --os-scroll-thumb: #97998d;
     --os-accent-strong: #f4c455;
     --os-focus: #fab713;
     --os-highlight: #3b3017;

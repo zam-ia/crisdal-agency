@@ -37,7 +37,7 @@ export function AppShell({ children, navigation, quickActions }: {
     return item ? <NavigationLink item={item} /> : <span aria-hidden="true" />;
   }
   const brand = <Link className={styles.brand} href="/panel" aria-label="Crisdal OS, inicio" data-sidebar-tooltip="Crisdal OS">
-    <Image src="/brand/crisdal-imagotipo.png" width={31} height={34} alt="" /><span>Crisdal OS</span>
+    <Image src="/brand/crisdal-symbol.svg" width={34} height={32} alt="" /><span>Crisdal OS</span>
   </Link>;
   const sidebar = <>
       {quickActions.length ? <QuickActions sidebar actions={quickActions} className={styles.create + " " + styles.desktopCreate} /> : <span aria-hidden="true" />}

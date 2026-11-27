@@ -159,7 +159,7 @@
     scrollbar-gutter: stable;
     overscroll-behavior: contain;
     scrollbar-width: thin;
-    scrollbar-color: var(--os-control-border) transparent;
+    scrollbar-color: var(--os-scroll-thumb) var(--os-surface-muted);
     scroll-padding-block: 4rem .4rem;
   }
   .sidebarHead {

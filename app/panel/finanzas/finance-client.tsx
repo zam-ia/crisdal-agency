@@ -1,6 +1,6 @@
 "use client";
 import { useCallback,useEffect,useRef,useState } from "react";
-import { estimateBreakEven,formatMoney,limaDate,parseMoney,receiptReference,receiptVoucherNumber, type FinanceAccount,type FinanceMovement,type FinanceSnapshot,type FinanceVoucher } from "../../lib/os/finance/operations";
+import { estimateBreakEven,formatMoney,limaDate,parseMoney,receiptReference,parseVoucherNumber, type FinanceAccount,type FinanceMovement,type FinanceSnapshot,type FinanceVoucher } from "../../lib/os/finance/operations";
 import styles from "./finance.module.css";
 import {financeExport} from "../../lib/os/finance/export";
 import {canReuseFinanceWrite,markFinanceWriteUncertain,type PendingFinanceWrite} from "../../lib/os/form-safeguards";
@@ -9,7 +9,7 @@ import { VoucherDetails, readVoucherItems, sourceLabels } from "./voucher-detail
 
 type Currency="PEN"|"USD";
 type Tab="summary"|"accounts"|"movements"|"vouchers";
-type Draft={kind:"account"|"adjust"|"receipt"|"refund"|"expense"|"voucher"|"correct"|"voidMovement"|"voidVoucher";account?:FinanceAccount;movement?:FinanceMovement;voucher?:FinanceVoucher};
+type Draft={kind:"account"|"adjust"|"receipt"|"refund"|"expense"|"voucher"|"correct"|"voidMovement"|"voidVoucher";account?:FinanceAccount;movement?:FinanceMovement;voucher?:FinanceVoucher;voucherNumber?:NonNullable<ReturnType<typeof parseVoucherNumber>>};
 const methodLabels:Record<string,string>={cash:"Efectivo",transfer:"Transferencia",yape:"Yape",plin:"Plin",card:"Tarjeta",other:"Otro"};
 const movementLabels:Record<string,string>={receipt:"Cobro",refund:"Devolución",expense:"Gasto"};
 const expenseLabels:Record<string,string>={direct:"Directo del evento",fixed:"Fijo del negocio",other:"Otro gasto"};
@@ -46,6 +46,7 @@ export function FinanceClient({canWrite,initialAction}:{canWrite:boolean;initial
  const [draft,setDraft]=useState<Draft|null>(()=>canWrite&&initialAction?{kind:initialAction}:null);
  const [expenseClass,setExpenseClass]=useState("direct");
  const [accountChoice,setAccountChoice]=useState("");
+ const [continueToVoucher,setContinueToVoucher]=useState(false);
  const [busy,setBusy]=useState(false);
  const [exporting,setExporting]=useState(false);
  const retry=useRef<PendingFinanceWrite|null>(null);
@@ -85,7 +86,7 @@ export function FinanceClient({canWrite,initialAction}:{canWrite:boolean;initial
    formDirty.current = false;
    setFormError("");
  }
- function open(next:Draft){if(!mayDiscard())return;formDirty.current=false;setDraft(next);setExpenseClass("direct");setAccountChoice(next.account?.id||next.voucher?.account_id||next.movement?.account_id||"");setNotice("");setFormError("");retry.current=null;}
+ function open(next:Draft){if(!mayDiscard())return;formDirty.current=false;setContinueToVoucher(false);setDraft(next);setExpenseClass("direct");setAccountChoice(next.account?.id||next.voucher?.account_id||next.movement?.account_id||"");setNotice("");setFormError("");retry.current=null;}
  function switchFilters(nextCurrency:Currency,nextMonth:string){if(exporting||!mayDiscard())return;formDirty.current=false;retry.current=null;setCurrency(nextCurrency);setMonth(nextMonth);setOffsets({accountOffset:0,movementOffset:0,voucherOffset:0});setDraft(null);setNotice("");}
  function page(field:keyof typeof offsets,value:number){if(!mayDiscard())return;formDirty.current=false;retry.current=null;setOffsets(old=>({...old,[field]:value}));setDraft(null);}
  async function submit(e:React.FormEvent<HTMLFormElement>){
@@ -99,6 +100,14 @@ export function FinanceClient({canWrite,initialAction}:{canWrite:boolean;initial
      else if(draft.kind==="voucher"||draft.kind==="correct")payload={action:draft.kind==="correct"?"correct_voucher":"voucher",...(draft.kind==="correct"?{id:draft.voucher?.id,reason:s("reason")}:{}),accountId:optional("accountId"),receiptId:accountChoice?optional("receiptId"):null,currency,issuerRuc:s("issuerRuc"),series:s("series"),number:s("number"),date:s("date"),amountMinor:parseMoney(s("amount")),igvMinor:s("igv")?parseMoney(s("igv")):null,discountMinor:s("discount")?parseMoney(s("discount")):null,sourceKind:s("sourceKind"),items:readVoucherItems(d),customer:s("customer"),documentType:optional("documentType"),documentNumber:optional("documentNumber"),description:s("description")};
      else payload={action:"movement",kind:draft.kind,currency,accountId:draft.kind==="expense"&&expenseClass!=="direct"?null:optional("accountId"),amountMinor:parseMoney(s("amount")),date:s("date"),method:s("method"),expenseClass:draft.kind==="expense"?expenseClass:null,description:s("description"),reference:optional("reference")};
    }catch(e){setFormError(e instanceof Error?e.message:"Importe inválido.");return;}
+   const nextVoucher = draft.kind === "receipt" && d.get("nextVoucher") === "yes";
+   const sunatNumber = nextVoucher ? s("sunatNumber") : "";
+   const voucherNumber = parseVoucherNumber(sunatNumber);
+   if (sunatNumber && !voucherNumber) {
+     setFormError("Escribe la serie y el correlativo de la boleta como figuran en SUNAT. Ejemplo: EB01-27.");
+     return;
+   }
+
    const body=JSON.stringify(payload);
    if(!canReuseFinanceWrite(retry.current,body)){setFormError("El guardado anterior no fue confirmado. Reintenta con exactamente los mismos datos o revisa tus registros antes de iniciar otra operación.");return;}
    if(retry.current?.body!==body)retry.current={body,id:crypto.randomUUID(),uncertain:false};
@@ -124,9 +133,9 @@ export function FinanceClient({canWrite,initialAction}:{canWrite:boolean;initial
      if(!result.ok||typeof result.id!=="string")throw new Error("No se confirmó el guardado.");
      formDirty.current=false;
      setNotice(draft.kind==="voucher"||draft.kind==="correct"?"Boleta registrada internamente. No se ha enviado nada a SUNAT.":"Registro guardado correctamente.");
-     if(draft.kind==="receipt"&&d.get("nextVoucher")==="yes"){
+     if(nextVoucher){
        const movement:FinanceMovement={id:result.id,account_id:String(payload.accountId),kind:"receipt",currency,amount_minor:Number(payload.amountMinor),occurred_on:String(payload.date),method:String(payload.method),expense_class:null,description:String(payload.description),reference:payload.reference?String(payload.reference):null,status:"posted",void_reason:null};
-       setDraft({kind:"voucher",movement,account:current?.accounts.find(a=>a.id===movement.account_id)});setAccountChoice(movement.account_id||"");setTab("vouchers");setNotice("Cobro guardado. Ahora registra la boleta SUNAT, si ya fue emitida.");
+       setDraft({kind:"voucher",movement,account:current?.accounts.find(a=>a.id===movement.account_id),voucherNumber:voucherNumber??undefined});setAccountChoice(movement.account_id||"");setTab("vouchers");setNotice("Cobro guardado. Ahora registra la boleta SUNAT, si ya fue emitida.");
      } else {
        if (generatedReference) setNotice("Cobro guardado. Referencia de efectivo: " + payload.reference);
        setDraft(null);
@@ -164,7 +173,7 @@ export function FinanceClient({canWrite,initialAction}:{canWrite:boolean;initial
  const linkedReceipt=draft?.kind==="voucher"&&draft.movement?.kind==="receipt"?draft.movement:undefined;
  const chosenAccount=current?.accounts.find(a=>a.id===accountChoice);
  const selectedVoucher=draft?.voucher;
- const suggestedVoucher=receiptVoucherNumber(linkedReceipt?.reference);
+ const suggestedVoucher=draft?.voucherNumber;
  const isVoucher=draft?.kind==="voucher"||draft?.kind==="correct";
  const isVoid=draft?.kind==="voidMovement"||draft?.kind==="voidVoucher";
  return <div className={styles.page}>
@@ -185,10 +194,19 @@ export function FinanceClient({canWrite,initialAction}:{canWrite:boolean;initial
  {isVoucher?<><label>RUC de Crisdal (emisor)<small>Los 11 dígitos del emisor de la boleta, no del cliente.</small><input required name="issuerRuc" inputMode="numeric" pattern="[0-9]{11}" maxLength={11} defaultValue={selectedVoucher?.issuer_ruc||""}/></label><div className={styles.voucherNumber}><label>Serie *<input required name="series" maxLength={4} placeholder="EB01" defaultValue={selectedVoucher?.series ?? suggestedVoucher?.series ?? ""}/><small>Parte anterior al guion.</small></label><label>Número *<input required name="number" inputMode="numeric" pattern="[0-9]{1,8}" maxLength={8} placeholder="1" defaultValue={selectedVoucher?.number ?? suggestedVoucher?.number ?? ""}/><small>Parte posterior al guion.</small></label><p>Ejemplo: EB01-1</p></div><label>IGV consignado (opcional)<small>Copia el importe exacto. Cero si dice 0.00; vacío si no figura.</small><input name="igv" inputMode="decimal" defaultValue={selectedVoucher?.igv_minor!=null?decimal(selectedVoucher.igv_minor):""}/></label><label>Cliente según la boleta<small>Nombre o razón social tal como aparece en SUNAT. Si cambias de contrato, verifica este dato antes de guardar.</small><input name="customer" maxLength={160} defaultValue={selectedVoucher?.customer||draft.account?.customer||chosenAccount?.customer||""}/></label><label>Tipo de documento (si figura)<select name="documentType" defaultValue={selectedVoucher?.document_type||""}><option value="">No consignado</option>{["DNI","RUC","CE","PASSPORT","OTHER"].map(v=><option key={v}>{v}</option>)}</select></label><label>DNI / RUC / otro número (si figura)<small>Identificación del comprador, no del emisor.</small><input name="documentNumber" maxLength={30} defaultValue={selectedVoucher?.document_number||""}/></label><label>Vincular con cobro registrado (opcional)<small>Lista del mes y página de movimientos elegidos. Si el cobro es anterior, selecciónalo desde Cobros y gastos de ese mes. La fecha de emisión puede ser distinta.</small><select key={accountChoice} name="receiptId" defaultValue={linkedReceipt&&linkedReceipt.account_id===accountChoice?linkedReceipt.id:selectedVoucher?.account_id===accountChoice?selectedVoucher?.receipt_id||"":""} disabled={!accountChoice}><option value="">Sin vincular</option>{linkedReceipt&&linkedReceipt.account_id===accountChoice&&!current.movements.some(m=>m.id===linkedReceipt?.id)&&<option value={linkedReceipt.id}>Cobro recién registrado · {money(linkedReceipt.amount_minor)}</option>}{selectedVoucher?.receipt_id&&selectedVoucher.account_id===accountChoice&&!current.movements.some(m=>m.id===selectedVoucher.receipt_id)&&<option value={selectedVoucher.receipt_id}>Cobro asociado anteriormente</option>}{current.movements.filter(m=>m.kind==="receipt"&&m.status==="posted"&&m.account_id===accountChoice).map(m=><option value={m.id} key={m.id}>{m.occurred_on} · {money(m.amount_minor)} · {m.description}</option>)}</select></label><VoucherDetails voucher={selectedVoucher} disabled={busy}/>{draft.kind==="correct"&&<label>Motivo de corrección interna<textarea name="reason" required minLength={3} maxLength={240}/></label>}<p className={styles.full}>Copia los datos tal como aparecen en SUNAT. No se calcula IGV ni se genera un comprobante. Registrar la boleta no registra un cobro.</p></>:draft.kind!=="account"?<label>Medio de pago<select name="method">{Object.entries(methodLabels).map(([v,l])=><option key={v} value={v}>{l}</option>)}</select></label>:null}
  {draft.kind!=="account"&&<label className={styles.full}>Concepto o descripción<input required name="description" maxLength={240} defaultValue={selectedVoucher?.description||linkedReceipt?.description||""} placeholder={isVoucher?"Ej. Servicio de cobertura fotográfica y audiovisual":"Ej. Adelanto de cobertura audiovisual"}/></label>}
   {!isVoucher && (draft.kind === "receipt"
-   ? <label>Boleta SUNAT (si ya fue emitida)<small>Copia la serie y el correlativo que figuran en SUNAT. Si el pago fue en efectivo y dejas este campo vacío, se genera una referencia interna al guardar.</small><input name="reference" maxLength={160} placeholder="Ej. EB01-27"/></label>
+   ? <label>Referencia del pago (opcional)<small>Ingresa el número de operación de Yape, Plin o transferencia. Si el cobro fue en efectivo y lo dejas vacío, se genera una referencia interna.</small><input name="reference" maxLength={160} placeholder="N.º de operación"/></label>
    : <label>Referencia de pago (opcional)<input name="reference" maxLength={160} placeholder="N.º de operación"/></label>)}
  </>}
- {draft.kind==="receipt"&&<div className={`${styles.full} ${styles.checkRow}`}><input id="next-voucher" type="checkbox" name="nextVoucher" value="yes" aria-describedby="next-voucher-help"/><span><label htmlFor="next-voucher">Registrar también la boleta emitida en SUNAT</label><small id="next-voucher-help">Primero se guarda el cobro. Después se abre la boleta con los datos del pago.</small></span></div>}
+ {draft.kind === "receipt" && <>
+   <div className={styles.full + " " + styles.checkRow}>
+     <input id="next-voucher" type="checkbox" name="nextVoucher" value="yes" checked={continueToVoucher} onChange={(event) => setContinueToVoucher(event.target.checked)} aria-describedby="next-voucher-help" />
+     <span><label htmlFor="next-voucher">Registrar también la boleta emitida en SUNAT</label><small id="next-voucher-help">Primero se guarda el cobro. Después se abre la boleta con los datos del pago.</small></span>
+   </div>
+   {continueToVoucher && <label>Número de boleta SUNAT (opcional)
+     <small>Precarga la serie y el correlativo en el siguiente formulario.</small>
+     <input name="sunatNumber" maxLength={20} placeholder="Ej. EB01-27" />
+   </label>}
+ </>}
  {formError&&<p className={styles.error} role="alert">{formError}</p>}
  <div className={styles.formActions}><button type="submit" className={styles.primary} disabled={busy}>{busy?"Guardando…":"Guardar registro"}</button><button type="button" disabled={busy} onClick={closeDraft}>Cancelar</button></div>
  </fieldset></form></section>}

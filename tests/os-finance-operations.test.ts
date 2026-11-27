@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { estimateBreakEven, limaDate, normalizeVoucher, parseMoney, receiptReference, receiptVoucherNumber, validateVoucherDetail } from "../app/lib/os/finance/operations";
+import { estimateBreakEven, limaDate, normalizeVoucher, parseMoney, receiptReference, parseVoucherNumber, validateVoucherDetail } from "../app/lib/os/finance/operations";
 
 test("monetary input is exact in cents, accepts decimal comma, rejects ambiguous formats",()=>{
  assert.equal(parseMoney("1190.10"),119010);
@@ -52,9 +52,10 @@ test("receipt keeps its SUNAT reference or generates a stable cash code from the
  assert.equal(receiptReference(null, "transfer", requestId), null);
 });
 
-test("voucher prefill preserves the supplied correlativo and ignores internal references", () => {
- assert.deepEqual(receiptVoucherNumber(" eb01 - 0027 "), {series:"EB01",number:"0027"});
- assert.equal(receiptVoucherNumber("EF-11111111111141118111111111111111"), null);
- assert.equal(receiptVoucherNumber("EB01-0"), null);
- assert.equal(receiptVoucherNumber("Refer. 33"), null);
+test("voucher prefill preserves the supplied correlativo and rejects invalid input", () => {
+ assert.deepEqual(parseVoucherNumber(" eb01 - 0027 "), {series:"EB01",number:"0027"});
+ assert.equal(parseVoucherNumber("EF-11111111111141118111111111111111"), null);
+ assert.equal(parseVoucherNumber("EB01-0"), null);
+ assert.equal(parseVoucherNumber("Refer. 33"), null);
+ assert.equal(parseVoucherNumber(""), null);
 });
