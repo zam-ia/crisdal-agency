@@ -3,6 +3,7 @@ import { z } from "zod";
 import { authorizePanelApi } from "../../../lib/commercial/api-auth";
 import { getSupabaseAdmin } from "../../../lib/supabase-admin";
 import { fingerprint } from "../../../lib/os/security";
+import { getFinanceIssuer } from "../../../lib/os/finance/issuer";
 import { CURRENCIES, EXPENSE_CLASSES, FINANCE_LIMIT, PAYMENT_METHODS, limaDate, normalizeVoucher, VOUCHER_SOURCES, validateVoucherDetail } from "../../../lib/os/finance/operations";
 
 export const runtime = "nodejs";
@@ -18,8 +19,9 @@ const day = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine(v => {
 const date = day.refine(v=>v<=limaDate(),"No se permite una fecha futura");
 const reason = z.string().trim().min(3).max(240);
 const base = { requestId: uuid };
+const issuerRuc = z.string().regex(/^\d{11}$/);
 const voucher = {
-  accountId: optionalId, receiptId: optionalId, issuerRuc:z.string().regex(/^\d{11}$/),
+  accountId: optionalId, receiptId: optionalId, issuerRuc:issuerRuc.optional(),
   series:z.string().min(1).max(8), number:z.string().min(1).max(16),
   date, currency:z.enum(CURRENCIES), amountMinor:amount,
   igvMinor:z.number().int().nonnegative().max(FINANCE_LIMIT).nullable().optional(),
@@ -32,12 +34,13 @@ const voucher = {
   description:z.string().trim().min(1).max(240),
 };
 const inputSchema=z.discriminatedUnion("action",[
+  z.object({...base,action:z.literal("receipt_with_voucher"),receipt:z.object({kind:z.literal("receipt"),accountId:uuid,currency:z.enum(CURRENCIES),amountMinor:amount,date,method:z.enum(PAYMENT_METHODS),expenseClass:z.null().optional(),description:z.string().trim().min(1).max(240),reference:z.string().trim().max(160).nullable().optional()}),voucher:z.object(voucher).omit({accountId:true,receiptId:true,currency:true}).extend({customer:z.string().trim().min(1).max(160)})}),
   z.object({...base,action:z.literal("account"),title:z.string().trim().min(1).max(160),customer:z.string().trim().min(1).max(160),date,eventDate:day.nullable().optional(),currency:z.enum(CURRENCIES),amountMinor:amount,reference:z.string().trim().max(160).nullable().optional()}),
   z.object({...base,action:z.literal("adjust_account"),accountId:uuid,amountMinor:amount,reason}),
   z.object({...base,action:z.literal("movement"),kind:z.enum(["receipt","refund","expense"]),accountId:optionalId,currency:z.enum(CURRENCIES),amountMinor:amount,date,method:z.enum(PAYMENT_METHODS),expenseClass:z.enum(EXPENSE_CLASSES).nullable().optional(),description:z.string().trim().min(1).max(240),reference:z.string().trim().max(160).nullable().optional()}),
   z.object({...base,action:z.literal("void_movement"),id:uuid,reason}),
   z.object({...base,action:z.literal("voucher"),...voucher}),
-  z.object({...base,action:z.literal("correct_voucher"),id:uuid,reason,...voucher}),
+  z.object({...base,action:z.literal("correct_voucher"),id:uuid,reason,...voucher,issuerRuc}),
   z.object({...base,action:z.literal("external_void_voucher"),id:uuid,reason}),
 ]);
 const filters=z.object({
@@ -76,7 +79,14 @@ const errorMessages:Record<string,string>={
   FINANCE_VOUCHER_CORRECTION:"No se puede corregir ese registro. Revisa su estado y motivo.",
   FINANCE_IDEMPOTENCY:"Esta operación ya fue utilizada con otros datos. Revisa antes de repetirla.",
   FINANCE_FUTURE:"La fecha del movimiento no puede estar en el futuro.",
+  FINANCE_VOUCHER_PAYLOAD:"Revisa los datos del cobro y su boleta.",
 };
+function validVoucherDocument({documentType,documentNumber}:Pick<z.infer<z.ZodObject<typeof voucher>>,"documentType"|"documentNumber">) {
+  if (Boolean(documentType)!==Boolean(documentNumber)) return false;
+  if (documentType==="DNI") return /^\d{8}$/.test(documentNumber??"");
+  if (documentType==="RUC") return /^\d{11}$/.test(documentNumber??"");
+  return true;
+}
 export async function GET(request:Request) {
   const auth=await authorizePanelApi(request,"finance.read");
   if("response" in auth)return auth.response;
@@ -107,11 +117,27 @@ export async function POST(request:Request) {
   }
   if(parsed.data.action==="voucher"||parsed.data.action==="correct_voucher"){
     const x=parsed.data;
-    try{normalized={...payload,...normalizeVoucher(x.series,x.number),items:validateVoucherDetail(x.items,x.discountMinor??null)};}catch{return responseError("Revisa serie, correlativo y detalle de la boleta.",422);}
+    const config=getFinanceIssuer();
+    if(x.action==="voucher"&&config.invalid)return responseError("Verifica la configuración del RUC emisor.",422);
+    const resolvedIssuer=x.action==="correct_voucher"?x.issuerRuc:config.ruc??x.issuerRuc;
+    if(!resolvedIssuer)return responseError("Escribe el RUC del emisor de 11 dígitos.",422);
+    try{normalized={...payload,issuerRuc:resolvedIssuer,...normalizeVoucher(x.series,x.number),items:validateVoucherDetail(x.items,x.discountMinor??null)};}catch{return responseError("Revisa serie, correlativo y detalle de la boleta.",422);}
     if((x.igvMinor??0)>x.amountMinor||Boolean(x.documentType)!==Boolean(x.documentNumber)||(x.receiptId&&!x.accountId))return responseError("Revisa el IGV, identificación del cliente y vínculo del pago.",422);
   }
+  if(parsed.data.action==="receipt_with_voucher"){
+    const {receipt,voucher:v}=parsed.data;
+    const config=getFinanceIssuer();
+    if(config.invalid)return responseError("Verifica la configuración del RUC emisor.",422);
+    const resolvedIssuer=config.ruc??v.issuerRuc;
+    if(!resolvedIssuer)return responseError("Escribe el RUC del emisor de 11 dígitos.",422);
+    if((v.igvMinor??0)>v.amountMinor||!validVoucherDocument(v))return responseError("Revisa IGV y documento del cliente.",422);
+    try{normalized={receipt,voucher:{...v,issuerRuc:resolvedIssuer,...normalizeVoucher(v.series,v.number),items:validateVoucherDetail(v.items,v.discountMinor??null),sourceKind:"sunat_original"}};}catch{return responseError("Revisa los datos del comprobante.",422);}
+  }
   try{
-    const {data,error}=await getSupabaseAdmin().rpc("crisdal_finance_write",{p_actor:auth.session.userId,p_request:requestId,p_action:action,p_payload:normalized,p_ip_hash:fingerprint(request.headers.get("x-real-ip")||"finance:unknown")});
+    const db=getSupabaseAdmin(),ip=fingerprint(request.headers.get("x-real-ip")||"finance:unknown");
+    const {data,error}=action==="receipt_with_voucher"
+      ?await db.rpc("crisdal_finance_receipt_with_voucher",{p_actor:auth.session.userId,p_request:requestId,p_receipt:normalized.receipt,p_voucher:normalized.voucher,p_ip_hash:ip})
+      :await db.rpc("crisdal_finance_write",{p_actor:auth.session.userId,p_request:requestId,p_action:action,p_payload:normalized,p_ip_hash:ip});
     if(error){
       if(error.code==="23505")return responseError("Ya existe ese comprobante o registro único.",409);
       if(error.message==="FINANCE_FORBIDDEN")return responseError("Permiso insuficiente.",403);
