@@ -1,0 +1,7 @@
+# Safeguards for daily operation (post-release candidate)
+Base reviewed: 48b3c59. Independent temporary branch so the active PR #29 can finish unchanged. No DB writes, migrations, deployments or real customer data.
+- Finance: disable editable controls while submitting, confirm discard for actual edits, protect page unload, retain original idempotency request and reject changed payload after ambiguous transport/server error. A known rejection on a first attempt allows corrections. If user leaves the form, they must verify records before retry; this is not durable cross-device idempotency.
+- Receipt association still uses current month/page. Explicit instructions explain how to link a past payment from its movement. Global search for accounts/receipts remains a later improvement; no new service-role endpoint in this candidate.
+- Portfolio: lock local mutations (add/reorder/unlink/categories), disable inputs during writing, persist dirty draft before image upload or social addition, require all consent evidence and valid cover in UI, correct UTC/Lima datetime-local conversion. Locks are per client instance; server concurrency/storage gates remain essential.
+- Owner guide: exact workflow for original SUNAT number, existing payment, complete monthly export vs page export, Excel text IDs and private Drive.
+- Three new isolated logic tests; full Next build, lint and actual browser/DB QA pending. Reconcile this commit after active release, cherry-pick if appropriate, remove temporary branch only after verifying no unique work remains.

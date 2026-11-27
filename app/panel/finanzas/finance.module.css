@@ -23,3 +23,5 @@
 .accountingExport h2{margin:.25rem 0!important}
 .accountingExport .rowActions{margin-top:.15rem}
 @media(max-width:40rem){.entryForm .formGrid{grid-template-columns:minmax(0,1fr)}.entryForm .voucherNumber{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.voucherNumber p{grid-column:1/-1}.entryForm .formActions>*{flex:1}.accountingExport .rowActions>*{flex:1 1 100%}}
+
+.entryForm .formFields{display:contents;border:0;padding:0;margin:0;min-width:0}.entryForm .formFields:disabled input,.entryForm .formFields:disabled select,.entryForm .formFields:disabled textarea{cursor:wait}

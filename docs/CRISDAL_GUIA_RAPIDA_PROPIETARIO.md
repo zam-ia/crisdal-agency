@@ -32,7 +32,12 @@
 - **Finanzas → Registrar cobro.** Elige el contrato, importe, fecha y medio de pago. Comprueba que aparece en **Cobros y gastos**.
 - **Registrar gasto.** Registra el desembolso efectuado y selecciona su clase. Vincula un gasto directo al contrato correspondiente.
 - **Registrar boleta.** Emite la boleta en SUNAT y después registra en el panel la serie, correlativo e importes del comprobante emitido. Vincúlala a su cobro o contrato cuando corresponda.
-- El CSV de **Resumen** incluye totales del mes y la moneda seleccionada. Las listas exportan la página que estás viendo.
+- Si ya registraste el dinero, abre **Cobros y gastos**, localiza el pago y pulsa **Registrar boleta de este cobro**. Si estás creando un cobro nuevo y ya tienes la boleta, marca **Registrar también la boleta emitida en SUNAT**. No vuelvas a registrar un cobro ya existente.
+- Ejemplo ilustrativo: en EB01-15, la serie es EB01 y el correlativo es 15. El RUC emisor es el de Crisdal; el DNI/RUC del comprador es otro campo. Copia los importes del original: 0.00 es distinto de dejar un campo vacío. La fecha de emisión puede ser distinta a la del pago.
+- **Registros del mes → Boletas del mes · CSV** o **Cobros y gastos del mes · CSV** descarga hasta 5000 registros del periodo y moneda elegidos, incluyendo correcciones y anulaciones. **Resumen** descarga los totales; las exportaciones de lista solo contienen la página visible.
+- Para Excel, importa el CSV en Datos → Desde texto/CSV, selecciona UTF-8 y separador coma, y configura RUC, DNI, correlativo y referencias como texto antes de cargar. No abras el CSV con doble clic si necesitas conservar ceros iniciales.
+- Conserva originales SUNAT y resúmenes Crisdal en Drive, separados por año y mes. Comparte los informes solo con personal autorizado. No son libros tributarios oficiales. No subas los PDF al sistema.
+- Si una operación no se confirma, no cambies sus datos y la repitas con otra referencia sin comprobar primero que no quedó registrada.
 
 ## Crea un acceso en Windows
 
