@@ -3,3 +3,23 @@
 .voucherLine{min-width:0;margin:.8rem 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,10rem),1fr));gap:.75rem;padding:1rem;border:1px solid #dce4df;border-radius:.75rem}.page details>summary{cursor:pointer;color:#14665d;font-weight:700;padding:.65rem 0}.voucherLine legend{font-size:.8rem;color:#45594f;font-weight:700}
 
 .exportBar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;padding:1rem;background:#fff;border:1px solid #dce4df;border-radius:.85rem}.exportBar>div{flex:1 1 15rem}.exportBar strong{font-size:.9rem}.exportBar p{font-size:.78rem;margin-top:.35rem}.exportBar button{flex-shrink:0}.quick button{flex:1 1 10rem}.recordValues strong{font-variant-numeric:tabular-nums;overflow-wrap:anywhere}@media(max-width:34rem){.exportBar button{width:100%}.quick button{flex:1 1 8.5rem}}
+
+/* Guided forms: keep fields proportional and avoid full-width empty input rows. */
+.entryForm{width:min(100%,60rem);justify-self:start;border-radius:1.25rem}
+.entryForm .formGrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:.85rem 1rem;align-items:start}
+.entryForm label{align-content:start;font-size:.88rem}
+.entryForm label small,.entryForm .checkRow small,.accountingExport>small{font-size:.78rem;line-height:1.45;font-weight:400;color:#58645e}
+.entryForm input,.entryForm select{font-weight:400}
+.entryForm input[name="amount"],.entryForm input[name="igv"],.entryForm input[name="discount"],.entryForm input[name="issuerRuc"],.entryForm input[name="documentNumber"],.entryForm input[name="date"],.entryForm input[name="reference"]{max-width:16rem}
+.entryForm .voucherNumber{grid-column:1/-1;display:grid;grid-template-columns:minmax(6rem,9rem) minmax(7rem,12rem) minmax(0,1fr);align-items:end;gap:.8rem;padding:.9rem;border:1px solid #e6d8b7;background:#fffaf0;border-radius:.85rem}
+.voucherNumber p{font-size:.83rem;padding-bottom:.3rem}
+.entryForm .checkRow{display:flex;align-items:flex-start;gap:.75rem;padding:.9rem;border:1px solid #dfd4b8;border-radius:.85rem;background:#fffaf0}
+.entryForm .checkRow input{width:1.15rem;min-height:1.15rem;margin-top:.15rem;accent-color:#946600;flex-shrink:0}
+.entryForm .checkRow span{display:grid;gap:.3rem}
+.entryForm .formActions{border-top:1px solid #e5e5df;padding-top:.9rem}
+.entryForm .primary{background:#fab713;color:#111210;border-color:#fab713}
+.entryForm .primary:hover{background:#e7a50b;border-color:#e7a50b}
+.accountingExport{display:grid;gap:.65rem;border:1px solid #ded6c1;border-radius:1rem;padding:1rem;background:#fffdf7}
+.accountingExport h2{margin:.25rem 0!important}
+.accountingExport .rowActions{margin-top:.15rem}
+@media(max-width:40rem){.entryForm .formGrid{grid-template-columns:minmax(0,1fr)}.entryForm .voucherNumber{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.voucherNumber p{grid-column:1/-1}.entryForm .formActions>*{flex:1}.accountingExport .rowActions>*{flex:1 1 100%}}
