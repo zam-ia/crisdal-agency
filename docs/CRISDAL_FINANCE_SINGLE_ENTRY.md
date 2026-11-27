@@ -1,0 +1,8 @@
+# Cobro y boleta en un solo guardado
+Base: 83eab59. Candidato en rama independiente; no desplegar antes de completar SQL y QA.
+- Checkbox despliega comprobante original; sugiere nombre del contrato, importe, concepto y fecha del cobro. Los valores son editables e independientes. DNI/RUC por longitud, sin consultas externas; no se inventan datos de SUNAT.
+- Configurar CRISDAL_ISSUER_RUC en Vercel server-only con RUC proporcionado por el propietario en chat (no copiarlo a Git). Se precarga también en boleta independiente y se conserva emisor histórico al corregir. Si falta, campo manual. No usar NEXT_PUBLIC_.
+- Un POST receipt_with_voucher valida ambas entradas, respeta finance.write/CSRF y usa una RPC transaccional. La RPC invoker reutiliza las dos operaciones auditadas e idempotentes y determina vínculo, moneda y cuenta. Sin nuevas tablas ni cambios de las 11 migraciones.
+- SQL candidato en docs/sql/CRISDAL_RECEIPT_WITH_VOUCHER_CANDIDATE.sql. Codex debe probarlo en restauración aislada, generar migración incremental con CLI, comprobar grants, rollback, duplicado, concurrencia y reintentos con mismo requestId y cambio de payload. No aplicar a producción hasta backup/restore y revisión. Si no existe RPC, operación falla sin guardar ninguno; conservar release anterior hasta que esté lista.
+- Probar 320/390/768/1440 claro/oscuro, sin boleta, con boleta, fecha/importe distintos, DNI/RUC/no consignado, efectivo, duplicate voucher, request timeout, reintento, saldo y exportación mensual. Verificar no se duplica caja. No emitir ni consultar SUNAT. No asumir IGV.
+- Pendiente lint, tsc, test, build e integración PostgreSQL. No modificar datos productivos. No registrar el RUC real en fixtures.
